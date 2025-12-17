@@ -226,6 +226,119 @@ export const appRouter = router({
         await revokeSession(input.token);
         return { success: true };
       }),
+
+    // 2FA endpoints
+    setup2FA: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const { generate2FASecret } = await import("./twoFactor");
+      const { secret, qrCodeUrl } = generate2FASecret(ctx.user.email || "user@bitchange.pro");
+
+      // Save secret to user (not enabled yet)
+      await db.update(users)
+        .set({ twoFactorSecret: secret })
+        .where(eq(users.id, ctx.user.id));
+
+      return { secret, qrCodeUrl };
+    }),
+
+    enable2FA: protectedProcedure
+      .input(z.object({ token: z.string().length(6) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const user = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        if (!user[0]?.twoFactorSecret) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "2FA not set up. Call setup2FA first." });
+        }
+
+        const { verify2FAToken, generateBackupCodes, hashBackupCode } = await import("./twoFactor");
+        const valid = verify2FAToken(user[0].twoFactorSecret, input.token);
+        if (!valid) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid 2FA token" });
+        }
+
+        // Generate backup codes
+        const backupCodes = generateBackupCodes(10);
+        const hashedCodes = backupCodes.map(hashBackupCode);
+
+        // Enable 2FA
+        await db.update(users)
+          .set({ 
+            twoFactorEnabled: true,
+            twoFactorBackupCodes: JSON.stringify(hashedCodes)
+          })
+          .where(eq(users.id, ctx.user.id));
+
+        return { success: true, backupCodes };
+      }),
+
+    disable2FA: protectedProcedure
+      .input(z.object({ password: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const user = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        if (!user[0]?.password) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot disable 2FA for OAuth users" });
+        }
+
+        const bcrypt = await import("bcryptjs");
+        const valid = await bcrypt.compare(input.password, user[0].password);
+        if (!valid) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+
+        // Disable 2FA
+        await db.update(users)
+          .set({ 
+            twoFactorEnabled: false,
+            twoFactorSecret: null,
+            twoFactorBackupCodes: null
+          })
+          .where(eq(users.id, ctx.user.id));
+
+        return { success: true };
+      }),
+
+    verify2FA: publicProcedure
+      .input(z.object({ userId: z.number(), token: z.string() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const user = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+        if (!user[0]?.twoFactorSecret) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "2FA not enabled" });
+        }
+
+        const { verify2FAToken, verifyBackupCode, removeBackupCode } = await import("./twoFactor");
+        
+        // Try TOTP first
+        const validTOTP = verify2FAToken(user[0].twoFactorSecret, input.token);
+        if (validTOTP) {
+          return { success: true };
+        }
+
+        // Try backup code
+        if (user[0].twoFactorBackupCodes) {
+          const hashedCodes = JSON.parse(user[0].twoFactorBackupCodes);
+          const validBackup = verifyBackupCode(input.token, hashedCodes);
+          if (validBackup) {
+            // Remove used backup code
+            const newCodes = removeBackupCode(input.token, hashedCodes);
+            await db.update(users)
+              .set({ twoFactorBackupCodes: JSON.stringify(newCodes) })
+              .where(eq(users.id, input.userId));
+            return { success: true, usedBackupCode: true };
+          }
+        }
+
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid 2FA token" });
+      }),
   }),
 
   trading: router({
