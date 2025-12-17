@@ -78,6 +78,23 @@
   --sidebar-ring: oklch(0.623 0.214 259.815);
 }
 
+.glass {
+  background: oklch(0.16 0.015 280 / 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid oklch(0.25 0.02 280 / 0.5);
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, oklch(0.65 0.25 280) 0%, oklch(0.6 0.25 250) 100%);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, oklch(0.65 0.25 280) 0%, oklch(0.6 0.25 250) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .dark {
   --primary: var(--color-blue-700);
   --primary-foreground: var(--color-blue-50);

@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, wallets } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { SUPPORTED_ASSETS } from "@shared/const";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -30,9 +30,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
+    const values: InsertUser = { openId: user.openId };
     const updateSet: Record<string, unknown> = {};
 
     const textFields = ["name", "email", "loginMethod"] as const;
@@ -68,9 +66,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -85,8 +81,21 @@ export async function getUserByOpenId(openId: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function initializeUserWallets(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+
+  const existingWallets = await db.select().from(wallets).where(eq(wallets.userId, userId));
+  const existingAssets = new Set(existingWallets.map(w => w.asset));
+
+  const newWallets = SUPPORTED_ASSETS
+    .filter(asset => !existingAssets.has(asset))
+    .map(asset => ({ userId, asset, balance: "0", locked: "0" }));
+
+  if (newWallets.length > 0) {
+    await db.insert(wallets).values(newWallets);
+  }
+}
