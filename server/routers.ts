@@ -1173,6 +1173,131 @@ export const appRouter = router({
 
         return { ok: true };
       }),
+
+    // Hot Wallet Management
+    hotWallets: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      const { masterWallets } = await import("../drizzle/schema");
+      return await db.select().from(masterWallets).orderBy(desc(masterWallets.createdAt));
+    }),
+
+    createHotWallet: adminProcedure
+      .input(z.object({ 
+        network: z.string(), 
+        address: z.string(), 
+        encryptedPrivateKey: z.string(),
+        asset: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { masterWallets } = await import("../drizzle/schema");
+
+        await db.insert(masterWallets).values({
+          network: input.network,
+          address: input.address,
+          encryptedPrivateKey: input.encryptedPrivateKey,
+          asset: input.asset,
+          balance: "0",
+        });
+
+        return { success: true };
+      }),
+
+    hotWalletBalance: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { masterWallets } = await import("../drizzle/schema");
+
+        const [wallet] = await db.select().from(masterWallets)
+          .where(eq(masterWallets.id, input.id))
+          .limit(1);
+
+        if (!wallet) throw new TRPCError({ code: "NOT_FOUND" });
+
+        // In production, fetch real balance from blockchain
+        // For now, return stored balance
+        return { 
+          address: wallet.address,
+          network: wallet.network,
+          asset: wallet.asset,
+          balance: wallet.balance,
+        };
+      }),
+
+    depositAddresses: adminProcedure
+      .input(z.object({ network: z.string().optional() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        const { depositAddresses } = await import("../drizzle/schema");
+
+        if (input.network) {
+          return await db.select().from(depositAddresses)
+            .where(eq(depositAddresses.network, input.network))
+            .orderBy(desc(depositAddresses.createdAt))
+            .limit(100);
+        }
+
+        return await db.select().from(depositAddresses)
+          .orderBy(desc(depositAddresses.createdAt))
+          .limit(100);
+      }),
+
+    // Transaction Logs
+    transactionLogs: adminProcedure
+      .input(z.object({
+        type: z.enum(["all", "deposits", "withdrawals", "trades", "logins"]).optional(),
+        userId: z.number().optional(),
+        limit: z.number().default(100),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { deposits: [], withdrawals: [], trades: [], logins: [] };
+
+        const { deposits: depositsTable, withdrawals: withdrawalsTable, trades: tradesTable, loginHistory } = await import("../drizzle/schema");
+
+        const results: any = {};
+
+        if (!input.type || input.type === "all" || input.type === "deposits") {
+          let query = db.select().from(depositsTable).orderBy(desc(depositsTable.createdAt)).limit(input.limit);
+          if (input.userId) {
+            query = query.where(eq(depositsTable.userId, input.userId)) as any;
+          }
+          results.deposits = await query;
+        }
+
+        if (!input.type || input.type === "all" || input.type === "withdrawals") {
+          let query = db.select().from(withdrawalsTable).orderBy(desc(withdrawalsTable.createdAt)).limit(input.limit);
+          if (input.userId) {
+            query = query.where(eq(withdrawalsTable.userId, input.userId)) as any;
+          }
+          results.withdrawals = await query;
+        }
+
+        if (!input.type || input.type === "all" || input.type === "trades") {
+          let query = db.select().from(tradesTable).orderBy(desc(tradesTable.createdAt)).limit(input.limit);
+          if (input.userId) {
+            query = query.where(
+              sql`${tradesTable.buyerId} = ${input.userId} OR ${tradesTable.sellerId} = ${input.userId}`
+            ) as any;
+          }
+          results.trades = await query;
+        }
+
+        if (!input.type || input.type === "all" || input.type === "logins") {
+          let query = db.select().from(loginHistory).orderBy(desc(loginHistory.createdAt)).limit(input.limit);
+          if (input.userId) {
+            query = query.where(eq(loginHistory.userId, input.userId)) as any;
+          }
+          results.logins = await query;
+        }
+
+        return results;
+      }),
   }),
 
   prices: router({

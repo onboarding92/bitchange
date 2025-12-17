@@ -20,6 +20,8 @@ import VerifyEmail from "./pages/auth/VerifyEmail";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Setup2FA from "./pages/Setup2FA";
+import HotWallets from "./pages/admin/HotWallets";
+import TransactionLogs from "./pages/admin/TransactionLogs";
 
 function Router() {
   return (
@@ -40,6 +42,8 @@ function Router() {
       <Route path="/support" component={Support} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/panel" component={AdminPanel} />
+      <Route path="/admin/hot-wallets" component={HotWallets} />
+      <Route path="/admin/logs" component={TransactionLogs} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

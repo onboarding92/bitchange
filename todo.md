@@ -537,3 +537,42 @@ Remaining issues are minor mock/assertion fixes, core auth logic is fully tested
 - [ ] Integrate 2FA verification in login flow
 - [ ] Add 2FA settings page in dashboard
 - [ ] Test complete 2FA flow with Google Authenticator
+
+
+## Admin Panel Implementation (Dec 17 - Current)
+
+### Hot Wallet Management Panel
+- [x] Add hot wallet router endpoints (list, create, balance, deposit addresses)
+- [ ] Create /admin/hot-wallets page
+- [ ] Display all hot wallets with balance
+- [ ] Add create wallet form (network, address, encrypted key)
+- [ ] Show deposit address pool per network
+- [ ] Add manual balance sync button
+
+### Transaction Logs Panel
+- [ ] Add admin.transactionLogs router endpoint
+- [ ] Create /admin/logs page
+- [ ] Display all deposits with filters (status, date, network, user)
+- [ ] Display all withdrawals with filters (status, date, network, user)
+- [ ] Display all trades with filters (date, pair, user)
+- [ ] Display login history with filters (user, IP, date, success/fail)
+- [ ] Add export to CSV functionality
+- [ ] Add search by user email/ID
+
+### Withdrawal Approval (Already Implemented)
+- [x] Admin can view pending withdrawals
+- [x] Admin can approve withdrawal (updates balance, marks completed)
+- [x] Admin can reject withdrawal (unlocks balance, marks rejected)
+
+
+## Admin Panel Progress (Dec 17)
+
+- [x] Add hot wallet router endpoints
+- [x] Create /admin/hot-wallets page with wallet list
+- [x] Add create wallet form
+- [x] Display wallet balance
+- [x] Add transaction logs router endpoint
+- [x] Create /admin/logs page
+- [x] Display deposits/withdrawals/logins with filters
+- [x] Add export to CSV functionality
+- [x] Add search by user ID
