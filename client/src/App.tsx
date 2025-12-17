@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Trading from "./pages/Trading";
+import Staking from "./pages/Staking";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/trading" component={Trading} />
+      <Route path="/staking" component={Staking} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

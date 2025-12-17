@@ -65,3 +65,15 @@
 - [x] Form per piazzare ordini buy/sell
 - [x] Lista ordini aperti con cancel button
 - [x] Trade history table
+
+
+## Step 2: Staking System (COMPLETED)
+- [x] Router staking.plans (lista piani disponibili)
+- [x] Router staking.stake (creare posizione staking)
+- [x] Router staking.myPositions (posizioni attive utente)
+- [x] Router staking.unstake (ritirare staking + rewards)
+- [x] Pagina Staking con piani disponibili
+- [x] Card per ogni piano con APR, duration, min amount
+- [x] Lista posizioni attive con rewards accumulated
+- [x] Calcolo automatico rewards compound
+- [x] Seed script con 9 piani staking (BTC, ETH, USDT)

@@ -53,7 +53,9 @@ export default function Dashboard() {
               <Link href="/trading">
                 <Button variant="outline" className="w-full">Trade</Button>
               </Link>
-              <Button variant="outline" className="w-full">Stake</Button>
+              <Link href="/staking">
+                <Button variant="outline" className="w-full">Stake</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

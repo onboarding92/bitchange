@@ -171,6 +171,123 @@ export const appRouter = router({
       }),
   }),
 
+  staking: router({
+    plans: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(stakingPlans).where(eq(stakingPlans.enabled, true));
+    }),
+
+    myPositions: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(stakingPositions)
+        .where(eq(stakingPositions.userId, ctx.user.id))
+        .orderBy(desc(stakingPositions.startedAt));
+    }),
+
+    stake: protectedProcedure
+      .input(z.object({
+        planId: z.number().int().positive(),
+        amount: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [plan] = await db.select().from(stakingPlans)
+          .where(and(eq(stakingPlans.id, input.planId), eq(stakingPlans.enabled, true)))
+          .limit(1);
+
+        if (!plan) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Staking plan not found" });
+        }
+
+        const amount = parseFloat(input.amount);
+        if (amount < parseFloat(plan.minAmount)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Minimum amount is ${plan.minAmount} ${plan.asset}` });
+        }
+
+        const [wallet] = await db.select().from(wallets)
+          .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, plan.asset)))
+          .limit(1);
+
+        const available = wallet ? parseFloat(wallet.balance) - parseFloat(wallet.locked) : 0;
+
+        if (!wallet || available < amount) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance" });
+        }
+
+        await db.update(wallets)
+          .set({ balance: sql`${wallets.balance} - ${amount.toString()}` })
+          .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, plan.asset)));
+
+        const maturesAt = new Date();
+        maturesAt.setDate(maturesAt.getDate() + plan.lockDays);
+
+        await db.insert(stakingPositions).values({
+          userId: ctx.user.id,
+          planId: input.planId,
+          amount: input.amount,
+          rewards: "0",
+          status: "active",
+          maturesAt,
+        });
+
+        return { ok: true };
+      }),
+
+    unstake: protectedProcedure
+      .input(z.object({ positionId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [position] = await db.select().from(stakingPositions)
+          .where(eq(stakingPositions.id, input.positionId))
+          .limit(1);
+
+        if (!position || position.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        if (position.status !== "active") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Position already closed" });
+        }
+
+        const now = new Date();
+
+        if (position.maturesAt && now < position.maturesAt) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Position is still locked" });
+        }
+
+        const [plan] = await db.select().from(stakingPlans)
+          .where(eq(stakingPlans.id, position.planId))
+          .limit(1);
+
+        if (!plan) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Plan not found" });
+        }
+
+        const started = new Date(position.startedAt);
+        const daysPassed = (now.getTime() - started.getTime()) / (1000 * 60 * 60 * 24);
+        const principal = parseFloat(position.amount);
+        const apr = parseFloat(plan.apr);
+        const reward = (principal * apr * daysPassed) / (365 * 100);
+        const total = principal + reward;
+
+        await db.update(wallets)
+          .set({ balance: sql`${wallets.balance} + ${total.toString()}` })
+          .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, plan.asset)));
+
+        await db.update(stakingPositions)
+          .set({ status: "withdrawn", rewards: reward.toFixed(8), withdrawnAt: now })
+          .where(eq(stakingPositions.id, input.positionId));
+
+        return { ok: true, reward: reward.toFixed(8) };
+      }),
+  }),
+
   wallet: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       await initializeUserWallets(ctx.user.id);
