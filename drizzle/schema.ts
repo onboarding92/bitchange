@@ -17,6 +17,7 @@ export const users = mysqlTable("users", {
   twoFactorSecret: varchar("twoFactorSecret", { length: 255 }),
   twoFactorEnabled: boolean("twoFactorEnabled").default(false).notNull(),
   twoFactorBackupCodes: text("twoFactorBackupCodes"), // JSON array of backup codes
+  accountStatus: mysqlEnum("accountStatus", ["active", "suspended"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

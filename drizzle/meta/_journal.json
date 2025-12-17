@@ -64,6 +64,13 @@
       "when": 1765996291647,
       "tag": "0008_heavy_speed_demon",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1766000216466,
+      "tag": "0009_fair_shotgun",
+      "breakpoints": true
     }
   ]
 }

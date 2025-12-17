@@ -909,6 +909,255 @@ export const appRouter = router({
   }),
 
   admin: router({
+    // User Management
+    users: adminProcedure
+      .input(z.object({
+        search: z.string().optional(),
+        role: z.enum(["admin", "user"]).optional(),
+        kycStatus: z.enum(["pending", "approved", "rejected"]).optional(),
+        limit: z.number().default(50),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { users: [], total: 0 };
+
+        let query = db.select().from(users);
+
+        // Apply filters
+        const conditions = [];
+        if (input.search) {
+          conditions.push(
+            sql`${users.email} LIKE ${`%${input.search}%`} OR ${users.name} LIKE ${`%${input.search}%`}`
+          );
+        }
+        if (input.role) {
+          conditions.push(eq(users.role, input.role));
+        }
+        if (input.kycStatus) {
+          conditions.push(eq(users.kycStatus, input.kycStatus));
+        }
+
+        if (conditions.length > 0) {
+          query = query.where(sql`${sql.join(conditions, sql` AND `)}`) as any;
+        }
+
+        const [countResult] = await db.select({ count: sql<number>`count(*)` })
+          .from(users)
+          .where(conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined);
+
+        const usersList = await query
+          .limit(input.limit)
+          .offset(input.offset)
+          .orderBy(desc(users.createdAt));
+
+        return {
+          users: usersList,
+          total: countResult?.count ?? 0,
+        };
+      }),
+
+    updateUser: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        role: z.enum(["admin", "user"]).optional(),
+        kycStatus: z.enum(["pending", "approved", "rejected"]).optional(),
+        accountStatus: z.enum(["active", "suspended"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const updates: any = {};
+        if (input.role) updates.role = input.role;
+        if (input.kycStatus) updates.kycStatus = input.kycStatus;
+        if (input.accountStatus) updates.accountStatus = input.accountStatus;
+
+        await db.update(users)
+          .set(updates)
+          .where(eq(users.id, input.userId));
+
+        return { success: true };
+      }),
+
+    adjustBalance: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        asset: z.string(),
+        amount: z.string(),
+        type: z.enum(["add", "subtract"]),
+        reason: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { wallets: walletsTable } = await import("../drizzle/schema");
+
+        // Get current wallet
+        const [wallet] = await db.select()
+          .from(walletsTable)
+          .where(
+            sql`${walletsTable.userId} = ${input.userId} AND ${walletsTable.asset} = ${input.asset}`
+          )
+          .limit(1);
+
+        if (!wallet) {
+          // Create new wallet
+          await db.insert(walletsTable).values({
+            userId: input.userId,
+            asset: input.asset,
+            balance: input.type === "add" ? input.amount : "0",
+            locked: "0",
+          });
+        } else {
+          // Update existing wallet
+          const currentBalance = parseFloat(wallet.balance);
+          const adjustAmount = parseFloat(input.amount);
+          const newBalance = input.type === "add" 
+            ? currentBalance + adjustAmount
+            : currentBalance - adjustAmount;
+
+          if (newBalance < 0) {
+            throw new TRPCError({ 
+              code: "BAD_REQUEST", 
+              message: "Insufficient balance" 
+            });
+          }
+
+          await db.update(walletsTable)
+            .set({ balance: newBalance.toString() })
+            .where(eq(walletsTable.id, wallet.id));
+        }
+
+        // Log the adjustment
+        // TODO: Create audit log table
+
+        return { success: true };
+      }),
+
+    userActivity: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { deposits: [], withdrawals: [], trades: [], logins: [] };
+
+        const { deposits: depositsTable, withdrawals: withdrawalsTable, trades: tradesTable, loginHistory } = await import("../drizzle/schema");
+
+        const deposits = await db.select()
+          .from(depositsTable)
+          .where(eq(depositsTable.userId, input.userId))
+          .orderBy(desc(depositsTable.createdAt))
+          .limit(20);
+
+        const withdrawals = await db.select()
+          .from(withdrawalsTable)
+          .where(eq(withdrawalsTable.userId, input.userId))
+          .orderBy(desc(withdrawalsTable.createdAt))
+          .limit(20);
+
+        const trades = await db.select()
+          .from(tradesTable)
+          .where(
+            sql`${tradesTable.buyerId} = ${input.userId} OR ${tradesTable.sellerId} = ${input.userId}`
+          )
+          .orderBy(desc(tradesTable.createdAt))
+          .limit(20);
+
+        const logins = await db.select()
+          .from(loginHistory)
+          .where(eq(loginHistory.userId, input.userId))
+          .orderBy(desc(loginHistory.createdAt))
+          .limit(20);
+
+        return { deposits, withdrawals, trades, logins };
+      }),
+
+    // Dashboard Statistics
+    dashboardStats: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return {
+        totalUsers: 0,
+        activeUsers: 0,
+        pendingWithdrawals: 0,
+        pendingKyc: 0,
+        dailyVolume: "0",
+        weeklyVolume: "0",
+        monthlyVolume: "0",
+        totalRevenue: "0",
+        userGrowth: [],
+        volumeChart: [],
+      };
+
+      // Total users
+      const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+      
+      // Active users (logged in last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const [activeCount] = await db.select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(sql`${users.lastSignedIn} >= ${sevenDaysAgo}`);
+
+      // Pending withdrawals
+      const [withdrawalCount] = await db.select({ count: sql<number>`count(*)` })
+        .from(withdrawals)
+        .where(eq(withdrawals.status, "pending"));
+
+      // Pending KYC
+      const [kycCount] = await db.select({ count: sql<number>`count(*)` })
+        .from(kycDocuments)
+        .where(eq(kycDocuments.status, "pending"));
+
+      // Volume calculations (from trades)
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+      const [dailyVol] = await db.select({ 
+        total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
+      }).from(trades).where(sql`${trades.createdAt} >= ${oneDayAgo}`);
+
+      const [weeklyVol] = await db.select({ 
+        total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
+      }).from(trades).where(sql`${trades.createdAt} >= ${sevenDaysAgo}`);
+
+      const [monthlyVol] = await db.select({ 
+        total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
+      }).from(trades).where(sql`${trades.createdAt} >= ${thirtyDaysAgo}`);
+
+      // User growth (last 30 days)
+      const userGrowthData = await db.select({
+        date: sql<string>`DATE(${users.createdAt})`,
+        count: sql<number>`count(*)`
+      })
+      .from(users)
+      .where(sql`${users.createdAt} >= ${thirtyDaysAgo}`)
+      .groupBy(sql`DATE(${users.createdAt})`)
+      .orderBy(sql`DATE(${users.createdAt})`);
+
+      // Volume chart (last 30 days)
+      const volumeData = await db.select({
+        date: sql<string>`DATE(${trades.createdAt})`,
+        volume: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)`
+      })
+      .from(trades)
+      .where(sql`${trades.createdAt} >= ${thirtyDaysAgo}`)
+      .groupBy(sql`DATE(${trades.createdAt})`)
+      .orderBy(sql`DATE(${trades.createdAt})`);
+
+      return {
+        totalUsers: userCount?.count ?? 0,
+        activeUsers: activeCount?.count ?? 0,
+        pendingWithdrawals: withdrawalCount?.count ?? 0,
+        pendingKyc: kycCount?.count ?? 0,
+        dailyVolume: dailyVol?.total ?? "0",
+        weeklyVolume: weeklyVol?.total ?? "0",
+        monthlyVolume: monthlyVol?.total ?? "0",
+        totalRevenue: "0", // Calculate from fees
+        userGrowth: userGrowthData,
+        volumeChart: volumeData,
+      };
+    }),
+
     stats: adminProcedure.query(async () => {
       const db = await getDb();
       if (!db) return { totalUsers: 0, pendingWithdrawals: 0, pendingKyc: 0 };

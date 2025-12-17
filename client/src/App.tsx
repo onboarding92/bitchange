@@ -22,6 +22,8 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import Setup2FA from "./pages/Setup2FA";
 import HotWallets from "./pages/admin/HotWallets";
 import TransactionLogs from "./pages/admin/TransactionLogs";
+import AdminDashboard from "./pages/admin/Dashboard";
+import UsersManagement from "./pages/admin/Users";
 
 function Router() {
   return (
@@ -41,9 +43,11 @@ function Router() {
       <Route path="/kyc" component={KYC} />
       <Route path="/support" component={Support} />
       <Route path="/admin" component={Admin} />
+      <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/panel" component={AdminPanel} />
       <Route path="/admin/hot-wallets" component={HotWallets} />
       <Route path="/admin/logs" component={TransactionLogs} />
+      <Route path="/admin/users" component={UsersManagement} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

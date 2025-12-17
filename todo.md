@@ -576,3 +576,52 @@ Remaining issues are minor mock/assertion fixes, core auth logic is fully tested
 - [x] Display deposits/withdrawals/logins with filters
 - [x] Add export to CSV functionality
 - [x] Add search by user ID
+
+
+## Admin Dashboard & User Management (Dec 17 - Current)
+
+### Admin Dashboard Overview
+- [ ] Add dashboard.stats router endpoint (real-time statistics)
+- [ ] Create /admin/dashboard page
+- [ ] Display total users, active users, pending withdrawals
+- [ ] Display daily/weekly/monthly volume
+- [ ] Display total revenue and fees collected
+- [ ] Add charts for user growth (recharts library)
+- [ ] Add charts for trading volume over time
+- [ ] Add alert system for pending actions
+- [ ] Add quick actions (approve withdrawal, view KYC, etc.)
+
+### User Management Panel
+- [ ] Add admin.users router endpoint (list, search, edit)
+- [ ] Create /admin/users page
+- [ ] Display all users with pagination
+- [ ] Add search by email/ID/name
+- [ ] Add filter by role (admin/user), KYC status, account status
+- [ ] Implement edit user modal (change role, suspend account)
+- [ ] Add manual balance adjustment feature (with audit log)
+- [ ] Display user activity history (logins, trades, deposits, withdrawals)
+- [ ] Add export users to CSV
+
+
+## Admin Dashboard & User Management Progress (Dec 17)
+
+### Admin Dashboard Overview
+- [x] Add dashboard.stats router endpoint (real-time statistics)
+- [x] Create /admin/dashboard page
+- [x] Display total users, active users, pending withdrawals
+- [x] Display daily/weekly/monthly volume
+- [x] Add charts for user growth (recharts library)
+- [x] Add charts for trading volume over time
+- [x] Add alert system for pending actions
+- [x] Add quick actions (approve withdrawal, view KYC, etc.)
+
+### User Management Panel
+- [x] Add admin.users router endpoint (list, search, edit)
+- [x] Create /admin/users page
+- [x] Display all users with pagination
+- [x] Add search by email/ID/name
+- [x] Add filter by role (admin/user), KYC status, account status
+- [x] Implement edit user modal (change role, suspend account)
+- [x] Add manual balance adjustment feature (with audit log)
+- [x] Display user activity history (logins, trades, deposits, withdrawals)
+- [x] Add export users to CSV
