@@ -422,9 +422,18 @@ export const appRouter = router({
   kyc: router({
     submit: protectedProcedure
       .input(z.object({
+        firstName: z.string(),
+        lastName: z.string(),
+        dateOfBirth: z.string(),
+        address: z.string(),
+        city: z.string(),
+        country: z.string(),
+        postalCode: z.string(),
         documentType: z.enum(["id_card", "passport", "drivers_license"]),
         frontImageUrl: z.string(),
         backImageUrl: z.string().optional(),
+        selfieUrl: z.string().optional(),
+        proofOfAddressUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -444,9 +453,18 @@ export const appRouter = router({
 
         await db.insert(kycDocuments).values({
           userId: ctx.user.id,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          dateOfBirth: input.dateOfBirth,
+          address: input.address,
+          city: input.city,
+          country: input.country,
+          postalCode: input.postalCode,
           documentType: input.documentType,
           frontImageUrl: input.frontImageUrl,
           backImageUrl: input.backImageUrl || null,
+          selfieUrl: input.selfieUrl || null,
+          proofOfAddressUrl: input.proofOfAddressUrl || null,
           status: "pending",
         });
 

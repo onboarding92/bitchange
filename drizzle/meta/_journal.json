@@ -36,6 +36,13 @@
       "when": 1765979794800,
       "tag": "0004_ordinary_lady_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1765981192086,
+      "tag": "0005_careful_dark_beast",
+      "breakpoints": true
     }
   ]
 }

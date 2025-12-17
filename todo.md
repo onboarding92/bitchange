@@ -223,3 +223,30 @@
 - [ ] CTA buttons prominenti
 - [ ] Smooth scroll animations
 - [ ] Gradient effects e glass morphism
+
+
+## TASK IN PROGRESS
+
+### KYC Completo
+- [x] Aggiungere campi al form KYC: firstName, lastName, dateOfBirth, address, city, country, postalCode
+- [x] Upload documento ID (front + back)
+- [x] Upload selfie
+- [x] Upload proof of address
+- [x] Validazione campi obbligatori
+- [x] File size validation (5MB max)
+- [x] Requirements checklist display
+- [ ] Integrazione S3 storage per upload reali (placeholder URLs per ora)
+
+### Fix Admin Panel Access
+- [x] Verificare che solo role='admin' veda menu Admin
+- [x] Filter implementato: menuItems.filter(item => !item.adminOnly || user?.role === 'admin')
+- [x] Admin menu nascosto per users normali
+- [ ] Testare con user account (verificare role nel database)
+
+### Sistema Login/Register
+- [ ] Pagina Login con email/password
+- [ ] Pagina Register con validazione
+- [ ] Password recovery flow
+- [ ] Email verification
+- [ ] JWT token management
+- [ ] Rimuovere dipendenze Manus OAuth

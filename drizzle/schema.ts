@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, date } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -118,9 +118,18 @@ export const withdrawals = mysqlTable("withdrawals", {
 export const kycDocuments = mysqlTable("kycDocuments", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
+  firstName: varchar("firstName", { length: 100 }),
+  lastName: varchar("lastName", { length: 100 }),
+  dateOfBirth: varchar("dateOfBirth", { length: 10 }),
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  country: varchar("country", { length: 100 }),
+  postalCode: varchar("postalCode", { length: 20 }),
   documentType: mysqlEnum("documentType", ["id_card", "passport", "drivers_license"]).notNull(),
   frontImageUrl: text("frontImageUrl").notNull(),
   backImageUrl: text("backImageUrl"),
+  selfieUrl: text("selfieUrl"),
+  proofOfAddressUrl: text("proofOfAddressUrl"),
   status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
   adminNote: text("adminNote"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
