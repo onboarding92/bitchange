@@ -250,3 +250,12 @@
 - [ ] Email verification
 - [ ] JWT token management
 - [ ] Rimuovere dipendenze Manus OAuth
+
+
+### Upload Locale Server (COMPLETED)
+- [x] Installare multer per file upload
+- [x] Creare cartella /uploads sul server
+- [x] API endpoint /api/upload per upload file
+- [x] Servire file statici da /uploads
+- [x] Integrare upload nella pagina KYC
+- [x] Validazione file type e size server-side (5MB max, JPEG/PNG/WEBP/PDF)

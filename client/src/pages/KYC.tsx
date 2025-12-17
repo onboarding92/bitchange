@@ -8,7 +8,6 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Upload, CheckCircle2, Clock, XCircle, FileText } from "lucide-react";
-import { storagePut } from "../../../server/storage";
 
 export default function KYC() {
   const [firstName, setFirstName] = useState("");
@@ -30,7 +29,6 @@ export default function KYC() {
   const submitKyc = trpc.kyc.submit.useMutation({
     onSuccess: () => {
       toast.success("KYC submitted successfully! Awaiting admin approval.");
-      // Reset form
       setFirstName("");
       setLastName("");
       setDateOfBirth("");
@@ -47,6 +45,23 @@ export default function KYC() {
       toast.error(error.message);
     },
   });
+
+  const uploadFile = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("File upload failed");
+    }
+
+    const data = await response.json();
+    return data.url;
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: (file: File | null) => void) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,27 +87,32 @@ export default function KYC() {
       return;
     }
 
-    // In production, upload to S3 here
-    // For now, use placeholder URLs
-    const frontImageUrl = `placeholder-front-${Date.now()}.jpg`;
-    const backImageUrl = backImage ? `placeholder-back-${Date.now()}.jpg` : undefined;
-    const selfieUrl = selfieImage ? `placeholder-selfie-${Date.now()}.jpg` : undefined;
-    const proofOfAddressUrl = proofAddress ? `placeholder-proof-${Date.now()}.jpg` : undefined;
+    toast.info("Uploading documents...");
 
-    submitKyc.mutate({
-      firstName,
-      lastName,
-      dateOfBirth,
-      address,
-      city,
-      country,
-      postalCode,
-      documentType,
-      frontImageUrl,
-      backImageUrl,
-      selfieUrl,
-      proofOfAddressUrl,
-    });
+    try {
+      const frontImageUrl = await uploadFile(frontImage);
+      const backImageUrl = backImage ? await uploadFile(backImage) : undefined;
+      const selfieUrl = selfieImage ? await uploadFile(selfieImage) : undefined;
+      const proofOfAddressUrl = proofAddress ? await uploadFile(proofAddress) : undefined;
+
+      submitKyc.mutate({
+        firstName,
+        lastName,
+        dateOfBirth,
+        address,
+        city,
+        country,
+        postalCode,
+        documentType,
+        frontImageUrl,
+        backImageUrl,
+        selfieUrl,
+        proofOfAddressUrl,
+      });
+    } catch (error) {
+      toast.error("Failed to upload documents. Please try again.");
+      console.error(error);
+    }
   };
 
   const getStatusBadge = (status: string) => {
