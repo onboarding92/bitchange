@@ -123,3 +123,29 @@ All documentation complete and up-to-date:
 ---
 
 Last Updated: December 17, 2025
+
+
+## ✅ BUGS VERIFIED - December 17, 2025
+
+### Bug 1: View Markets Button - NO BUG FOUND ✅
+- [x] Tested "View Markets" button from home page
+- [x] Routes correctly to `/trading` page
+- [x] Shows trading interface with order book
+- **Status**: Working as expected, no fix needed
+
+### Bug 2: Deposit Wallet Addresses - NO BUG FOUND ✅
+- [x] Tested deposit page wallet generation
+- [x] Address generated successfully: `0x4a278bfA0aBB7A8847CAD8fC2ac071b457cDfA75`
+- [x] QR code displays correctly
+- [x] Network selection works (USDT-ERC20)
+- **Status**: Working as expected, no fix needed
+
+### Task 1: Clear Locked Balances ✅
+- [x] Executed SQL to clear locked balances for test users
+- [x] Query: `UPDATE wallets SET locked = 0 WHERE userId IN (...)`
+- **Status**: Completed
+
+### Task 2: Error Toast Notifications ✅
+- [x] Verified error handling already exists in Trade.tsx (line 36-38)
+- [x] `onError: (error) => toast.error(error.message)`
+- **Status**: Already implemented, no changes needed
