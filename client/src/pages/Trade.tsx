@@ -22,6 +22,7 @@ export default function Trade() {
   const { data: recentTrades, refetch: refetchTrades } = trpc.trade.recentTrades.useQuery({ pair: selectedPair, limit: 20 });
   const { data: myOrders, refetch: refetchMyOrders } = trpc.trade.myOrders.useQuery({ pair: selectedPair });
   const { data: currentPrice } = trpc.prices.getPair.useQuery({ pair: selectedPair });
+  const { data: wallets } = trpc.wallet.list.useQuery();
 
   // Mutations
   const placeOrderMutation = trpc.trade.placeOrder.useMutation({
@@ -225,6 +226,15 @@ export default function Trade() {
                 {/* Amount */}
                 <div>
                   <Label>Amount ({selectedPair.split("/")[0]})</Label>
+                  {/* Available Balance Display */}
+                  {wallets && (
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Available: {orderSide === "buy" 
+                        ? `${parseFloat(wallets.find(w => w.asset === selectedPair.split("/")[1])?.balance || "0").toFixed(2)} ${selectedPair.split("/")[1]}`
+                        : `${parseFloat(wallets.find(w => w.asset === selectedPair.split("/")[0])?.balance || "0").toFixed(8)} ${selectedPair.split("/")[0]}`
+                      }
+                    </div>
+                  )}
                   <Input
                     type="number"
                     step="0.0001"
