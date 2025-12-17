@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Uploads (will be mounted as volume)
+uploads/
+
+# Documentation
+*.md
+!README.md
+
+# Screenshots
+screenshots/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Scripts
+deploy.sh
+
+# Testing
+coverage/
+*.test.ts
+*.spec.ts
+
+# Misc
+tmp/
+temp/
+.cache/

@@ -134,13 +134,43 @@ The app will be available at `http://localhost:3000`
 
 ## 🚀 Production Deployment
 
-### Build for production
+### Docker Deployment (Recommended)
+
+The easiest way to deploy BitChange Pro is using Docker Compose.
+
+**Quick Deploy:**
+```bash
+# On your VPS (ssh root@46.224.87.94)
+cd /root
+git clone https://github.com/YOUR_USERNAME/bitchange-pro.git
+cd bitchange-pro
+
+# Create .env file (see ENV.md for all variables)
+nano .env
+
+# Run automated deployment
+chmod +x deploy.sh
+sudo ./deploy.sh
+```
+
+The script will:
+- Install Docker & Docker Compose
+- Setup SSL certificates (Let's Encrypt)
+- Build and start all containers (app, database, nginx)
+- Run database migrations
+- Seed initial data
+
+**Access:** https://bitchangemoney.xyz
+
+**See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment guide.**
+
+### Manual Build for Production
 ```bash
 pnpm build
 pnpm start
 ```
 
-### VPS Deployment (Ubuntu/Debian)
+### Manual VPS Deployment (Ubuntu/Debian)
 
 1. **Install dependencies**
 ```bash
@@ -296,10 +326,13 @@ pnpm test:watch
 - **Password Hashing**: Bcrypt with salt rounds
 - **JWT Authentication**: Secure token-based auth
 - **SQL Injection Protection**: Drizzle ORM parameterized queries
-- **File Upload Validation**: Type and size restrictions
+- **File Upload Validation**: Type and size restrictions (5MB max)
 - **Role-Based Access Control**: Admin-only endpoints
 - **CORS Protection**: Configured for production
-- **Rate Limiting**: (TODO) Implement rate limiting
+- **Rate Limiting**: Nginx rate limiting (10 req/s API, 50 req/s general)
+- **HTTPS Enforced**: HTTP → HTTPS redirect
+- **Security Headers**: HSTS, X-Frame-Options, X-Content-Type-Options, XSS Protection
+- **Wallet Locking**: Automatic locking during pending withdrawals
 
 ## 🚧 Roadmap
 
