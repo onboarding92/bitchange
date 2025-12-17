@@ -14,11 +14,21 @@ import KYC from "./pages/KYC";
 import Support from "./pages/Support";
 import Admin from "./pages/Admin";
 import AdminPanel from "./pages/AdminPanel";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import VerifyEmail from "./pages/auth/VerifyEmail";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/auth/login" component={Login} />
+      <Route path="/auth/register" component={Register} />
+      <Route path="/auth/verify-email" component={VerifyEmail} />
+      <Route path="/auth/forgot-password" component={ForgotPassword} />
+      <Route path="/auth/reset-password" component={ResetPassword} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/trading" component={Trading} />
       <Route path="/staking" component={Staking} />

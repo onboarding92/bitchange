@@ -302,3 +302,56 @@
 - [ ] Init git repository
 - [ ] Create GitHub repository
 - [ ] Push codice completo
+
+
+## TASK PRIORITARIO: Port Auth System da GitHub
+
+### Fix Errori TypeScript Esistenti
+- [ ] Fix error: 'email' field not in users table schema (drizzle/schema.ts)
+- [ ] Fix syntax error in server/routers.ts (missing closing brace)
+
+### Database Schema per Auth Completo
+- [x] Add email and passwordHash fields to users table
+- [x] Create sessions table (id, userId, token, expiresAt, createdAt)
+- [x] Create loginHistory table (id, userId, ip, userAgent, timestamp, success)
+- [x] Create emailVerificationCodes table (id, userId, code, expiresAt)
+- [x] Create passwordResets table (id, userId, token, expiresAt, used)
+- [x] Create passwordHistory table (id, userId, passwordHash, createdAt)
+
+### Email System Implementation
+- [x] Create server/email.ts utility (sendEmail function)
+- [x] Add SMTP env variables (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)
+- [x] Implement email verification with OTP codes
+- [x] Implement login alert emails
+- [x] Implement password reset emails
+- [x] Email templates for all scenarios
+
+### Auth Backend (Port from GitHub)
+- [x] Create server/sessionManager.ts (createSession, getSession, revokeSession)
+- [x] Create server/rateLimit.ts middleware
+- [x] Port server/routers.auth.ts (login, register, logout, verify, reset)
+- [x] Add bcryptjs for password hashing (already present)
+- [x] Implement email verification flow
+- [x] Implement password reset flow
+- [x] Add device session tracking
+- [x] Add login history tracking
+- [x] Adapt all SQLite queries to Drizzle ORM
+
+### Auth Frontend Pages
+- [x] Create client/src/pages/auth/Login.tsx
+- [x] Create client/src/pages/auth/Register.tsx
+- [x] Create client/src/pages/auth/VerifyEmail.tsx
+- [x] Create client/src/pages/auth/ForgotPassword.tsx
+- [x] Create client/src/pages/auth/ResetPassword.tsx
+- [x] Update App.tsx with auth routes
+- [ ] Update DashboardLayout to handle auth state
+- [ ] Remove Manus OAuth dependencies (keep for now, works alongside)
+
+### Testing Auth System
+- [ ] Write vitest tests for register flow
+- [ ] Write vitest tests for login flow
+- [ ] Write vitest tests for email verification
+- [ ] Write vitest tests for password reset
+- [ ] Test rate limiting
+- [ ] Test session management
+- [ ] Test device tracking

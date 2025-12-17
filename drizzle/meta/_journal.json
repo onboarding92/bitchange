@@ -43,6 +43,13 @@
       "when": 1765981192086,
       "tag": "0005_careful_dark_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1765988474731,
+      "tag": "0006_living_molten_man",
+      "breakpoints": true
     }
   ]
 }

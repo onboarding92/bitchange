@@ -3,6 +3,12 @@ import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { hashPassword, comparePassword, generateToken } from "./authHelpers";
+import { createSession, getSession, revokeSession, listUserSessions } from "./sessionManager";
+import { generateEmailCode, verifyEmailCode } from "./emailVerification";
+import { requestPasswordReset, resetPassword, verifyResetToken } from "./passwordReset";
+import { checkLoginRateLimit, checkRegisterRateLimit, extractClientIp, recordLoginResult } from "./rateLimit";
+import { recordLoginAttempt } from "./loginHistory";
+import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
@@ -28,9 +34,13 @@ export const appRouter = router({
         password: z.string().min(8), 
         name: z.string().min(2) 
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        // Rate limiting
+        const ip = extractClientIp(ctx.req);
+        checkRegisterRateLimit({ ip });
 
         // Check if user already exists
         const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
@@ -42,16 +52,28 @@ export const appRouter = router({
         const hashedPassword = await hashPassword(input.password);
 
         // Create user
-        await db.insert(users).values({
+        const result = await db.insert(users).values({
           email: input.email,
           password: hashedPassword,
           name: input.name,
-          openId: null,
           role: "user",
-          emailVerified: false,
         });
 
-        return { success: true, message: "Registration successful" };
+        // Get user ID
+        const newUser = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        if (newUser.length === 0) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create user" });
+        }
+
+        const userId = newUser[0].id;
+
+        // Generate and send verification code
+        await generateEmailCode(userId, input.email);
+
+        // Send welcome email
+        await sendWelcomeEmail(input.email);
+
+        return { success: true, message: "Registration successful. Please check your email for verification code.", userId };
       }),
 
     login: publicProcedure
@@ -60,39 +82,150 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
+        // Rate limiting
+        const ip = extractClientIp(ctx.req);
+        const userAgent = ctx.req.headers["user-agent"] || "unknown";
+        checkLoginRateLimit({ ip, email: input.email });
+
         // Find user by email
         const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
         if (userResult.length === 0) {
+          await recordLoginAttempt({
+            email: input.email,
+            ipAddress: ip,
+            userAgent,
+            method: "password",
+            success: false,
+          });
+          recordLoginResult({ ip, email: input.email, success: false });
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
         }
 
         const user = userResult[0];
         if (!user.password) {
+          await recordLoginAttempt({
+            userId: user.id,
+            email: input.email,
+            ipAddress: ip,
+            userAgent,
+            method: "password",
+            success: false,
+          });
+          recordLoginResult({ ip, email: input.email, success: false });
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Please use OAuth login" });
         }
 
         // Verify password
         const isValid = await comparePassword(input.password, user.password);
         if (!isValid) {
+          await recordLoginAttempt({
+            userId: user.id,
+            email: input.email,
+            ipAddress: ip,
+            userAgent,
+            method: "password",
+            success: false,
+          });
+          recordLoginResult({ ip, email: input.email, success: false });
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
         }
 
-        // Generate JWT token
-        const token = generateToken({ userId: user.id, email: user.email, role: user.role });
+        // Create session
+        const token = await createSession(
+          { userId: user.id, email: user.email!, role: user.role },
+          ip,
+          userAgent
+        );
 
         // Set cookie
         const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie("auth_token", token, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
 
+        // Record successful login
+        await recordLoginAttempt({
+          userId: user.id,
+          email: input.email,
+          ipAddress: ip,
+          userAgent,
+          method: "password",
+          success: true,
+        });
+        recordLoginResult({ ip, email: input.email, success: true });
+
+        // Send login alert email
+        await sendLoginAlertEmail({
+          to: user.email!,
+          ip,
+          userAgent,
+          timestamp: new Date().toLocaleString(),
+        });
+
         return { success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
       }),
 
-    logout: publicProcedure.mutation(({ ctx }) => {
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      const token = ctx.req.cookies["auth_token"];
+      if (token) {
+        await revokeSession(token);
+      }
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie("auth_token", { ...cookieOptions, maxAge: -1 });
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+
+    verifyEmail: publicProcedure
+      .input(z.object({ userId: z.number(), code: z.string().length(6) }))
+      .mutation(async ({ input }) => {
+        const success = await verifyEmailCode(input.userId, input.code);
+        if (!success) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired verification code" });
+        }
+        return { success: true, message: "Email verified successfully" };
+      }),
+
+    resendVerificationCode: publicProcedure
+      .input(z.object({ userId: z.number(), email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        await generateEmailCode(input.userId, input.email);
+        return { success: true, message: "Verification code sent" };
+      }),
+
+    requestPasswordReset: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        await requestPasswordReset(input.email);
+        return { success: true, message: "If the email exists, a password reset link has been sent" };
+      }),
+
+    verifyResetToken: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const valid = await verifyResetToken(input.token);
+        return { valid };
+      }),
+
+    resetPassword: publicProcedure
+      .input(z.object({ token: z.string(), newPassword: z.string().min(8) }))
+      .mutation(async ({ input }) => {
+        const success = await resetPassword(input.token, input.newPassword);
+        if (!success) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired reset token" });
+        }
+        return { success: true, message: "Password reset successfully" };
+      }),
+
+    listSessions: protectedProcedure.query(async ({ ctx }) => {
+      const sessions = await listUserSessions(ctx.user.id);
+      return sessions;
+    }),
+
+    revokeSession: protectedProcedure
+      .input(z.object({ token: z.string() }))
+      .mutation(async ({ input }) => {
+        await revokeSession(input.token);
+        return { success: true };
+      }),
   }),
 
   trading: router({
