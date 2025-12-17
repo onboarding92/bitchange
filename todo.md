@@ -421,3 +421,68 @@ For questions or issues:
 2. **Before Launch**: Complete testnet blockchain testing
 3. **Production**: Deploy with monitoring and backups
 4. **Post-Launch**: Monitor error rates and user feedback
+
+
+## 🔄 CURRENT TASKS - Database Migration & Matching Engine Test
+
+### Database Migration
+- [ ] Run `pnpm db:push` to apply latest schema
+- [ ] Verify all tables are created/updated
+- [ ] Check for migration errors
+- [ ] Confirm database connection
+
+### Matching Engine Test
+- [ ] Create second test user (buyer) with USDT balance
+- [ ] Login as buyer user
+- [ ] Place buy order BTC/USDT that matches existing sell order
+- [ ] Verify matching engine executes trade automatically
+- [ ] Check trade record in database
+- [ ] Verify seller balance updated (BTC decreased, USDT increased)
+- [ ] Verify buyer balance updated (USDT decreased, BTC increased)
+- [ ] Verify order status changed to 'filled'
+- [ ] Verify fees deducted correctly
+
+
+## ⚠️ MATCHING ENGINE BUG DISCOVERED
+
+### Test Results - December 17, 2025
+
+**Setup**:
+- Created trader1 (sell side): 1.0 BTC, 10,000 USDT
+- Created buyer2 (buy side): 0 BTC, 50,000 USDT
+- Placed sell order: BTC/USDT @ 86000, amount 0.5 BTC
+- Placed buy order: BTC/USDT @ 86000, amount 0.5 BTC
+
+**Expected Result**:
+- Trade executes automatically
+- Both orders status → 'filled'
+- Seller receives 43,000 USDT (minus fees)
+- Buyer receives 0.5 BTC
+- Trade record created in database
+
+**Actual Result** ❌:
+- Both orders remain 'open'
+- No trade executed
+- No trade record in database
+- Order book shows both orders at same price
+- No errors in server logs
+
+**Root Cause** (Under Investigation):
+- `matchOrder()` function IS called (line 180 of tradingEngine.ts)
+- Matching logic appears correct
+- No errors logged
+- Possible issues:
+  * Database query for opposite orders returns empty
+  * Price comparison fails (string vs number)
+  * Function exits early without logging
+  * Transaction rollback
+
+**Fix Required**:
+1. Add debug logging to `matchOrder()` function
+2. Verify opposite orders query works
+3. Check price type conversion
+4. Test with manual SQL trade execution
+
+**Priority**: 🔴 P0 - CRITICAL - Must fix before production
+
+**Status**: BUG DOCUMENTED, FIX PENDING

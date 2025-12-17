@@ -4,7 +4,7 @@
 
 ### 1. Email/Password Authentication Not Working in Production
 
-**Status**: 🔴 **CRITICAL** - Blocks manual testing
+**Status**: ✅ **FIXED** - December 17, 2025
 
 **Description**: The login form at `/auth/login` accepts email and password credentials, but the system maintains the OAuth session from Manus platform, completely ignoring the email/password authentication.
 
@@ -41,13 +41,16 @@ if (emailPasswordSession) return emailPasswordUser;
 return null;
 ```
 
-**Priority**: P0 - Must fix before production deployment
+**Priority**: P0 - ✅ FIXED
+
+**Fix Applied**:
+Modified `server/_core/context.ts` to check email/password session cookie (`auth_token`) before falling back to OAuth session. Now both authentication methods work correctly.
 
 ---
 
 ### 2. Trading UI Button Not Triggering Orders
 
-**Status**: 🔴 **CRITICAL** - Blocks trading functionality testing
+**Status**: ✅ **FIXED** - December 17, 2025
 
 **Description**: Clicking "Buy BTC" or "Sell BTC" buttons in the trading interface does not place orders. The form accepts input (price, amount) and calculates total correctly, but clicking the button has no effect.
 
@@ -110,7 +113,89 @@ const handlePlaceOrder = () => {
 };
 ```
 
-**Priority**: P0 - Must fix before production deployment
+**Priority**: P0 - ✅ FIXED
+
+**Fix Applied**:
+The trading button now works correctly after fixing the authentication context. Orders are successfully placed and visible in the order book.
+
+---
+
+### 3. Matching Engine Not Executing Trades
+
+**Status**: 🔴 **CRITICAL** - Trading engine broken
+
+**Description**: When a buy order and sell order with matching prices are placed, the matching engine does not execute the trade. Both orders remain in "open" status instead of being matched.
+
+**Evidence**:
+- Placed sell order: BTC/USDT @ 86000, amount 0.5 BTC (trader1, order ID in DB)
+- Placed buy order: BTC/USDT @ 86000, amount 0.5 BTC (buyer2, order ID in DB)
+- Order Book shows both orders at same price (86000.00)
+- Database query: `SELECT * FROM trades` returns 0 rows
+- Both orders status: "open"
+
+**Root Cause Analysis**:
+1. Code inspection shows `matchOrder()` IS called in `placeOrder()` (line 180 of tradingEngine.ts) ✅
+2. Matching logic appears correct (lines 243-246: `orderPrice >= oppositePrice` for buy) ✅
+3. No errors in server logs ❌ (suspicious - should see matching attempts)
+4. Possible causes:
+   - `matchOrder()` function exits early without logging
+   - Database query for opposite orders returns empty result
+   - Price comparison fails due to string/number type mismatch
+   - Transaction rollback happening silently
+
+**Impact**: CRITICAL - Core trading functionality completely broken
+
+**Workaround**: None
+
+**Fix Required**:
+1. Add comprehensive debug logging to `matchOrder()` function:
+```typescript
+async function matchOrder(db: any, orderId: number): Promise<Trade[]> {
+  console.log(`[MATCHING] Starting match for order ${orderId}`);
+  const executedTrades: Trade[] = [];
+  
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  console.log(`[MATCHING] Order details:`, order);
+  
+  const oppositeOrders = await db.select()...;
+  console.log(`[MATCHING] Found ${oppositeOrders.length} opposite orders`);
+  
+  for (const oppositeOrder of oppositeOrders) {
+    console.log(`[MATCHING] Checking opposite order:`, oppositeOrder);
+    console.log(`[MATCHING] Price comparison: ${orderPrice} >= ${oppositePrice} = ${canMatch}`);
+    // ... rest of logic
+  }
+}
+```
+
+2. Verify database queries:
+```sql
+-- Check if opposite orders query works
+SELECT * FROM orders 
+WHERE pair = 'BTC/USDT' 
+  AND side = 'sell' 
+  AND status IN ('open', 'partially_filled')
+ORDER BY price ASC, createdAt ASC;
+```
+
+3. Test with explicit type conversion:
+```typescript
+const orderPrice = parseFloat(order.price);
+const oppositePrice = parseFloat(oppositeOrder.price);
+console.log(`Comparing: ${orderPrice} (${typeof orderPrice}) >= ${oppositePrice} (${typeof oppositePrice})`);
+```
+
+**Testing**:
+```bash
+# After adding debug logs, test again:
+1. Clear existing orders: DELETE FROM orders;
+2. Place sell order via UI
+3. Place buy order via UI
+4. Check server logs for [MATCHING] entries
+5. Check database: SELECT * FROM trades;
+```
+
+**Priority**: P0 - MUST FIX IMMEDIATELY
 
 ---
 
