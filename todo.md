@@ -625,3 +625,42 @@ Remaining issues are minor mock/assertion fixes, core auth logic is fully tested
 - [x] Add manual balance adjustment feature (with audit log)
 - [x] Display user activity history (logins, trades, deposits, withdrawals)
 - [x] Add export users to CSV
+
+
+## CURRENT PRIORITY: Blockchain Monitoring Service (Dec 17)
+
+### Automatic Deposit Monitoring
+- [x] Create blockchain monitoring service (server/blockchainMonitor.ts)
+- [ ] Implement BTC blockchain monitoring (Bitcoin Core RPC or blockchain.info API)
+- [ ] Implement ETH blockchain monitoring (ethers.js + Infura/Alchemy)
+- [ ] Implement TRX blockchain monitoring (tronweb + TronGrid API)
+- [ ] Implement SOL blockchain monitoring (@solana/web3.js)
+- [ ] Implement BNB/MATIC monitoring (ethers.js - EVM compatible)
+- [ ] Add confirmation tracking (BTC: 3 confirmations, ETH: 12, TRX: 19, SOL: 32)
+- [ ] Auto-update user balance when deposit confirmed
+- [ ] Send email notification to user on deposit confirmation
+- [ ] Add deposit transaction to blockchainTransactions table
+- [ ] Handle failed/stuck transactions
+- [ ] Add retry logic for API failures
+
+### Admin-Approved Withdrawal Processing
+- [x] Create withdrawal processing service (server/withdrawalProcessor.ts)
+- [ ] Admin approves withdrawal in admin panel (already exists)
+- [ ] On approval, execute on-chain transaction automatically
+- [ ] Implement BTC withdrawal (bitcoinjs-lib + Bitcoin Core RPC)
+- [ ] Implement ETH withdrawal (ethers.js)
+- [ ] Implement TRX withdrawal (tronweb)
+- [ ] Implement SOL withdrawal (@solana/web3.js)
+- [ ] Implement BNB/MATIC withdrawal (ethers.js)
+- [ ] Track transaction hash and confirmations
+- [ ] Update withdrawal status (pending → processing → completed/failed)
+- [ ] Send email notification on withdrawal completion
+- [ ] Handle insufficient hot wallet balance (alert admin)
+- [ ] Add transaction fee calculation and deduction
+
+### Background Service Setup
+- [x] Create cron job for deposit monitoring (every 1 minute)
+- [x] Create queue system for withdrawal processing
+- [ ] Add service health monitoring
+- [ ] Add error logging and alerting
+- [ ] Test with testnet first (BTC testnet, Goerli, etc.)

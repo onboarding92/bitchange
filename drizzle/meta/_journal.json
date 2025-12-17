@@ -71,6 +71,13 @@
       "when": 1766000216466,
       "tag": "0009_fair_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1766001485064,
+      "tag": "0010_stiff_hardball",
+      "breakpoints": true
     }
   ]
 }

@@ -119,8 +119,11 @@ export const withdrawals = mysqlTable("withdrawals", {
   network: varchar("network", { length: 50 }).notNull(),
   address: varchar("address", { length: 255 }).notNull(),
   fee: decimal("fee", { precision: 20, scale: 8 }).default("0").notNull(),
-  status: mysqlEnum("status", ["pending", "approved", "rejected", "completed"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "approved", "rejected", "completed", "processing", "failed"]).default("pending").notNull(),
   adminNote: text("adminNote"),
+  adminNotes: text("adminNotes"), // Alias for adminNote
+  txHash: varchar("txHash", { length: 255 }),
+  completedAt: timestamp("completedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   processedAt: timestamp("processedAt"),
 });

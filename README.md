@@ -11,24 +11,51 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 
 ### 🔐 User Features
 - **Multi-Currency Wallet**: Support for 15+ cryptocurrencies (BTC, ETH, USDT, BNB, ADA, SOL, XRP, DOT, DOGE, AVAX, SHIB, MATIC, LTC, LINK, XLM)
+- **Authentication System**:
+  - Email/password registration with OTP verification
+  - Password reset flow with email tokens
+  - 2FA with Google Authenticator/TOTP
+  - Session management with device tracking
+  - Login history and rate limiting
 - **Trading System**: Limit orders, order book, trade history, and order management
 - **Staking**: 9 pre-configured staking plans with APR from 4% to 15% (flexible and locked periods)
 - **Deposit & Withdrawal**: 
-  - 8 payment gateway integrations (ChangeNOW, Simplex, MoonPay, Transak, Mercuryo, CoinGate, Changelly, Banxa)
-  - Crypto deposits via unique wallet addresses (with QR codes)
+  - Network selector for deposits (15 networks: BTC, ETH, USDT ERC20/TRC20/BEP20/Polygon/Solana, USDC ERC20/TRC20/BEP20/Solana, BNB, TRX, SOL, MATIC)
+  - Real crypto wallet address generation (bitcoinjs-lib, ethers.js, tronweb, @solana/web3.js)
+  - Hot wallet system with master wallets and address pools
   - Withdrawal requests with admin approval workflow
+  - Network-specific fees and minimum amounts
 - **KYC System**: Complete identity verification with document upload (ID, selfie, proof of address)
 - **Support Tickets**: Priority-based ticket system with admin responses
 - **Real-time Crypto Prices**: Live prices from CoinGecko API with auto-refresh
 
 ### 👨‍💼 Admin Features
-- **Dashboard**: Real-time statistics and overview
-- **Withdrawal Management**: Approve/reject withdrawal requests
+- **Admin Dashboard**: 
+  - Real-time statistics (total users, active users, pending withdrawals/KYC)
+  - Daily/weekly/monthly trading volume charts
+  - User growth charts (recharts)
+  - Alert system for pending actions
+  - Quick action buttons
+- **User Management Panel**:
+  - Search and filter users (by role, KYC status, account status)
+  - Edit user roles (admin/user)
+  - Suspend/activate accounts
+  - Manual balance adjustment with audit trail
+  - View user activity history (deposits, withdrawals, trades, logins)
+  - Export users to CSV
+- **Hot Wallet Management**:
+  - Create and manage master wallets
+  - View hot wallet balances
+  - Monitor deposit address pools
+- **Transaction Logs**:
+  - Complete logs of all transactions (deposits, withdrawals, trades, logins)
+  - Filter by type, user, date range
+  - Export to CSV
+- **Withdrawal Management**: Approve/reject withdrawal requests (on approval, executes on-chain transaction)
 - **KYC Verification**: Review and approve/reject KYC submissions with document viewer
 - **Support Management**: View and respond to user tickets
 - **Staking Plans CRUD**: Create and delete staking plans
 - **Promo Codes CRUD**: Create and manage promotional codes
-- **User Management**: View users and change roles
 
 ### 🎨 Design
 - **Dark Theme**: Elegant purple/blue gradient design
@@ -60,7 +87,16 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 ### Database
 - **MySQL** (compatible with TiDB, PlanetScale)
 - **Drizzle ORM** for type-safe queries
-- 15 tables: users, wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketReplies, promoCodes, promoUsage, transactions, systemLogs, walletAddresses
+- **25+ tables**: users, wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketReplies, promoCodes, promoUsage, transactions, systemLogs, walletAddresses, sessions, loginHistory, emailVerifications, passwordResets, passwordHistory, networks, masterWallets, depositAddresses, blockchainTransactions
+
+### Crypto Libraries
+- **bitcoinjs-lib** for Bitcoin wallet generation
+- **ethers.js** for Ethereum/EVM chains (ETH, BNB, MATIC, USDT ERC20, USDC ERC20)
+- **tronweb** for Tron network (TRX, USDT TRC20, USDC TRC20)
+- **@solana/web3.js** for Solana network (SOL, USDT SPL, USDC SPL)
+- **speakeasy** for 2FA TOTP generation
+- **qrcode** for QR code generation (2FA setup, deposit addresses)
+- **nodemailer** for email notifications
 
 ## 📦 Installation
 
@@ -273,8 +309,15 @@ bitchange-pro/
 
 ## 🔑 Default Admin Access
 
-The first user to register with the `OWNER_OPEN_ID` (from .env) automatically becomes an admin. To create additional admins, update the user's role in the database:
+**Pre-created Admin Account:**
+- Email: `admin@bitchangemoney.xyz`
+- Password: `Admin@BitChange2024!`
 
+⚠️ **Change the password immediately after first login!**
+
+To create additional admins:
+1. Use the User Management panel in admin dashboard
+2. Or update directly in database:
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
 ```
@@ -324,15 +367,26 @@ pnpm test:watch
 ## 🔐 Security Features
 
 - **Password Hashing**: Bcrypt with salt rounds
+- **Password History**: Prevents password reuse (last 5 passwords)
 - **JWT Authentication**: Secure token-based auth
+- **2FA (Two-Factor Authentication)**: Google Authenticator/TOTP with backup codes
+- **Email Verification**: OTP codes for email verification (10 min expiry)
+- **Password Reset**: Secure token-based password reset (15 min expiry)
+- **Session Management**: Device tracking with revocation capability
+- **Login History**: Complete audit trail of login attempts
+- **Rate Limiting**: 
+  - 50 login attempts per 15 minutes per IP
+  - 10 login attempts per 15 minutes per email
+  - Nginx rate limiting (10 req/s API, 50 req/s general)
 - **SQL Injection Protection**: Drizzle ORM parameterized queries
 - **File Upload Validation**: Type and size restrictions (5MB max)
-- **Role-Based Access Control**: Admin-only endpoints
+- **Role-Based Access Control**: Admin-only endpoints with adminProcedure
+- **Account Suspension**: Admin can suspend user accounts
 - **CORS Protection**: Configured for production
-- **Rate Limiting**: Nginx rate limiting (10 req/s API, 50 req/s general)
 - **HTTPS Enforced**: HTTP → HTTPS redirect
 - **Security Headers**: HSTS, X-Frame-Options, X-Content-Type-Options, XSS Protection
 - **Wallet Locking**: Automatic locking during pending withdrawals
+- **Hot Wallet Security**: Encrypted private keys, address pool system
 
 ## 🚧 Roadmap
 
@@ -346,15 +400,27 @@ pnpm test:watch
 - [x] Admin panel
 - [x] Support tickets
 
-### Phase 2: Enhancements (🚧 In Progress)
-- [ ] Email/Password authentication (independent from Manus OAuth)
-- [ ] Network selector for deposits (ERC20, TRC20, BEP20, etc.)
-- [ ] Matching engine for automatic order execution
-- [ ] TradingView charts integration
-- [ ] Email notifications
-- [ ] 2FA authentication
+### Phase 2: Enhancements (✅ Completed)
+- [x] Email/Password authentication (independent from Manus OAuth)
+- [x] Network selector for deposits (15 networks supported)
+- [x] Real crypto wallet generation (BTC, ETH, TRX, SOL, BNB, MATIC)
+- [x] Hot wallet system with master wallets
+- [x] 2FA authentication with Google Authenticator
+- [x] Email verification and password reset
+- [x] Session management with device tracking
+- [x] Admin dashboard with real-time statistics
+- [x] User management panel
+- [x] Transaction logs with export
+- [x] Hot wallet management panel
 
-### Phase 3: Advanced Features (📋 Planned)
+### Phase 3: Blockchain Integration (🚧 In Progress)
+- [ ] Blockchain monitoring service for automatic deposits
+- [ ] Withdrawal processing with on-chain execution
+- [ ] Transaction confirmation tracking
+- [ ] Email notifications for deposits/withdrawals
+- [ ] Testnet integration for testing
+
+### Phase 4: Advanced Features (📋 Planned)
 - [ ] Payment gateway API integration (real APIs)
 - [ ] Referral program
 - [ ] API for third-party integrations
