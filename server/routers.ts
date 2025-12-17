@@ -288,6 +288,91 @@ export const appRouter = router({
       }),
   }),
 
+  deposit: router({
+    create: protectedProcedure
+      .input(z.object({
+        asset: z.string(),
+        amount: z.string(),
+        method: z.enum(["changenow", "simplex", "moonpay", "transak", "mercuryo", "coingate", "changelly", "banxa"]),
+        txHash: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db.insert(deposits).values({
+          userId: ctx.user.id,
+          asset: input.asset,
+          amount: input.amount,
+          provider: input.method,
+          externalId: input.txHash || null,
+          status: "pending",
+        });
+
+        return { ok: true };
+      }),
+
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(deposits)
+        .where(eq(deposits.userId, ctx.user.id))
+        .orderBy(desc(deposits.createdAt))
+        .limit(50);
+    }),
+  }),
+
+  withdrawal: router({
+    create: protectedProcedure
+      .input(z.object({
+        asset: z.string(),
+        amount: z.string(),
+        address: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const amount = parseFloat(input.amount);
+        if (amount <= 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid amount" });
+        }
+
+        const [wallet] = await db.select().from(wallets)
+          .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, input.asset)))
+          .limit(1);
+
+        const available = wallet ? parseFloat(wallet.balance) - parseFloat(wallet.locked) : 0;
+
+        if (!wallet || available < amount) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance" });
+        }
+
+        await db.update(wallets)
+          .set({ locked: sql`${wallets.locked} + ${amount.toString()}` })
+          .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, input.asset)));
+
+        await db.insert(withdrawals).values({
+          userId: ctx.user.id,
+          asset: input.asset,
+          amount: input.amount,
+          address: input.address,
+          status: "pending",
+        });
+
+        return { ok: true };
+      }),
+
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(withdrawals)
+        .where(eq(withdrawals.userId, ctx.user.id))
+        .orderBy(desc(withdrawals.createdAt))
+        .limit(50);
+    }),
+  }),
+
   wallet: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       await initializeUserWallets(ctx.user.id);
@@ -302,8 +387,76 @@ export const appRouter = router({
       const db = await getDb();
       if (!db) return { totalUsers: 0, pendingWithdrawals: 0, pendingKyc: 0 };
       const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
-      return { totalUsers: userCount?.count ?? 0, pendingWithdrawals: 0, pendingKyc: 0 };
+      const [withdrawalCount] = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "pending"));
+      return { totalUsers: userCount?.count ?? 0, pendingWithdrawals: withdrawalCount?.count ?? 0, pendingKyc: 0 };
     }),
+
+    withdrawals: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(withdrawals)
+        .where(eq(withdrawals.status, "pending"))
+        .orderBy(desc(withdrawals.createdAt));
+    }),
+
+    approveWithdrawal: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [withdrawal] = await db.select().from(withdrawals)
+          .where(eq(withdrawals.id, input.id))
+          .limit(1);
+
+        if (!withdrawal) throw new TRPCError({ code: "NOT_FOUND" });
+        if (withdrawal.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Withdrawal already processed" });
+        }
+
+        const amount = parseFloat(withdrawal.amount);
+
+        await db.update(wallets)
+          .set({ 
+            balance: sql`${wallets.balance} - ${amount.toString()}`,
+            locked: sql`${wallets.locked} - ${amount.toString()}`
+          })
+          .where(and(eq(wallets.userId, withdrawal.userId), eq(wallets.asset, withdrawal.asset)));
+
+        await db.update(withdrawals)
+          .set({ status: "completed", processedAt: new Date() })
+          .where(eq(withdrawals.id, input.id));
+
+        return { ok: true };
+      }),
+
+    rejectWithdrawal: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [withdrawal] = await db.select().from(withdrawals)
+          .where(eq(withdrawals.id, input.id))
+          .limit(1);
+
+        if (!withdrawal) throw new TRPCError({ code: "NOT_FOUND" });
+        if (withdrawal.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Withdrawal already processed" });
+        }
+
+        const amount = parseFloat(withdrawal.amount);
+
+        await db.update(wallets)
+          .set({ locked: sql`${wallets.locked} - ${amount.toString()}` })
+          .where(and(eq(wallets.userId, withdrawal.userId), eq(wallets.asset, withdrawal.asset)));
+
+        await db.update(withdrawals)
+          .set({ status: "rejected", processedAt: new Date() })
+          .where(eq(withdrawals.id, input.id));
+
+        return { ok: true };
+      }),
   }),
 });
 

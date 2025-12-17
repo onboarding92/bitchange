@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Trading from "./pages/Trading";
 import Staking from "./pages/Staking";
+import Deposit from "./pages/Deposit";
+import Withdrawal from "./pages/Withdrawal";
 
 function Router() {
   return (
@@ -16,6 +18,8 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/trading" component={Trading} />
       <Route path="/staking" component={Staking} />
+      <Route path="/deposit" component={Deposit} />
+      <Route path="/withdrawal" component={Withdrawal} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

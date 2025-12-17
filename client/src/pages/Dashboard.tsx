@@ -46,10 +46,14 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-4">
-              <Button className="w-full gradient-primary">
-                <ArrowDownRight className="mr-2 h-4 w-4" /> Deposit
-              </Button>
-              <Button variant="outline" className="w-full">Withdraw</Button>
+              <Link href="/deposit">
+                <Button className="w-full gradient-primary">
+                  <ArrowDownRight className="mr-2 h-4 w-4" /> Deposit
+                </Button>
+              </Link>
+              <Link href="/withdrawal">
+                <Button variant="outline" className="w-full">Withdraw</Button>
+              </Link>
               <Link href="/trading">
                 <Button variant="outline" className="w-full">Trade</Button>
               </Link>

@@ -77,3 +77,24 @@
 - [x] Lista posizioni attive con rewards accumulated
 - [x] Calcolo automatico rewards compound
 - [x] Seed script con 9 piani staking (BTC, ETH, USDT)
+
+
+## Step 3: Deposit & Withdrawal System (COMPLETED)
+- [x] Router deposit.create (creare richiesta deposito)
+- [x] Router deposit.list (lista depositi utente)
+- [x] Router withdrawal.create (creare richiesta prelievo)
+- [x] Router withdrawal.list (lista prelievi utente)
+- [x] Router admin.withdrawals (lista prelievi pending)
+- [x] Router admin.approveWithdrawal
+- [x] Router admin.rejectWithdrawal
+- [x] Pagina Deposit con 8 payment gateways:
+  * ChangeNow
+  * Simplex
+  * MoonPay
+  * Transak
+  * Mercuryo
+  * CoinGate
+  * Changelly
+  * Banxa
+- [x] Pagina Withdrawal con form e lista pending
+- [x] Admin panel per approval workflow (backend ready)
