@@ -140,6 +140,7 @@ export async function placeOrder(params: {
     }
 
     // Create order
+    console.log(`[PLACE_ORDER] Creating order:`, { userId, pair, side, type, price, amount });
     const [newOrder] = await db.insert(orders).values({
       userId,
       pair,
@@ -152,6 +153,7 @@ export async function placeOrder(params: {
     }).$returningId();
 
     const orderId = newOrder.id;
+    console.log(`[PLACE_ORDER] Order created with ID: ${orderId}`);
 
     // Lock balance (deduct from available balance)
     if (side === "buy") {
@@ -177,8 +179,11 @@ export async function placeOrder(params: {
     }
 
     // Attempt to match order
+    console.log(`[PLACE_ORDER] Calling matchOrder for order ${orderId}`);
     const executedTrades = await matchOrder(db, orderId);
+    console.log(`[PLACE_ORDER] matchOrder returned ${executedTrades.length} trades`);
 
+    console.log(`[PLACE_ORDER] Order placement complete. Success: true, Trades: ${executedTrades.length}`);
     return {
       success: true,
       orderId,
@@ -194,6 +199,7 @@ export async function placeOrder(params: {
  * Match an order against the order book
  */
 async function matchOrder(db: any, orderId: number): Promise<Trade[]> {
+  console.log(`[MATCHING] ========== Starting match for order ${orderId} ==========`);
   const executedTrades: Trade[] = [];
 
   try {
@@ -203,17 +209,33 @@ async function matchOrder(db: any, orderId: number): Promise<Trade[]> {
       .where(eq(orders.id, orderId))
       .limit(1);
 
+    console.log(`[MATCHING] Order details:`, {
+      id: order?.id,
+      userId: order?.userId,
+      pair: order?.pair,
+      side: order?.side,
+      type: order?.type,
+      price: order?.price,
+      amount: order?.amount,
+      filled: order?.filled,
+      status: order?.status,
+    });
+
     if (!order || order.status === "filled" || order.status === "cancelled") {
+      console.log(`[MATCHING] Order not eligible for matching (status: ${order?.status || 'not found'})`);
       return executedTrades;
     }
 
     const remainingAmount = parseFloat(order.amount) - parseFloat(order.filled);
+    console.log(`[MATCHING] Remaining amount to fill: ${remainingAmount}`);
     if (remainingAmount <= 0) {
+      console.log(`[MATCHING] No remaining amount, exiting`);
       return executedTrades;
     }
 
     // Get opposite side orders (sorted by price-time priority)
     const oppositeSide = order.side === "buy" ? "sell" : "buy";
+    console.log(`[MATCHING] Looking for opposite side orders: ${oppositeSide}`);
     const oppositeOrders = await db.select()
       .from(orders)
       .where(and(
@@ -229,6 +251,18 @@ async function matchOrder(db: any, orderId: number): Promise<Trade[]> {
         asc(orders.createdAt) // Time priority
       );
 
+    console.log(`[MATCHING] Found ${oppositeOrders.length} opposite orders`);
+    if (oppositeOrders.length > 0) {
+      console.log(`[MATCHING] Opposite orders:`, oppositeOrders.map((o: any) => ({
+        id: o.id,
+        userId: o.userId,
+        price: o.price,
+        amount: o.amount,
+        filled: o.filled,
+        status: o.status,
+      })));
+    }
+
     for (const oppositeOrder of oppositeOrders) {
       const currentRemaining = parseFloat(order.amount) - parseFloat(order.filled);
       if (currentRemaining <= 0) break;
@@ -237,21 +271,40 @@ async function matchOrder(db: any, orderId: number): Promise<Trade[]> {
       const orderPrice = parseFloat(order.price);
       const oppositePrice = parseFloat(oppositeOrder.price);
 
+      console.log(`[MATCHING] Checking opposite order ${oppositeOrder.id}:`);
+      console.log(`[MATCHING]   Order price: ${orderPrice} (type: ${typeof orderPrice})`);
+      console.log(`[MATCHING]   Opposite price: ${oppositePrice} (type: ${typeof oppositePrice})`);
+      console.log(`[MATCHING]   Order side: ${order.side}, type: ${order.type}`);
+
       let canMatch = false;
       if (order.type === "market") {
         canMatch = true; // Market orders match at any price
+        console.log(`[MATCHING]   Market order - can match: true`);
       } else if (order.side === "buy" && orderPrice >= oppositePrice) {
         canMatch = true; // Buy limit order matches if price >= ask price
+        console.log(`[MATCHING]   Buy order: ${orderPrice} >= ${oppositePrice} = true`);
       } else if (order.side === "sell" && orderPrice <= oppositePrice) {
         canMatch = true; // Sell limit order matches if price <= bid price
+        console.log(`[MATCHING]   Sell order: ${orderPrice} <= ${oppositePrice} = true`);
+      } else {
+        console.log(`[MATCHING]   Price mismatch - cannot match`);
       }
 
-      if (!canMatch) continue;
+      if (!canMatch) {
+        console.log(`[MATCHING]   Skipping this order (canMatch = false)`);
+        continue;
+      }
 
       // Calculate trade amount
       const oppositeRemaining = parseFloat(oppositeOrder.amount) - parseFloat(oppositeOrder.filled);
       const tradeAmount = Math.min(currentRemaining, oppositeRemaining);
       const tradePrice = oppositePrice; // Taker pays maker's price
+
+      console.log(`[MATCHING]   ✅ MATCH FOUND! Executing trade:`);
+      console.log(`[MATCHING]     Trade amount: ${tradeAmount}`);
+      console.log(`[MATCHING]     Trade price: ${tradePrice}`);
+      console.log(`[MATCHING]     Buyer: ${order.side === "buy" ? order.userId : oppositeOrder.userId}`);
+      console.log(`[MATCHING]     Seller: ${order.side === "sell" ? order.userId : oppositeOrder.userId}`);
 
       // Execute trade
       await executeTrade(db, {

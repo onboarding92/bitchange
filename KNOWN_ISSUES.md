@@ -122,30 +122,43 @@ The trading button now works correctly after fixing the authentication context. 
 
 ### 3. Matching Engine Not Executing Trades
 
-**Status**: 🔴 **CRITICAL** - Trading engine broken
+**Status**: 🔴 **CRITICAL** - DEBUG IN PROGRESS
 
 **Description**: When a buy order and sell order with matching prices are placed, the matching engine does not execute the trade. Both orders remain in "open" status instead of being matched.
 
 **Evidence**:
-- Placed sell order: BTC/USDT @ 86000, amount 0.5 BTC (trader1, order ID in DB)
-- Placed buy order: BTC/USDT @ 86000, amount 0.5 BTC (buyer2, order ID in DB)
-- Order Book shows both orders at same price (86000.00)
-- Database query: `SELECT * FROM trades` returns 0 rows
-- Both orders status: "open"
+- Placed sell order: BTC/USDT @ 86000, amount 0.3 BTC (trader1) - SUCCESS, visible in order book
+- Attempted buy order: BTC/USDT @ 86000, amount 0.3 BTC (buyer2) - FAILED SILENTLY
+- No `[PLACE_ORDER]` or `[MATCHING]` logs appear when clicking "Buy BTC" button
+- Server logs show only authentication, no trading activity
+- Buy order never reaches backend (mutation fails before API call)
 
 **Root Cause Analysis**:
-1. Code inspection shows `matchOrder()` IS called in `placeOrder()` (line 180 of tradingEngine.ts) ✅
-2. Matching logic appears correct (lines 243-246: `orderPrice >= oppositePrice` for buy) ✅
-3. No errors in server logs ❌ (suspicious - should see matching attempts)
-4. Possible causes:
-   - `matchOrder()` function exits early without logging
-   - Database query for opposite orders returns empty result
-   - Price comparison fails due to string/number type mismatch
-   - Transaction rollback happening silently
+1. ✅ Added comprehensive debug logging to `placeOrder()` (lines 143, 156, 182-184, 186)
+2. ✅ Added comprehensive debug logging to `matchOrder()` (lines 196-252)
+3. ✅ Verified `placeOrder()` calls `matchOrder()` at line 183
+4. ❌ **Buy order mutation fails on frontend** - Never reaches backend
+5. ❌ **Likely cause**: Insufficient balance validation
+   - buyer2 has 50,000 USDT total
+   - 43,000 USDT locked from previous failed test
+   - Only 7,000 USDT available
+   - Trying to buy 0.3 BTC @ 86000 = 25,800 USDT required
+   - Frontend validation or backend returns error before logging
+6. ❌ **Error handling gap**: No error toast shown to user when mutation fails
 
 **Impact**: CRITICAL - Core trading functionality completely broken
 
-**Workaround**: None
+**Workaround**:
+1. Clear locked balances: `UPDATE wallets SET locked = 0 WHERE userId IN (SELECT id FROM users WHERE email LIKE '%test%');`
+2. Ensure test users have sufficient available balance
+3. Test with smaller amounts that fit within available balance
+
+**Next Debug Steps**:
+1. 🔴 **Add error toast in Trade.tsx** - Show backend errors to user
+2. 🔴 **Check browser console** - Look for tRPC mutation errors
+3. 🔴 **Clear locked balances** - Reset test data for clean testing
+4. 🔴 **Test with sufficient balance** - Verify matching engine with valid data
+5. 🔴 **Add balance validation UI** - Show available vs required before order
 
 **Fix Required**:
 1. Add comprehensive debug logging to `matchOrder()` function:
@@ -235,16 +248,21 @@ SMTP_FROM=info@bitchangemoney.xyz
 
 ---
 
-### 4. Logout Functionality Missing
+### 4. Logout Functionality - Dropdown Not Opening
 
-**Status**: 🟡 **HIGH** - UX issue
+**Status**: 🟡 **MEDIUM** - UI bug
 
-**Description**: There is no visible logout button or functionality in the UI. Clicking on the user profile menu doesn't show a logout option.
+**Description**: Logout button exists in DashboardLayout user menu dropdown (lines 211-238), but the dropdown menu does not open when clicked.
 
 **Impact**:
-- Users cannot logout
+- Users cannot access logout button (though it exists)
 - Testing multiple users requires manual cookie clearing
-- Security concern (shared computers)
+- Minor UX issue
+
+**Root Cause**:
+- DropdownMenu component from shadcn/ui not opening
+- Possible z-index conflict or event handler issue
+- Logout mutation exists and works: `trpc.auth.logout.useMutation()`
 
 **Workaround**:
 ```javascript
@@ -255,9 +273,12 @@ document.cookie.split(";").forEach(function(c) {
 ```
 
 **Fix Required**:
-Add logout button to DashboardLayout user menu dropdown
+1. Debug DropdownMenu component in DashboardLayout.tsx
+2. Check for z-index conflicts with sidebar
+3. Verify DropdownMenuTrigger onClick handler
+4. Test with different shadcn/ui dropdown implementation
 
-**Priority**: P1 - Should fix before production
+**Priority**: P2 - Minor UI bug, workaround available
 
 ---
 
