@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketReplies, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -855,18 +855,27 @@ export const appRouter = router({
       .input(z.object({
         subject: z.string(),
         message: z.string(),
+        category: z.enum(["technical", "billing", "kyc", "withdrawal", "deposit", "trading", "other"]).default("other"),
         priority: z.enum(["low", "medium", "high"]).default("medium"),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-        await db.insert(supportTickets).values({
+        const [ticket] = await db.insert(supportTickets).values({
           userId: ctx.user.id,
           subject: input.subject,
-          message: input.message,
+          category: input.category || "other",
           priority: input.priority,
           status: "open",
+        });
+
+        // Insert first message
+        await db.insert(ticketMessages).values({
+          ticketId: ticket.insertId as number,
+          userId: ctx.user.id,
+          message: input.message,
+          isStaff: false,
         });
 
         return { ok: true };
@@ -897,11 +906,11 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND" });
         }
 
-        await db.insert(ticketReplies).values({
+        await db.insert(ticketMessages).values({
           ticketId: input.ticketId,
           userId: ctx.user.id,
           message: input.message,
-          isAdmin: false,
+          isStaff: false,
         });
 
         return { ok: true };
@@ -1363,11 +1372,11 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-        await db.insert(ticketReplies).values({
+        await db.insert(ticketMessages).values({
           ticketId: input.ticketId,
           userId: ctx.user.id,
           message: input.message,
-          isAdmin: true,
+          isStaff: true,
         });
 
         await db.update(supportTickets)

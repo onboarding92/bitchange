@@ -166,8 +166,8 @@ export default function Support() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {ticket.message}
+                  <p className="text-sm text-muted-foreground">
+                    Category: {ticket.category} | Priority: {ticket.priority}
                   </p>
                 </CardContent>
               </Card>

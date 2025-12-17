@@ -838,3 +838,41 @@ Remaining issues are minor mock/assertion fixes, core auth logic is fully tested
 - [ ] Cold wallet storage system
 - [ ] Multi-signature wallets
 - [ ] Advanced security features (anti-phishing UI, device fingerprinting UI)
+
+
+## CURRENT IMPLEMENTATION: Testnet + Ticketing + Referral (Dec 17 - Final Phase)
+
+### Testnet Configuration
+- [ ] Add TESTNET_MODE environment variable
+- [ ] Configure Bitcoin testnet RPC (testnet3)
+- [ ] Configure Ethereum Goerli/Sepolia testnet RPC
+- [ ] Configure Tron Shasta testnet RPC
+- [ ] Update blockchainMonitor.ts to use testnet endpoints when enabled
+- [ ] Update withdrawalProcessor.ts to use testnet endpoints
+- [ ] Add testnet faucet links in documentation
+- [ ] Create admin toggle to switch between mainnet/testnet
+
+### Support Ticketing System
+- [ ] Create support_agents table (userId, role: admin/agent, permissions)
+- [ ] Create support_tickets table (id, userId, subject, message, status, priority, assignedTo, category)
+- [ ] Create ticket_messages table (ticketId, userId, message, isStaff, attachments)
+- [ ] Add ticket router endpoints (create, list, assign, reply, close, reopen)
+- [ ] Create user ticket submission page
+- [ ] Create admin ticket management panel
+- [ ] Create agent ticket dashboard
+- [ ] Implement ticket assignment logic
+- [ ] Add email notifications for ticket updates
+- [ ] Add ticket priority system (low/medium/high/urgent)
+- [ ] Add ticket categories (technical, billing, kyc, withdrawal, other)
+
+### Referral Program
+- [ ] Create referrals table (userId, referralCode, referredBy, earnedCommission, status)
+- [ ] Create loyalty_tiers table (name, minVolume, feeDiscount, benefits)
+- [ ] Generate unique referral code per user (on registration)
+- [ ] Track referrals and calculate commissions (% of trading fees)
+- [ ] Implement commission payout system
+- [ ] Create loyalty tier calculation (based on 30-day volume)
+- [ ] Add referral dashboard for users
+- [ ] Add referral management in admin panel
+- [ ] Create leaderboard for top referrers
+- [ ] Add referral statistics (total referred, active, earnings)

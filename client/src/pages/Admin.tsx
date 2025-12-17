@@ -257,8 +257,8 @@ export default function Admin() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap mb-4">
-                      {ticket.message}
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Category: {ticket.category} | Priority: {ticket.priority}
                     </p>
                     <Button variant="outline" size="sm">
                       <MessageSquare className="mr-2 h-4 w-4" />

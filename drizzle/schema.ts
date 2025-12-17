@@ -151,25 +151,7 @@ export const kycDocuments = mysqlTable("kycDocuments", {
   processedAt: timestamp("processedAt"),
 });
 
-export const supportTickets = mysqlTable("supportTickets", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  subject: varchar("subject", { length: 255 }).notNull(),
-  message: text("message").notNull(),
-  priority: mysqlEnum("priority", ["low", "medium", "high", "urgent"]).default("medium").notNull(),
-  status: mysqlEnum("status", ["open", "in_progress", "closed"]).default("open").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export const ticketReplies = mysqlTable("ticketReplies", {
-  id: int("id").autoincrement().primaryKey(),
-  ticketId: int("ticketId").notNull(),
-  userId: int("userId").notNull(),
-  message: text("message").notNull(),
-  isAdmin: boolean("isAdmin").default(false).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+// Support ticketing tables moved below (improved version with categories, assignment, etc.)
 
 export const promoCodes = mysqlTable("promoCodes", {
   id: int("id").autoincrement().primaryKey(),
@@ -378,4 +360,70 @@ export const withdrawalDelays = mysqlTable("withdrawalDelays", {
   reason: text("reason"), // Why delayed (e.g., "Large amount >$10k")
   cancelled: boolean("cancelled").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+
+// Support Ticketing System
+export const supportAgents = mysqlTable("supportAgents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  role: mysqlEnum("role", ["admin", "agent"]).notNull(),
+  permissions: text("permissions"), // JSON string of permissions
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const supportTickets = mysqlTable("supportTickets", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  category: mysqlEnum("category", ["technical", "billing", "kyc", "withdrawal", "deposit", "trading", "other"]).notNull(),
+  priority: mysqlEnum("priority", ["low", "medium", "high", "urgent"]).default("medium").notNull(),
+  status: mysqlEnum("status", ["open", "in_progress", "waiting_user", "resolved", "closed"]).default("open").notNull(),
+  assignedTo: int("assignedTo"), // supportAgents.id
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+  closedAt: timestamp("closedAt"),
+});
+
+export const ticketMessages = mysqlTable("ticketMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketId: int("ticketId").notNull(),
+  userId: int("userId").notNull(),
+  message: text("message").notNull(),
+  isStaff: boolean("isStaff").default(false).notNull(),
+  attachments: text("attachments"), // JSON array of file URLs
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Referral Program
+export const referrals = mysqlTable("referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // The user who was referred
+  referredBy: int("referredBy").notNull(), // The user who referred them
+  referralCode: varchar("referralCode", { length: 20 }).notNull(),
+  earnedCommission: decimal("earnedCommission", { precision: 20, scale: 8 }).default("0").notNull(),
+  status: mysqlEnum("status", ["pending", "active", "inactive"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  activatedAt: timestamp("activatedAt"),
+});
+
+export const loyaltyTiers = mysqlTable("loyaltyTiers", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 50 }).notNull(),
+  minVolume: decimal("minVolume", { precision: 20, scale: 2 }).notNull(), // 30-day volume in USD
+  feeDiscount: decimal("feeDiscount", { precision: 5, scale: 2 }).notNull(), // Percentage discount
+  benefits: text("benefits"), // JSON array of benefits
+  color: varchar("color", { length: 20 }).default("#gray"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const userLoyalty = mysqlTable("userLoyalty", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  tierId: int("tierId").notNull(),
+  volume30d: decimal("volume30d", { precision: 20, scale: 2 }).default("0").notNull(),
+  referralCount: int("referralCount").default(0).notNull(),
+  totalEarned: decimal("totalEarned", { precision: 20, scale: 8 }).default("0").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
