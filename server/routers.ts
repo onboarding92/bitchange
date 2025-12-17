@@ -496,6 +496,7 @@ export const appRouter = router({
       .input(z.object({
         asset: z.string(),
         amount: z.string(),
+        network: z.string(),
         method: z.enum(["changenow", "simplex", "moonpay", "transak", "mercuryo", "coingate", "changelly", "banxa"]),
         txHash: z.string().optional(),
       }))
@@ -507,6 +508,7 @@ export const appRouter = router({
           userId: ctx.user.id,
           asset: input.asset,
           amount: input.amount,
+          network: input.network,
           provider: input.method,
           externalId: input.txHash || null,
           status: "pending",
@@ -527,7 +529,12 @@ export const appRouter = router({
 
   withdrawal: router({
     create: protectedProcedure
-      .input(z.object({ asset: z.string(), amount: z.string(), address: z.string() }))
+      .input(z.object({ 
+        asset: z.string(), 
+        amount: z.string(), 
+        network: z.string(),
+        address: z.string() 
+      }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -537,29 +544,53 @@ export const appRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid amount" });
         }
 
+        // Validate network exists and is active
+        const { networks } = await import("../drizzle/schema");
+        const [network] = await db.select().from(networks)
+          .where(and(
+            eq(networks.asset, input.asset),
+            eq(networks.symbol, input.network),
+            eq(networks.isActive, true)
+          ))
+          .limit(1);
+
+        if (!network) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid network selected" });
+        }
+
+        // Check minimum withdrawal amount
+        const minWithdrawal = parseFloat(network.minWithdrawal);
+        if (amount < minWithdrawal) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Minimum withdrawal is ${minWithdrawal} ${input.asset}` });
+        }
+
         const [wallet] = await db.select().from(wallets)
           .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, input.asset)))
           .limit(1);
 
         const available = wallet ? parseFloat(wallet.balance) - parseFloat(wallet.locked) : 0;
+        const fee = parseFloat(network.withdrawalFee);
+        const totalRequired = amount + fee;
 
-        if (!wallet || available < amount) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance" });
+        if (!wallet || available < totalRequired) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance (including fees)" });
         }
 
         await db.update(wallets)
-          .set({ locked: sql`${wallets.locked} + ${amount.toString()}` })
+          .set({ locked: sql`${wallets.locked} + ${totalRequired.toString()}` })
           .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, input.asset)));
 
         await db.insert(withdrawals).values({
           userId: ctx.user.id,
           asset: input.asset,
           amount: input.amount,
+          network: input.network,
           address: input.address,
+          fee: network.withdrawalFee,
           status: "pending",
         });
 
-        return { ok: true };
+        return { ok: true, fee: network.withdrawalFee };
       }),
 
     list: protectedProcedure.query(async ({ ctx }) => {
@@ -580,19 +611,23 @@ export const appRouter = router({
       return await db.select().from(wallets).where(eq(wallets.userId, ctx.user.id));
     }),
     getDepositAddress: protectedProcedure
-      .input(z.object({ asset: z.string() }))
+      .input(z.object({ 
+        asset: z.string(),
+        network: z.string()
+      }))
       .query(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-        // Controlla se esiste già un address per questo user/asset
+        // Check if address already exists for this user/asset/network
         const existing = await db
           .select()
           .from(walletAddresses)
           .where(
             and(
               eq(walletAddresses.userId, ctx.user.id),
-              eq(walletAddresses.asset, input.asset)
+              eq(walletAddresses.asset, input.asset),
+              eq(walletAddresses.network, input.network)
             )
           )
           .limit(1);
@@ -601,16 +636,41 @@ export const appRouter = router({
           return existing[0];
         }
 
-        // Genera nuovo address
-        const address = await generateWalletAddress(ctx.user.id, input.asset, "ethereum"); // Default network    // Salva nel database
+        // Generate new address for the specified network
+        const address = await generateWalletAddress(ctx.user.id, input.asset, input.network);
+        
+        // Save to database
         await db.insert(walletAddresses).values({
           userId: ctx.user.id,
           asset: input.asset,
           address,
-          network: "ethereum",
+          network: input.network,
         });
 
-        return { userId: ctx.user.id, asset: input.asset, address, network: "ethereum", createdAt: new Date() };
+        return { 
+          id: 0, // Will be set by database
+          userId: ctx.user.id, 
+          asset: input.asset, 
+          address, 
+          network: input.network, 
+          createdAt: new Date() 
+        };
+      }),
+    
+    listNetworks: protectedProcedure
+      .input(z.object({ asset: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        
+        const { networks } = await import("../drizzle/schema");
+        return await db
+          .select()
+          .from(networks)
+          .where(and(
+            eq(networks.asset, input.asset),
+            eq(networks.isActive, true)
+          ));
       }),
   }),
 

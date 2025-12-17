@@ -50,6 +50,13 @@
       "when": 1765988474731,
       "tag": "0006_living_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1765990105226,
+      "tag": "0007_loud_echo",
+      "breakpoints": true
     }
   ]
 }

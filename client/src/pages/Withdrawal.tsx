@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,24 @@ import { ArrowUpRight, CheckCircle2, Clock, XCircle, AlertTriangle } from "lucid
 
 export default function Withdrawal() {
   const [asset, setAsset] = useState("BTC");
+  const [network, setNetwork] = useState("");
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
 
   const { data: withdrawals, refetch } = trpc.withdrawal.list.useQuery();
   const { data: wallets } = trpc.wallet.list.useQuery();
+  
+  const { data: networks } = trpc.wallet.listNetworks.useQuery(
+    { asset },
+    { enabled: !!asset }
+  );
+
+  // Auto-select first network when networks load
+  useEffect(() => {
+    if (networks && networks.length > 0 && !network) {
+      setNetwork(networks[0].symbol);
+    }
+  }, [networks, network]);
 
   const createWithdrawal = trpc.withdrawal.create.useMutation({
     onSuccess: () => {
@@ -30,16 +43,19 @@ export default function Withdrawal() {
   });
 
   const handleWithdraw = () => {
-    if (!amount || !address) {
-      toast.error("Please enter amount and address");
+    if (!amount || !address || !network) {
+      toast.error("Please select network and enter amount and address");
       return;
     }
     createWithdrawal.mutate({
       asset,
       amount,
+      network,
       address,
     });
   };
+
+  const selectedNetworkData = networks?.find(n => n.symbol === network);
 
   const selectedWallet = wallets?.find(w => w.asset === asset);
   const available = selectedWallet 
@@ -77,7 +93,7 @@ export default function Withdrawal() {
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label>Asset</Label>
-                <Select value={asset} onValueChange={setAsset}>
+                <Select value={asset} onValueChange={(val) => { setAsset(val); setNetwork(""); }}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -87,6 +103,9 @@ export default function Withdrawal() {
                     <SelectItem value="USDT">Tether (USDT)</SelectItem>
                     <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
                     <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
+                    <SelectItem value="SOL">Solana (SOL)</SelectItem>
+                    <SelectItem value="TRX">Tron (TRX)</SelectItem>
+                    <SelectItem value="MATIC">Polygon (MATIC)</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -113,15 +132,58 @@ export default function Withdrawal() {
             </div>
 
             <div>
-              <Label>Withdrawal Address</Label>
+              <Label className="text-base font-semibold">Network *</Label>
+              <Select value={network} onValueChange={setNetwork}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose network" />
+                </SelectTrigger>
+                <SelectContent>
+                  {networks && networks.length > 0 ? (
+                    networks.map((net) => (
+                      <SelectItem key={net.id} value={net.symbol}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{net.name}</span>
+                          <span className="text-xs text-muted-foreground ml-4">
+                            Fee: {net.withdrawalFee} {asset} | Min: {net.minWithdrawal} {asset}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      No networks available
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {selectedNetworkData && (
+                <div className="mt-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    ℹ️ <strong>{selectedNetworkData.name}</strong> - 
+                    Withdrawal Fee: {selectedNetworkData.withdrawalFee} {asset} | 
+                    Min Withdrawal: {selectedNetworkData.minWithdrawal} {asset} | 
+                    Confirmations: {selectedNetworkData.confirmations}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>Withdrawal Address *</Label>
               <Input
                 placeholder="Enter wallet address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Make sure the address is correct. Transactions cannot be reversed.
-              </p>
+              <div className="mt-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                <p className="text-sm text-red-600 dark:text-red-400 font-semibold">
+                  ⚠️ <strong>CRITICAL WARNING:</strong> Ensure the address is compatible with <strong>{network || 'the selected network'}</strong>. 
+                  Sending to an incompatible address will result in <strong>PERMANENT LOSS</strong> of funds!
+                </p>
+                <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
+                  Transactions cannot be reversed. Double-check the network and address before confirming.
+                </p>
+              </div>
             </div>
 
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 flex gap-3">

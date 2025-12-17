@@ -24,13 +24,26 @@ const PAYMENT_GATEWAYS = [
 export default function Deposit() {
   const [selectedGateway, setSelectedGateway] = useState<string>("");
   const [asset, setAsset] = useState("USDT");
+  const [network, setNetwork] = useState("");
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
-  const { data: depositAddress, isLoading: loadingAddress } = trpc.wallet.getDepositAddress.useQuery(
+  const { data: networks } = trpc.wallet.listNetworks.useQuery(
     { asset },
     { enabled: !!asset }
+  );
+
+  // Auto-select first network when networks load
+  useEffect(() => {
+    if (networks && networks.length > 0 && !network) {
+      setNetwork(networks[0].symbol);
+    }
+  }, [networks, network]);
+
+  const { data: depositAddress, isLoading: loadingAddress } = trpc.wallet.getDepositAddress.useQuery(
+    { asset, network },
+    { enabled: !!asset && !!network }
   );
 
   useEffect(() => {
@@ -61,17 +74,20 @@ export default function Deposit() {
   });
 
   const handleDeposit = () => {
-    if (!selectedGateway || !amount) {
-      toast.error("Please select gateway and enter amount");
+    if (!selectedGateway || !amount || !network) {
+      toast.error("Please select gateway, network and enter amount");
       return;
     }
     createDeposit.mutate({
       asset,
       amount,
+      network,
       method: selectedGateway as any,
       txHash: txHash || undefined,
     });
   };
+
+  const selectedNetworkData = networks?.find(n => n.symbol === network);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -103,30 +119,62 @@ export default function Deposit() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-6">
-              <Label className="text-base font-semibold mb-3 block">Select Cryptocurrency</Label>
-              <Select value={asset} onValueChange={setAsset}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-                  <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                  <SelectItem value="USDT">Tether (USDT)</SelectItem>
-                  <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
-                  <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
-                  <SelectItem value="ADA">Cardano (ADA)</SelectItem>
-                  <SelectItem value="SOL">Solana (SOL)</SelectItem>
-                  <SelectItem value="XRP">Ripple (XRP)</SelectItem>
-                  <SelectItem value="DOT">Polkadot (DOT)</SelectItem>
-                  <SelectItem value="DOGE">Dogecoin (DOGE)</SelectItem>
-                  <SelectItem value="AVAX">Avalanche (AVAX)</SelectItem>
-                  <SelectItem value="MATIC">Polygon (MATIC)</SelectItem>
-                  <SelectItem value="LTC">Litecoin (LTC)</SelectItem>
-                  <SelectItem value="LINK">Chainlink (LINK)</SelectItem>
-                  <SelectItem value="XLM">Stellar (XLM)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="mb-6 space-y-6">
+              <div>
+                <Label className="text-base font-semibold mb-3 block">Select Cryptocurrency</Label>
+                <Select value={asset} onValueChange={(val) => { setAsset(val); setNetwork(""); }}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                    <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                    <SelectItem value="USDT">Tether (USDT)</SelectItem>
+                    <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
+                    <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
+                    <SelectItem value="SOL">Solana (SOL)</SelectItem>
+                    <SelectItem value="TRX">Tron (TRX)</SelectItem>
+                    <SelectItem value="MATIC">Polygon (MATIC)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-base font-semibold mb-3 block">Select Network</Label>
+                <Select value={network} onValueChange={setNetwork}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose network" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {networks && networks.length > 0 ? (
+                      networks.map((net) => (
+                        <SelectItem key={net.id} value={net.symbol}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{net.name}</span>
+                            <span className="text-xs text-muted-foreground ml-4">
+                              Fee: {net.depositFee} {asset} | Min: {net.minDeposit} {asset}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No networks available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {selectedNetworkData && (
+                  <div className="mt-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      ℹ️ <strong>{selectedNetworkData.name}</strong> - 
+                      Deposit Fee: {selectedNetworkData.depositFee} {asset} | 
+                      Min Deposit: {selectedNetworkData.minDeposit} {asset} | 
+                      Confirmations: {selectedNetworkData.confirmations}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
             {loadingAddress ? (
               <div className="text-center py-8 text-muted-foreground">Generating wallet address...</div>
@@ -154,10 +202,13 @@ export default function Deposit() {
                     </div>
                   )}
                 </div>
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                    ⚠️ <strong>Important:</strong> Only send {asset} to this address on {depositAddress.network}. 
-                    Sending other assets or using wrong network will result in permanent loss of funds.
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <p className="text-sm text-red-600 dark:text-red-400 font-semibold">
+                    ⚠️ <strong>CRITICAL WARNING:</strong> Only send {asset} to this address using the <strong>{depositAddress.network}</strong> network. 
+                    Sending via a different network or sending different assets will result in <strong>PERMANENT LOSS</strong> of your funds!
+                  </p>
+                  <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-2">
+                    Double-check the network before sending. We cannot recover funds sent to the wrong network.
                   </p>
                 </div>
               </div>

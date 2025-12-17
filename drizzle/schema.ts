@@ -95,6 +95,7 @@ export const deposits = mysqlTable("deposits", {
   userId: int("userId").notNull(),
   asset: varchar("asset", { length: 20 }).notNull(),
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  network: varchar("network", { length: 50 }),
   provider: varchar("provider", { length: 50 }),
   externalId: varchar("externalId", { length: 255 }),
   status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
@@ -107,6 +108,7 @@ export const withdrawals = mysqlTable("withdrawals", {
   userId: int("userId").notNull(),
   asset: varchar("asset", { length: 20 }).notNull(),
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  network: varchar("network", { length: 50 }).notNull(),
   address: varchar("address", { length: 255 }).notNull(),
   fee: decimal("fee", { precision: 20, scale: 8 }).default("0").notNull(),
   status: mysqlEnum("status", ["pending", "approved", "rejected", "completed"]).default("pending").notNull(),
@@ -241,5 +243,21 @@ export const passwordHistory = mysqlTable("passwordHistory", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const networks = mysqlTable("networks", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  chainId: varchar("chainId", { length: 50 }),
+  type: varchar("type", { length: 50 }).notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  depositFee: decimal("depositFee", { precision: 20, scale: 8 }).default("0").notNull(),
+  withdrawalFee: decimal("withdrawalFee", { precision: 20, scale: 8 }).default("0").notNull(),
+  minDeposit: decimal("minDeposit", { precision: 20, scale: 8 }).default("0").notNull(),
+  minWithdrawal: decimal("minWithdrawal", { precision: 20, scale: 8 }).default("0").notNull(),
+  confirmations: int("confirmations").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
