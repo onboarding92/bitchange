@@ -1549,6 +1549,64 @@ export const appRouter = router({
       }),
   }),
 
+  trade: router({
+    placeOrder: protectedProcedure
+      .input(z.object({
+        pair: z.string(),
+        side: z.enum(["buy", "sell"]),
+        type: z.enum(["limit", "market"]),
+        price: z.string().optional(),
+        amount: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { placeOrder } = await import("./tradingEngine");
+        return await placeOrder({
+          userId: ctx.user.id,
+          ...input,
+        });
+      }),
+
+    orderBook: publicProcedure
+      .input(z.object({ pair: z.string() }))
+      .query(async ({ input }) => {
+        const { getOrderBook } = await import("./tradingEngine");
+        return await getOrderBook(input.pair);
+      }),
+
+    myOrders: protectedProcedure
+      .input(z.object({ pair: z.string().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const { getUserOrders } = await import("./tradingEngine");
+        return await getUserOrders(ctx.user.id, input?.pair);
+      }),
+
+    cancelOrder: protectedProcedure
+      .input(z.object({ orderId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { cancelOrder } = await import("./tradingEngine");
+        return await cancelOrder(input.orderId, ctx.user.id);
+      }),
+
+    recentTrades: publicProcedure
+      .input(z.object({ pair: z.string(), limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        const { getRecentTrades } = await import("./tradingEngine");
+        return await getRecentTrades(input.pair, input.limit);
+      }),
+
+    tradingPairs: publicProcedure.query(async () => {
+      // Return available trading pairs
+      // TODO: Store in database and make configurable by admin
+      return [
+        { pair: "BTC/USDT", baseAsset: "BTC", quoteAsset: "USDT", minAmount: "0.0001", maxAmount: "100" },
+        { pair: "ETH/USDT", baseAsset: "ETH", quoteAsset: "USDT", minAmount: "0.001", maxAmount: "1000" },
+        { pair: "BNB/USDT", baseAsset: "BNB", quoteAsset: "USDT", minAmount: "0.01", maxAmount: "10000" },
+        { pair: "SOL/USDT", baseAsset: "SOL", quoteAsset: "USDT", minAmount: "0.1", maxAmount: "10000" },
+        { pair: "MATIC/USDT", baseAsset: "MATIC", quoteAsset: "USDT", minAmount: "1", maxAmount: "100000" },
+      ];
+    }),
+  }),
+
   prices: router({
     get: publicProcedure
       .input(z.object({ asset: z.string() }))

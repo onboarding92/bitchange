@@ -24,6 +24,7 @@ import HotWallets from "./pages/admin/HotWallets";
 import TransactionLogs from "./pages/admin/TransactionLogs";
 import AdminDashboard from "./pages/admin/Dashboard";
 import UsersManagement from "./pages/admin/Users";
+import Trade from "./pages/Trade";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/setup-2fa" component={Setup2FA} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/trading" component={Trading} />
+        <Route path="/trade" component={Trade} />
       <Route path="/staking" component={Staking} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/withdrawal" component={Withdrawal} />

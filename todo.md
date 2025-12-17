@@ -664,3 +664,101 @@ Remaining issues are minor mock/assertion fixes, core auth logic is fully tested
 - [ ] Add service health monitoring
 - [ ] Add error logging and alerting
 - [ ] Test with testnet first (BTC testnet, Goerli, etc.)
+
+
+## CURRENT PRIORITY: Trading Engine Implementation (Dec 17)
+
+### Order Book & Matching Engine
+- [ ] Create order book data structure (bids/asks sorted by price)
+- [ ] Implement order matching algorithm (price-time priority)
+- [ ] Create orders table schema (id, userId, pair, type, side, price, amount, filled, status)
+- [ ] Create trades table schema (id, buyOrderId, sellOrderId, pair, price, amount, timestamp)
+- [ ] Implement market order execution (match immediately at best price)
+- [ ] Implement limit order execution (add to order book, match when possible)
+- [ ] Handle partial fills (order partially executed)
+- [ ] Implement order cancellation
+- [ ] Add order expiration (time-in-force: GTC, IOC, FOK)
+- [ ] Calculate trading fees (maker/taker fees)
+
+### Trading Router Endpoints
+- [ ] POST /trade/placeOrder - Place market/limit order
+- [ ] GET /trade/orderBook/:pair - Get order book for trading pair
+- [ ] GET /trade/myOrders - Get user's open orders
+- [ ] GET /trade/orderHistory - Get user's order history
+- [ ] POST /trade/cancelOrder - Cancel open order
+- [ ] GET /trade/recentTrades/:pair - Get recent trades for pair
+- [ ] GET /trade/tradingPairs - Get all available trading pairs
+- [ ] GET /trade/ticker/:pair - Get 24h ticker data (price, volume, change)
+
+### Trading Frontend Pages
+- [ ] Create Trade.tsx page with order book visualization
+- [ ] Add price chart (TradingView widget or recharts)
+- [ ] Create order form (buy/sell, market/limit)
+- [ ] Display user's open orders table
+- [ ] Display recent trades list
+- [ ] Add order book depth visualization
+- [ ] Show user's balance for selected pair
+- [ ] Add order confirmation modal
+- [ ] Display trading fees before order placement
+
+### Real-time Updates (WebSocket)
+- [ ] Implement WebSocket server for real-time updates
+- [ ] Broadcast order book updates on new orders
+- [ ] Broadcast trade execution to all connected clients
+- [ ] Update user's balance in real-time after trade
+- [ ] Show live price ticker updates
+- [ ] Add connection status indicator
+
+### Trading Pairs Management
+- [ ] Create tradingPairs table (pair, baseAsset, quoteAsset, minAmount, maxAmount, pricePrecision, amountPrecision, status)
+- [ ] Seed initial trading pairs (BTC/USDT, ETH/USDT, BNB/USDT, etc.)
+- [ ] Admin panel to enable/disable trading pairs
+- [ ] Admin panel to set trading fees per pair
+- [ ] Admin panel to set min/max order amounts
+
+### Testing & Validation
+- [ ] Write vitest tests for matching engine
+- [ ] Test market order execution
+- [ ] Test limit order execution
+- [ ] Test partial fills
+- [ ] Test order cancellation
+- [ ] Test insufficient balance scenarios
+- [ ] Test concurrent order execution (race conditions)
+- [ ] Load test with 1000+ orders
+
+
+## Trading Engine Progress (Dec 17)
+
+### Backend Implementation
+- [x] Create order book data structure (bids/asks sorted by price)
+- [x] Implement order matching algorithm (price-time priority)
+- [x] Implement market order execution (match immediately at best price)
+- [x] Implement limit order execution (add to order book, match when possible)
+- [x] Handle partial fills (order partially executed)
+- [x] Implement order cancellation
+- [x] Calculate trading fees (maker/taker fees: 0.1%/0.2%)
+
+### Trading Router Endpoints
+- [x] POST /trade/placeOrder - Place market/limit order
+- [x] GET /trade/orderBook/:pair - Get order book for trading pair
+- [x] GET /trade/myOrders - Get user's open orders
+- [x] POST /trade/cancelOrder - Cancel open order
+- [x] GET /trade/recentTrades/:pair - Get recent trades for pair
+- [x] GET /trade/tradingPairs - Get all available trading pairs
+
+### Trading Frontend
+- [x] Create Trade.tsx page with order book visualization
+- [x] Add order form (buy/sell, market/limit)
+- [x] Display user's open orders table
+- [x] Display recent trades list
+- [x] Add order book depth visualization
+- [x] Add order confirmation and error handling
+- [x] Display trading fees
+
+### Remaining Tasks
+- [ ] Implement WebSocket for real-time order book updates
+- [ ] Add price chart (TradingView widget or recharts)
+- [ ] Create tradingPairs table in database (currently hardcoded)
+- [ ] Admin panel to manage trading pairs
+- [ ] Write vitest tests for matching engine
+- [ ] Load test with concurrent orders
