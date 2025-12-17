@@ -1,72 +1,206 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Shield, Wallet, TrendingUp } from "lucide-react";
-import { getLoginUrl } from "@/const";
-import { Link } from "wouter";
+import { ArrowRight, Shield, TrendingUp, Zap, Users, Lock, BarChart3, Wallet } from "lucide-react";
+import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { trpc } from "@/lib/trpc";
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
+  const [cryptoPrices, setCryptoPrices] = useState<any[]>([]);
+  
+  const { data: prices } = trpc.prices.getAll.useQuery(undefined, {
+    refetchInterval: 30000,
+  });
+
+  useEffect(() => {
+    if (prices) {
+      setCryptoPrices(prices.slice(0, 6));
+    }
+  }, [prices]);
+
+  const features = [
+    {
+      icon: TrendingUp,
+      title: "Advanced Trading",
+      description: "Trade 10+ crypto pairs with limit orders and real-time order book"
+    },
+    {
+      icon: Lock,
+      title: "Secure Staking",
+      description: "Earn up to 15% APR with flexible and locked staking plans"
+    },
+    {
+      icon: Wallet,
+      title: "Multi-Currency Wallets",
+      description: "Personal wallet addresses for BTC, ETH, USDT and 12+ cryptocurrencies"
+    },
+    {
+      icon: Shield,
+      title: "Bank-Grade Security",
+      description: "KYC verification, encrypted storage, and 2FA protection"
+    },
+    {
+      icon: Zap,
+      title: "Instant Deposits",
+      description: "8 payment gateways including MoonPay, Simplex, and Transak"
+    },
+    {
+      icon: BarChart3,
+      title: "Real-Time Analytics",
+      description: "Live price feeds, trading history, and portfolio tracking"
+    },
+  ];
+
+  const stats = [
+    { value: "100+", label: "Daily Users" },
+    { value: "$1M+", label: "Trading Volume" },
+    { value: "15+", label: "Cryptocurrencies" },
+    { value: "99.9%", label: "Uptime" },
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
-        <div className="container relative py-24 lg:py-32">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="mb-6 text-5xl font-bold tracking-tight lg:text-7xl">
-              Trade, Stake, and Grow
-              <span className="block text-gradient mt-2">Your Crypto Portfolio</span>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 border-b border-border">
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
+        <div className="container relative py-24 md:py-32">
+          <div className="mx-auto max-w-4xl text-center space-y-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium">
+              <Zap className="h-4 w-4 text-primary" />
+              Professional Cryptocurrency Exchange
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+              Trade, Stake, and Grow{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-primary">
+                Your Crypto Portfolio
+              </span>
             </h1>
-            <p className="mb-10 text-xl text-muted-foreground max-w-2xl mx-auto">
-              Professional cryptocurrency exchange with advanced features
+            
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Professional cryptocurrency exchange with advanced trading features, 
+              secure staking, and instant deposits. Start trading with confidence.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button size="lg" className="gradient-primary text-lg px-8 py-6">
-                    Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              ) : (
-                <a href={getLoginUrl()}>
-                  <Button size="lg" className="gradient-primary text-lg px-8 py-6">
-                    Get Started <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </a>
-              )}
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button 
+                size="lg" 
+                className="gradient-primary text-lg px-8 group"
+                onClick={() => setLocation("/dashboard")}
+              >
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-lg px-8"
+                onClick={() => setLocation("/trading")}
+              >
+                View Markets
+              </Button>
             </div>
           </div>
+
+          {/* Live Prices Ticker */}
+          {cryptoPrices.length > 0 && (
+            <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {cryptoPrices.map((crypto) => (
+                <Card key={crypto.symbol} className="glass border-border/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">{crypto.symbol}</span>
+                      <span className={`text-xs ${crypto.change24h >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {crypto.change24h >= 0 ? "+" : ""}{crypto.change24h.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold">
+                      ${crypto.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
-      
-      <section className="py-24 bg-card/30">
+
+      {/* Stats Section */}
+      <section className="py-16 bg-muted/30">
         <div className="container">
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="glass border-primary/20">
-              <CardContent className="pt-6">
-                <Shield className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Secure</h3>
-                <p className="text-muted-foreground">Bank-level security for your assets</p>
-              </CardContent>
-            </Card>
-            <Card className="glass border-accent/20">
-              <CardContent className="pt-6">
-                <TrendingUp className="h-12 w-12 text-accent mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Advanced Trading</h3>
-                <p className="text-muted-foreground">Professional trading tools</p>
-              </CardContent>
-            </Card>
-            <Card className="glass border-primary/20">
-              <CardContent className="pt-6">
-                <Wallet className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Multi-Currency</h3>
-                <p className="text-muted-foreground">15+ cryptocurrencies supported</p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, i) => (
+              <div key={i} className="text-center space-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
+                  {stat.value}
+                </div>
+                <div className="text-muted-foreground font-medium">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* Features Section */}
+      <section className="py-24">
+        <div className="container">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Everything You Need to Trade Crypto
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Professional-grade features designed for both beginners and experienced traders
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, i) => (
+              <Card key={i} className="glass border-border/50 hover:border-primary/50 transition-all group">
+                <CardContent className="p-6 space-y-4">
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 bg-gradient-to-br from-primary/10 via-purple-500/10 to-primary/10">
+        <div className="container">
+          <Card className="glass border-primary/20">
+            <CardContent className="p-12 text-center space-y-6">
+              <Users className="h-16 w-16 mx-auto text-primary" />
+              <h2 className="text-3xl md:text-4xl font-bold">
+                Join 100+ Daily Traders
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Start trading cryptocurrency with confidence. Secure, fast, and professional.
+              </p>
+              <Button 
+                size="lg" 
+                className="gradient-primary text-lg px-12"
+                onClick={() => setLocation("/dashboard")}
+              >
+                Create Free Account
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-border">
+        <div className="container text-center text-muted-foreground">
+          <p>© 2024 BitChange Pro. Professional Cryptocurrency Exchange.</p>
+        </div>
+      </footer>
     </div>
   );
 }

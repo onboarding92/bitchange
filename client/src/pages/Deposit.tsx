@@ -23,7 +23,7 @@ const PAYMENT_GATEWAYS = [
 
 export default function Deposit() {
   const [selectedGateway, setSelectedGateway] = useState<string>("");
-  const [asset, setAsset] = useState("BTC");
+  const [asset, setAsset] = useState("USDT");
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
@@ -103,6 +103,31 @@ export default function Deposit() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="mb-6">
+              <Label className="text-base font-semibold mb-3 block">Select Cryptocurrency</Label>
+              <Select value={asset} onValueChange={setAsset}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                  <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                  <SelectItem value="USDT">Tether (USDT)</SelectItem>
+                  <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
+                  <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
+                  <SelectItem value="ADA">Cardano (ADA)</SelectItem>
+                  <SelectItem value="SOL">Solana (SOL)</SelectItem>
+                  <SelectItem value="XRP">Ripple (XRP)</SelectItem>
+                  <SelectItem value="DOT">Polkadot (DOT)</SelectItem>
+                  <SelectItem value="DOGE">Dogecoin (DOGE)</SelectItem>
+                  <SelectItem value="AVAX">Avalanche (AVAX)</SelectItem>
+                  <SelectItem value="MATIC">Polygon (MATIC)</SelectItem>
+                  <SelectItem value="LTC">Litecoin (LTC)</SelectItem>
+                  <SelectItem value="LINK">Chainlink (LINK)</SelectItem>
+                  <SelectItem value="XLM">Stellar (XLM)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {loadingAddress ? (
               <div className="text-center py-8 text-muted-foreground">Generating wallet address...</div>
             ) : depositAddress ? (
