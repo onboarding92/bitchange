@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import QRCode from "qrcode";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,25 @@ export default function Deposit() {
   const [asset, setAsset] = useState("BTC");
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+
+  const { data: depositAddress, isLoading: loadingAddress } = trpc.wallet.getDepositAddress.useQuery(
+    { asset },
+    { enabled: !!asset }
+  );
+
+  useEffect(() => {
+    if (depositAddress?.address) {
+      QRCode.toDataURL(depositAddress.address, { width: 256 }).then(setQrCodeUrl);
+    }
+  }, [depositAddress]);
+
+  const copyAddress = () => {
+    if (depositAddress?.address) {
+      navigator.clipboard.writeText(depositAddress.address);
+      toast.success("Address copied to clipboard");
+    }
+  };
 
   const { data: deposits, refetch } = trpc.deposit.list.useQuery();
 
@@ -73,6 +93,52 @@ export default function Deposit() {
           <h1 className="text-3xl font-bold mb-2">Deposit</h1>
           <p className="text-muted-foreground">Add funds to your account</p>
         </div>
+
+        {/* Crypto Deposit Address */}
+        <Card className="glass">
+          <CardHeader>
+            <CardTitle>Deposit via Crypto Transfer</CardTitle>
+            <CardDescription>
+              Send {asset} directly to your personal wallet address
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingAddress ? (
+              <div className="text-center py-8 text-muted-foreground">Generating wallet address...</div>
+            ) : depositAddress ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-muted/50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Network</span>
+                    <span className="text-sm text-muted-foreground">{depositAddress.network}</span>
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium">Deposit Address</span>
+                    <div className="flex items-center gap-2">
+                      <Input value={depositAddress.address} readOnly className="font-mono text-xs" />
+                      <Button size="icon" variant="outline" onClick={copyAddress}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </Button>
+                    </div>
+                  </div>
+                  {qrCodeUrl && (
+                    <div className="flex justify-center pt-4">
+                      <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 rounded-lg" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                    ⚠️ <strong>Important:</strong> Only send {asset} to this address on {depositAddress.network}. 
+                    Sending other assets or using wrong network will result in permanent loss of funds.
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
 
         {/* Payment Gateways */}
         <div>

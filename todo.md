@@ -181,3 +181,45 @@
 - [ ] Generate presigned URLs per view
 - [ ] File size validation (5MB limit)
 - [ ] Allowed file types (jpg, png, pdf)
+
+
+## NUOVI TASK RICHIESTI
+
+### 1. Wallet Addresses per Depositi Crypto
+- [x] Tabella walletAddresses nel database
+- [x] Installare ethers per generazione addresses
+- [x] Funzione generateWalletAddress(userId, asset) deterministica
+- [x] Router wallet.getDepositAddress(asset)
+- [x] Mostrare wallet addresses nella pagina Deposit
+- [x] QR code per ogni address
+
+### 2. KYC Completo
+- [ ] Aggiungere campi: firstName, lastName, dateOfBirth, address, city, country, postalCode
+- [ ] Upload documento ID (front + back)
+- [ ] Upload selfie
+- [ ] Upload proof of address
+- [ ] Integrazione S3 upload reale con storagePut
+- [ ] Validazione campi obbligatori
+- [ ] Preview documenti uploaded
+
+### 3. Fix Admin Panel Access
+- [ ] Verificare che DashboardLayout filtri correttamente adminOnly items
+- [ ] Testare con user non-admin
+- [ ] Assicurarsi che adminProcedure backend blocchi non-admin
+
+### 4. GitHub Push
+- [ ] Creare .gitignore
+- [ ] Creare README.md con setup instructions
+- [ ] Init git repo
+- [ ] Push su GitHub nuovo repository
+
+
+### 5. Landing Page Spettacolare
+- [ ] Hero section con animazioni
+- [ ] Grafici live crypto prices (TradingView widget o Chart.js)
+- [ ] Stats real-time (24h volume, users, trades)
+- [ ] Features section con icons
+- [ ] Testimonials/Trust badges
+- [ ] CTA buttons prominenti
+- [ ] Smooth scroll animations
+- [ ] Gradient effects e glass morphism

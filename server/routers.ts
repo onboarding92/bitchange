@@ -5,10 +5,11 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketReplies, promoCodes, promoUsage, transactions, users, systemLogs } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketReplies, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
+import { generateWalletAddress } from "./walletGenerator";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -381,6 +382,41 @@ export const appRouter = router({
       if (!db) return [];
       return await db.select().from(wallets).where(eq(wallets.userId, ctx.user.id));
     }),
+    getDepositAddress: protectedProcedure
+      .input(z.object({ asset: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Controlla se esiste già un address per questo user/asset
+        const existing = await db
+          .select()
+          .from(walletAddresses)
+          .where(
+            and(
+              eq(walletAddresses.userId, ctx.user.id),
+              eq(walletAddresses.asset, input.asset)
+            )
+          )
+          .limit(1);
+
+        if (existing.length > 0) {
+          return existing[0];
+        }
+
+        // Genera nuovo address
+        const { address, network } = generateWalletAddress(ctx.user.id, input.asset);
+
+        // Salva nel database
+        await db.insert(walletAddresses).values({
+          userId: ctx.user.id,
+          asset: input.asset,
+          address,
+          network,
+        });
+
+        return { userId: ctx.user.id, asset: input.asset, address, network, createdAt: new Date() };
+      }),
   }),
 
   kyc: router({

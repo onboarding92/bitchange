@@ -161,6 +161,15 @@ export const promoCodes = mysqlTable("promoCodes", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const walletAddresses = mysqlTable("walletAddresses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  address: varchar("address", { length: 255 }).notNull(),
+  network: varchar("network", { length: 50 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const promoUsage = mysqlTable("promoUsage", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
