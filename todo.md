@@ -49,3 +49,6 @@
 
 ## Testing ✓
 - [ ] Vitest tests per routers critici
+
+## Bug Fixes
+- [x] Correggere routing in App.tsx (spazi nelle route)
