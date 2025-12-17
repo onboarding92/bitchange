@@ -60,15 +60,21 @@ export default function Trade() {
   }, [refetchOrderBook, refetchTrades, refetchMyOrders]);
 
   const handlePlaceOrder = () => {
+    console.log("[Trade] handlePlaceOrder called");
+    console.log("[Trade] Values:", { orderType, price, amount, selectedPair, orderSide });
+    
     if (orderType === "limit" && !price) {
+      console.log("[Trade] Validation failed: price required");
       toast.error("Price is required for limit orders");
       return;
     }
     if (!amount) {
+      console.log("[Trade] Validation failed: amount required");
       toast.error("Amount is required");
       return;
     }
 
+    console.log("[Trade] Calling placeOrderMutation.mutate");
     placeOrderMutation.mutate({
       pair: selectedPair,
       side: orderSide,
