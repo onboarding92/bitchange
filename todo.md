@@ -52,3 +52,16 @@
 
 ## Bug Fixes
 - [x] Correggere routing in App.tsx (spazi nelle route)
+
+
+## Step 1: Trading System (COMPLETED)
+- [x] Router trading.orderBook (get buy/sell orders)
+- [x] Router trading.placeOrder (create limit/market orders)
+- [x] Router trading.cancelOrder (cancel open orders)
+- [x] Router trading.myOrders (user's orders history)
+- [x] Router trading.myTrades (user's executed trades)
+- [ ] Matching engine function (da implementare)
+- [x] Pagina Trading con order book UI
+- [x] Form per piazzare ordini buy/sell
+- [x] Lista ordini aperti con cancel button
+- [x] Trade history table

@@ -50,7 +50,9 @@ export default function Dashboard() {
                 <ArrowDownRight className="mr-2 h-4 w-4" /> Deposit
               </Button>
               <Button variant="outline" className="w-full">Withdraw</Button>
-              <Button variant="outline" className="w-full">Trade</Button>
+              <Link href="/trading">
+                <Button variant="outline" className="w-full">Trade</Button>
+              </Link>
               <Button variant="outline" className="w-full">Stake</Button>
             </div>
           </CardContent>
