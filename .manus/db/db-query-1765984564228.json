@@ -1,0 +1,25 @@
+{
+  "query": "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'users' AND COLUMN_NAME IN ('email', 'password', 'emailVerified');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'users' AND COLUMN_NAME IN ('email', 'password', 'emailVerified');",
+  "rows": [
+    {
+      "COLUMN_NAME": "email",
+      "DATA_TYPE": "varchar",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "COLUMN_NAME": "password",
+      "DATA_TYPE": "varchar",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "COLUMN_NAME": "emailVerified",
+      "DATA_TYPE": "timestamp",
+      "IS_NULLABLE": "YES"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\tDATA_TYPE\tIS_NULLABLE\nemail\tvarchar\tYES\npassword\tvarchar\tYES\nemailVerified\ttimestamp\tYES\n",
+  "stderr": "",
+  "execution_time_ms": 3587
+}

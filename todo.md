@@ -276,3 +276,29 @@
   * Tron (TRX, USDT-TRC20)
   * Solana (SOL, USDT-SPL)
   * Polygon (MATIC, USDT-Polygon)
+
+
+## TASK CORRENTE: Auth Indipendente + GitHub Push
+
+### Sistema Auth Indipendente (IN PROGRESS)
+- [ ] Router auth.register (email, password, name)
+- [ ] Router auth.login (email, password) → JWT token
+- [ ] Router auth.logout (clear session)
+- [ ] Password hashing con bcrypt
+- [ ] JWT token generation e validation
+- [ ] Pagina Register con form validazione
+- [ ] Pagina Login con form
+- [ ] Sostituire useAuth hook per usare nuovo sistema
+- [ ] Rimuovere dipendenze Manus OAuth
+- [ ] Cookie-based session management
+
+### GitHub Push (TODO)
+- [ ] Creare .gitignore (node_modules, .env, uploads, dist)
+- [ ] Creare README.md professionale
+- [ ] Setup instructions nel README
+- [ ] Environment variables documentation
+- [ ] Database schema documentation
+- [ ] API endpoints documentation
+- [ ] Init git repository
+- [ ] Create GitHub repository
+- [ ] Push codice completo

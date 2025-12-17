@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { hashPassword, comparePassword, generateToken } from "./authHelpers";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
@@ -20,8 +21,75 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    
+    register: publicProcedure
+      .input(z.object({ 
+        email: z.string().email(), 
+        password: z.string().min(8), 
+        name: z.string().min(2) 
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        // Check if user already exists
+        const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        if (existing.length > 0) {
+          throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
+        }
+
+        // Hash password
+        const hashedPassword = await hashPassword(input.password);
+
+        // Create user
+        await db.insert(users).values({
+          email: input.email,
+          password: hashedPassword,
+          name: input.name,
+          openId: null,
+          role: "user",
+          emailVerified: false,
+        });
+
+        return { success: true, message: "Registration successful" };
+      }),
+
+    login: publicProcedure
+      .input(z.object({ email: z.string().email(), password: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        // Find user by email
+        const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        if (userResult.length === 0) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+        }
+
+        const user = userResult[0];
+        if (!user.password) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Please use OAuth login" });
+        }
+
+        // Verify password
+        const isValid = await comparePassword(input.password, user.password);
+        if (!isValid) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+        }
+
+        // Generate JWT token
+        const token = generateToken({ userId: user.id, email: user.email, role: user.role });
+
+        // Set cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie("auth_token", token, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
+
+        return { success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
+      }),
+
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie("auth_token", { ...cookieOptions, maxAge: -1 });
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
