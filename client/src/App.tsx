@@ -13,6 +13,7 @@ import Withdrawal from "./pages/Withdrawal";
 import KYC from "./pages/KYC";
 import Support from "./pages/Support";
 import Admin from "./pages/Admin";
+import AdminPanel from "./pages/AdminPanel";
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/kyc" component={KYC} />
       <Route path="/support" component={Support} />
       <Route path="/admin" component={Admin} />
+      <Route path="/admin/panel" component={AdminPanel} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -15,6 +15,20 @@
       "when": 1765973212712,
       "tag": "0001_bored_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1765978097383,
+      "tag": "0002_normal_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1765978867543,
+      "tag": "0003_mysterious_mikhail_rasputin",
+      "breakpoints": true
     }
   ]
 }

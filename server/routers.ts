@@ -8,6 +8,7 @@ import { getDb, initializeUserWallets } from "./db";
 import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketReplies, promoCodes, promoUsage, transactions, users, systemLogs } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { storagePut } from "./storage";
+import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -629,6 +630,105 @@ export const appRouter = router({
         .limit(100);
     }),
 
+    // Staking Plans Management
+    createStakingPlan: adminProcedure
+      .input(z.object({
+        asset: z.string(),
+        name: z.string(),
+        apr: z.string(),
+        duration: z.number(),
+        minAmount: z.string(),
+        maxAmount: z.string().optional(),
+        isActive: z.boolean().default(true),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await db.insert(stakingPlans).values(input);
+        return { ok: true };
+      }),
+    
+    updateStakingPlan: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        asset: z.string().optional(),
+        name: z.string().optional(),
+        apr: z.string().optional(),
+        duration: z.number().optional(),
+        minAmount: z.string().optional(),
+        maxAmount: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { id, ...updates } = input;
+        await db.update(stakingPlans).set(updates).where(eq(stakingPlans.id, id));
+        return { ok: true };
+      }),
+    
+    deleteStakingPlan: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await db.delete(stakingPlans).where(eq(stakingPlans.id, input.id));
+        return { ok: true };
+      }),
+
+    // Promo Codes Management
+    createPromoCode: adminProcedure
+      .input(z.object({
+        code: z.string(),
+        description: z.string().optional(),
+        bonusType: z.enum(["percentage", "fixed"]),
+        bonusValue: z.string(),
+        bonusAsset: z.string().default("USDT"),
+        maxUses: z.number().default(0),
+        expiresAt: z.date().optional(),
+        enabled: z.boolean().default(true),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await db.insert(promoCodes).values(input);
+        return { ok: true };
+      }),
+
+    listPromoCodes: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(promoCodes).orderBy(desc(promoCodes.createdAt));
+    }),
+
+    deletePromoCode: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await db.delete(promoCodes).where(eq(promoCodes.id, input.id));
+        return { ok: true };
+      }),
+
+    // User Management
+    listUsers: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(users).orderBy(desc(users.createdAt)).limit(100);
+    }),
+
+    updateUserRole: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        role: z.enum(["user", "admin"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await db.update(users).set({ role: input.role }).where(eq(users.id, input.userId));
+        return { ok: true };
+      }),
+
     replyToTicket: adminProcedure
       .input(z.object({
         ticketId: z.number(),
@@ -650,6 +750,25 @@ export const appRouter = router({
           .where(eq(supportTickets.id, input.ticketId));
 
         return { ok: true };
+      }),
+  }),
+
+  prices: router({
+    get: publicProcedure
+      .input(z.object({ asset: z.string() }))
+      .query(async ({ input }) => {
+        const price = await getCryptoPrice(input.asset);
+        if (!price) throw new TRPCError({ code: "NOT_FOUND", message: "Asset not found" });
+        return price;
+      }),
+    getAll: publicProcedure.query(async () => {
+      return await getAllCryptoPrices();
+    }),
+    getPair: publicProcedure
+      .input(z.object({ pair: z.string() }))
+      .query(async ({ input }) => {
+        const price = await getPairPrice(input.pair);
+        return { pair: input.pair, price };
       }),
   }),
 });

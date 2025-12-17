@@ -35,7 +35,7 @@ const menuItems = [
   { icon: ArrowUpRight, label: "Withdrawal", path: "/withdrawal" },
   { icon: Shield, label: "KYC", path: "/kyc" },
   { icon: MessageSquare, label: "Support", path: "/support" },
-  { icon: Settings, label: "Admin", path: "/admin", adminOnly: true },
+  { icon: Settings, label: "Admin", path: "/admin/panel", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

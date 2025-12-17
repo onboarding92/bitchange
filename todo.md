@@ -129,3 +129,55 @@
 - [ ] Sezione Promo Codes (future)
 - [ ] Sezione System Logs (future)
 - [ ] Sezione Users Management (future)
+
+
+## IMPROVEMENTS RICHIESTI (IN PROGRESS)
+
+### 1. Sistema Login/Register
+- [ ] Pagina Login con email/password
+- [ ] Pagina Register con email verification
+- [ ] Password recovery flow
+- [ ] Backend auth router (register, login, verify email, reset password)
+- [ ] JWT token management
+- [ ] Session persistence
+- [ ] Admin login separato con credenziali speciali
+
+### 2. Trading Migliorato
+- [x] Integrazione API CoinGecko per prezzi real-time
+- [x] Router prices (get, getAll, getPair)
+- [x] Auto-refresh prezzi ogni 30 secondi
+- [x] Display live price nella pagina Trading
+- [ ] Grafici TradingView embedded
+- [ ] Order book più dettagliato con depth
+- [ ] Recent trades feed
+- [ ] Market orders (oltre ai limit)
+- [ ] Price ticker animato
+- [ ] 24h volume e price change display
+- [ ] Matching engine automatico
+
+### 3. Admin Panel Potenziato
+- [ ] CRUD Staking Plans (create, edit, delete plans)
+- [ ] CRUD Promo Codes (create, set limits, track usage)
+- [ ] User Management (list all users, edit roles, suspend)
+- [ ] Deposit Management (approve manual deposits)
+- [ ] System Settings page
+- [ ] Financial Reports dashboard
+- [ ] System Logs Viewer
+
+### 4. KYC Completo
+- [ ] Campi aggiuntivi: firstName, lastName, dateOfBirth
+- [ ] Address fields: street, city, zipCode, country
+- [ ] Selfie with document upload
+- [ ] Proof of address upload (utility bill)
+- [ ] KYC levels (Basic, Intermediate, Advanced)
+- [ ] Withdrawal limits based on KYC level
+- [ ] Document expiration date check
+- [ ] Better validation e error messages
+
+### 5. S3 Integration
+- [ ] Implementare storagePut per KYC documents
+- [ ] Upload selfie to S3
+- [ ] Upload proof of address to S3
+- [ ] Generate presigned URLs per view
+- [ ] File size validation (5MB limit)
+- [ ] Allowed file types (jpg, png, pdf)

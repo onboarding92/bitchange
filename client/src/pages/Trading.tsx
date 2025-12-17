@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,16 @@ export default function Trading() {
   const [orderSide, setOrderSide] = useState<"buy" | "sell">("buy");
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
+
+  const { data: pairPrice, refetch: refetchPrice } = trpc.prices.getPair.useQuery({ pair: selectedPair });
+
+  // Auto-refresh price every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchPrice();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [refetchPrice]);
 
   const { data: orderBook, refetch: refetchOrderBook } = trpc.trading.orderBook.useQuery(
     { pair: selectedPair },
@@ -73,6 +83,12 @@ export default function Trading() {
           <div>
             <h1 className="text-3xl font-bold">Trading</h1>
             <p className="text-muted-foreground">Trade cryptocurrencies with limit orders</p>
+            {pairPrice && (
+              <div className="flex items-center gap-4 mt-2">
+                <span className="text-2xl font-bold">${pairPrice.price.toFixed(2)}</span>
+                <span className="text-sm text-muted-foreground">Live Price</span>
+              </div>
+            )}
           </div>
           <Select value={selectedPair} onValueChange={setSelectedPair}>
             <SelectTrigger className="w-[200px]">
