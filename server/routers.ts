@@ -382,6 +382,109 @@ export const appRouter = router({
     }),
   }),
 
+  kyc: router({
+    submit: protectedProcedure
+      .input(z.object({
+        documentType: z.enum(["id_card", "passport", "drivers_license"]),
+        frontImageUrl: z.string(),
+        backImageUrl: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [existing] = await db.select().from(kycDocuments)
+          .where(eq(kycDocuments.userId, ctx.user.id))
+          .limit(1);
+
+        if (existing && existing.status === "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "KYC already pending review" });
+        }
+
+        if (existing && existing.status === "approved") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "KYC already approved" });
+        }
+
+        await db.insert(kycDocuments).values({
+          userId: ctx.user.id,
+          documentType: input.documentType,
+          frontImageUrl: input.frontImageUrl,
+          backImageUrl: input.backImageUrl || null,
+          status: "pending",
+        });
+
+        return { ok: true };
+      }),
+
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const [doc] = await db.select().from(kycDocuments)
+        .where(eq(kycDocuments.userId, ctx.user.id))
+        .orderBy(desc(kycDocuments.createdAt))
+        .limit(1);
+      return doc || null;
+    }),
+  }),
+
+  support: router({
+    createTicket: protectedProcedure
+      .input(z.object({
+        subject: z.string(),
+        message: z.string(),
+        priority: z.enum(["low", "medium", "high"]).default("medium"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db.insert(supportTickets).values({
+          userId: ctx.user.id,
+          subject: input.subject,
+          message: input.message,
+          priority: input.priority,
+          status: "open",
+        });
+
+        return { ok: true };
+      }),
+
+    myTickets: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(supportTickets)
+        .where(eq(supportTickets.userId, ctx.user.id))
+        .orderBy(desc(supportTickets.createdAt));
+    }),
+
+    replyTicket: protectedProcedure
+      .input(z.object({
+        ticketId: z.number(),
+        message: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [ticket] = await db.select().from(supportTickets)
+          .where(eq(supportTickets.id, input.ticketId))
+          .limit(1);
+
+        if (!ticket || ticket.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        await db.insert(ticketReplies).values({
+          ticketId: input.ticketId,
+          userId: ctx.user.id,
+          message: input.message,
+          isAdmin: false,
+        });
+
+        return { ok: true };
+      }),
+  }),
+
   admin: router({
     stats: adminProcedure.query(async () => {
       const db = await getDb();
@@ -454,6 +557,97 @@ export const appRouter = router({
         await db.update(withdrawals)
           .set({ status: "rejected", processedAt: new Date() })
           .where(eq(withdrawals.id, input.id));
+
+        return { ok: true };
+      }),
+
+    kycList: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(kycDocuments)
+        .where(eq(kycDocuments.status, "pending"))
+        .orderBy(desc(kycDocuments.createdAt));
+    }),
+
+    approveKyc: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [kyc] = await db.select().from(kycDocuments)
+          .where(eq(kycDocuments.id, input.id))
+          .limit(1);
+
+        if (!kyc) throw new TRPCError({ code: "NOT_FOUND" });
+        if (kyc.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "KYC already processed" });
+        }
+
+        await db.update(kycDocuments)
+          .set({ status: "approved", processedAt: new Date() })
+          .where(eq(kycDocuments.id, input.id));
+
+        await db.update(users)
+          .set({ kycStatus: "approved" })
+          .where(eq(users.id, kyc.userId));
+
+        return { ok: true };
+      }),
+
+    rejectKyc: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), reason: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [kyc] = await db.select().from(kycDocuments)
+          .where(eq(kycDocuments.id, input.id))
+          .limit(1);
+
+        if (!kyc) throw new TRPCError({ code: "NOT_FOUND" });
+        if (kyc.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "KYC already processed" });
+        }
+
+        await db.update(kycDocuments)
+          .set({ status: "rejected", adminNote: input.reason || null, processedAt: new Date() })
+          .where(eq(kycDocuments.id, input.id));
+
+        await db.update(users)
+          .set({ kycStatus: "rejected" })
+          .where(eq(users.id, kyc.userId));
+
+        return { ok: true };
+      }),
+
+    tickets: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(supportTickets)
+        .orderBy(desc(supportTickets.createdAt))
+        .limit(100);
+    }),
+
+    replyToTicket: adminProcedure
+      .input(z.object({
+        ticketId: z.number(),
+        message: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db.insert(ticketReplies).values({
+          ticketId: input.ticketId,
+          userId: ctx.user.id,
+          message: input.message,
+          isAdmin: true,
+        });
+
+        await db.update(supportTickets)
+          .set({ status: "in_progress" })
+          .where(eq(supportTickets.id, input.ticketId));
 
         return { ok: true };
       }),

@@ -98,3 +98,19 @@
   * Banxa
 - [x] Pagina Withdrawal con form e lista pending
 - [x] Admin panel per approval workflow (backend ready)
+
+
+## Step 4: KYC & Support System (COMPLETED)
+- [x] Router kyc.submit (submit KYC documents)
+- [x] Router kyc.status (check KYC status)
+- [x] Router admin.kycList (lista KYC pending)
+- [x] Router admin.approveKyc
+- [x] Router admin.rejectKyc
+- [x] Router support.createTicket
+- [x] Router support.myTickets
+- [x] Router support.replyTicket
+- [x] Router admin.tickets (lista tutti i tickets)
+- [x] Router admin.replyToTicket
+- [x] Pagina KYC con document upload (ID, Passport, Driver License)
+- [x] Pagina Support con form create ticket e lista tickets
+- [x] File upload UI (S3 integration ready)

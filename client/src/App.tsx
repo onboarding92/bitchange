@@ -10,6 +10,8 @@ import Trading from "./pages/Trading";
 import Staking from "./pages/Staking";
 import Deposit from "./pages/Deposit";
 import Withdrawal from "./pages/Withdrawal";
+import KYC from "./pages/KYC";
+import Support from "./pages/Support";
 
 function Router() {
   return (
@@ -20,6 +22,8 @@ function Router() {
       <Route path="/staking" component={Staking} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/withdrawal" component={Withdrawal} />
+      <Route path="/kyc" component={KYC} />
+      <Route path="/support" component={Support} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
