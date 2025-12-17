@@ -1301,52 +1301,6 @@ export const appRouter = router({
         .limit(100);
     }),
 
-    // Staking Plans Management
-    createStakingPlan: adminProcedure
-      .input(z.object({
-        asset: z.string(),
-        name: z.string(),
-        apr: z.string(),
-        duration: z.number(),
-        minAmount: z.string(),
-        maxAmount: z.string().optional(),
-        isActive: z.boolean().default(true),
-      }))
-      .mutation(async ({ input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-        await db.insert(stakingPlans).values(input);
-        return { ok: true };
-      }),
-    
-    updateStakingPlan: adminProcedure
-      .input(z.object({
-        id: z.number(),
-        asset: z.string().optional(),
-        name: z.string().optional(),
-        apr: z.string().optional(),
-        duration: z.number().optional(),
-        minAmount: z.string().optional(),
-        maxAmount: z.string().optional(),
-        isActive: z.boolean().optional(),
-      }))
-      .mutation(async ({ input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-        const { id, ...updates } = input;
-        await db.update(stakingPlans).set(updates).where(eq(stakingPlans.id, id));
-        return { ok: true };
-      }),
-    
-    deleteStakingPlan: adminProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-        await db.delete(stakingPlans).where(eq(stakingPlans.id, input.id));
-        return { ok: true };
-      }),
-
     // Promo Codes Management
     createPromoCode: adminProcedure
       .input(z.object({
@@ -1547,6 +1501,77 @@ export const appRouter = router({
 
         return results;
       }),
+
+    // Staking Management
+    getStakingPlans: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(stakingPlans).orderBy(desc(stakingPlans.createdAt));
+    }),
+
+    createStakingPlan: adminProcedure
+      .input(z.object({
+        asset: z.string(),
+        name: z.string(),
+        apr: z.number(),
+        lockDays: z.number(),
+        minAmount: z.number(),
+        enabled: z.boolean().default(true),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await db.insert(stakingPlans).values({
+          asset: input.asset,
+          name: input.name,
+          apr: input.apr.toString(),
+          lockDays: input.lockDays,
+          minAmount: input.minAmount.toString(),
+          enabled: input.enabled,
+        });
+        return { success: true };
+      }),
+
+    updateStakingPlan: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        asset: z.string().optional(),
+        name: z.string().optional(),
+        apr: z.number().optional(),
+        lockDays: z.number().optional(),
+        minAmount: z.number().optional(),
+        enabled: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { id, ...updates } = input;
+        const updateData: any = {};
+        if (updates.asset) updateData.asset = updates.asset;
+        if (updates.name) updateData.name = updates.name;
+        if (updates.apr !== undefined) updateData.apr = updates.apr.toString();
+        if (updates.lockDays !== undefined) updateData.lockDays = updates.lockDays;
+        if (updates.minAmount !== undefined) updateData.minAmount = updates.minAmount.toString();
+        if (updates.enabled !== undefined) updateData.enabled = updates.enabled;
+
+        await db.update(stakingPlans).set(updateData).where(eq(stakingPlans.id, id));
+        return { success: true };
+      }),
+
+    deleteStakingPlan: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await db.delete(stakingPlans).where(eq(stakingPlans.id, input.id));
+        return { success: true };
+      }),
+
+    getAllStakingPositions: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(stakingPositions).orderBy(desc(stakingPositions.startedAt));
+    }),
   }),
 
   trade: router({

@@ -34,7 +34,7 @@ interface PriceData {
 
 // Cache per evitare troppe chiamate API
 const priceCache: Map<string, { data: PriceData; timestamp: number }> = new Map();
-const CACHE_DURATION = 30000; // 30 secondi
+const CACHE_DURATION = 60000; // 60 secondi (1 minuto)
 
 /**
  * Ottiene il prezzo corrente di un asset da CoinGecko
@@ -106,7 +106,7 @@ export async function getAllCryptoPrices(): Promise<PriceData[]> {
         include_24hr_vol: true,
         include_last_updated_at: true,
       },
-      timeout: 10000,
+      timeout: 30000, // Increased to 30 seconds
     });
 
     const prices: PriceData[] = [];

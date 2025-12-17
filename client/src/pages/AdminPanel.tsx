@@ -93,11 +93,10 @@ function StakingPlansManager() {
     createPlan.mutate({
       asset,
       name,
-      apr,
-      duration: parseInt(duration),
-      minAmount,
-      maxAmount: maxAmount || undefined,
-      isActive: true,
+      apr: parseFloat(apr),
+      lockDays: parseInt(duration),
+      minAmount: parseFloat(minAmount),
+      enabled: true,
     });
   };
 

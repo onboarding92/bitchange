@@ -18,6 +18,8 @@ export const users = mysqlTable("users", {
   twoFactorEnabled: boolean("twoFactorEnabled").default(false).notNull(),
   twoFactorBackupCodes: text("twoFactorBackupCodes"), // JSON array of backup codes
   accountStatus: mysqlEnum("accountStatus", ["active", "suspended"]).default("active").notNull(),
+  antiPhishingCode: varchar("antiPhishingCode", { length: 50 }), // Personal code shown in emails
+  ipWhitelist: text("ipWhitelist"), // JSON array of whitelisted IPs (admin only)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -327,3 +329,53 @@ export const blockchainTransactions = mysqlTable("blockchainTransactions", {
 export type MasterWallet = typeof masterWallets.$inferSelect;
 export type DepositAddress = typeof depositAddresses.$inferSelect;
 export type BlockchainTransaction = typeof blockchainTransactions.$inferSelect;
+
+
+// Withdrawal whitelist
+export const withdrawalWhitelist = mysqlTable("withdrawalWhitelist", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  address: varchar("address", { length: 255 }).notNull(),
+  network: varchar("network", { length: 50 }).notNull(),
+  label: varchar("label", { length: 100 }), // User-friendly name
+  verified: boolean("verified").default(false).notNull(), // Email verification required
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Device fingerprints for security
+export const deviceFingerprints = mysqlTable("deviceFingerprints", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  fingerprint: varchar("fingerprint", { length: 255 }).notNull(), // Browser fingerprint hash
+  userAgent: text("userAgent"),
+  ip: varchar("ip", { length: 45 }),
+  trusted: boolean("trusted").default(false).notNull(), // User marked as trusted
+  lastSeen: timestamp("lastSeen").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Security audit log
+export const securityAuditLog = mysqlTable("securityAuditLog", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  action: varchar("action", { length: 100 }).notNull(), // e.g., "login", "withdrawal", "password_change"
+  details: text("details"), // JSON with additional info
+  ip: varchar("ip", { length: 45 }),
+  userAgent: text("userAgent"),
+  success: boolean("success").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Withdrawal delays (for large amounts)
+export const withdrawalDelays = mysqlTable("withdrawalDelays", {
+  id: int("id").autoincrement().primaryKey(),
+  withdrawalId: int("withdrawalId").notNull(),
+  userId: int("userId").notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  usdValue: decimal("usdValue", { precision: 20, scale: 2 }).notNull(),
+  delayUntil: timestamp("delayUntil").notNull(), // When withdrawal can be processed
+  reason: text("reason"), // Why delayed (e.g., "Large amount >$10k")
+  cancelled: boolean("cancelled").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
