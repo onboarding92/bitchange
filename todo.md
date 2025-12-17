@@ -114,3 +114,18 @@
 - [x] Pagina KYC con document upload (ID, Passport, Driver License)
 - [x] Pagina Support con form create ticket e lista tickets
 - [x] File upload UI (S3 integration ready)
+
+
+## Step 5: Admin Panel Completo (COMPLETED)
+- [x] Pagina Admin Dashboard con stats overview
+- [x] Sezione Withdrawals Management (list, approve, reject)
+- [x] Sezione KYC Management (list, view documents, approve/reject)
+- [x] Sezione Support Tickets Management (list, reply placeholder)
+- [x] Admin-only sidebar link (visible solo per role=admin)
+- [x] Tabs navigation (Withdrawals, KYC, Support)
+- [x] KYC document viewer dialog
+- [x] Real-time stats display
+- [x] Color-coded badges per status e priority
+- [ ] Sezione Promo Codes (future)
+- [ ] Sezione System Logs (future)
+- [ ] Sezione Users Management (future)
