@@ -259,3 +259,20 @@
 - [x] Servire file statici da /uploads
 - [x] Integrare upload nella pagina KYC
 - [x] Validazione file type e size server-side (5MB max, JPEG/PNG/WEBP/PDF)
+
+
+### Network Selector per Deposit/Withdrawal (IN PROGRESS)
+- [ ] Aggiungere tabella networks al database (id, name, symbol, chainId, rpcUrl)
+- [ ] Aggiungere campo network a walletAddresses table
+- [ ] Supportare multiple network per stesso asset (USDT: ERC20, TRC20, BEP20, SPL, Polygon)
+- [ ] Generare wallet address per ogni network
+- [ ] Deposit: selector network prominente con warning
+- [ ] Withdrawal: selector network obbligatorio con validazione address
+- [ ] Fee diversa per ogni network
+- [ ] Network supportate:
+  * Bitcoin (BTC)
+  * Ethereum (ETH, USDT-ERC20, USDC-ERC20)
+  * BSC (BNB, USDT-BEP20, USDC-BEP20)
+  * Tron (TRX, USDT-TRC20)
+  * Solana (SOL, USDT-SPL)
+  * Polygon (MATIC, USDT-Polygon)

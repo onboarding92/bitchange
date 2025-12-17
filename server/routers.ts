@@ -326,11 +326,7 @@ export const appRouter = router({
 
   withdrawal: router({
     create: protectedProcedure
-      .input(z.object({
-        asset: z.string(),
-        amount: z.string(),
-        address: z.string(),
-      }))
+      .input(z.object({ asset: z.string(), amount: z.string(), address: z.string() }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -405,17 +401,15 @@ export const appRouter = router({
         }
 
         // Genera nuovo address
-        const { address, network } = generateWalletAddress(ctx.user.id, input.asset);
-
-        // Salva nel database
+        const address = await generateWalletAddress(ctx.user.id, input.asset, "ethereum"); // Default network    // Salva nel database
         await db.insert(walletAddresses).values({
           userId: ctx.user.id,
           asset: input.asset,
           address,
-          network,
+          network: "ethereum",
         });
 
-        return { userId: ctx.user.id, asset: input.asset, address, network, createdAt: new Date() };
+        return { userId: ctx.user.id, asset: input.asset, address, network: "ethereum", createdAt: new Date() };
       }),
   }),
 
