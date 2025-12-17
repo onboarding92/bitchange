@@ -9,7 +9,14 @@ export const users = mysqlTable("users", {
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   password: varchar("password", { length: 255 }),
   emailVerified: timestamp("emailVerified"),
-  kycStatus: mysqlEnum("kycStatus", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  kycStatus: mysqlEnum("kycStatus", ["pending", "submitted", "approved", "rejected", "expired"]).default("pending").notNull(),
+  kycSubmittedAt: timestamp("kycSubmittedAt"),
+  kycApprovedAt: timestamp("kycApprovedAt"),
+  kycRejectedReason: text("kycRejectedReason"),
+  kycExpiresAt: timestamp("kycExpiresAt"),
+  twoFactorSecret: varchar("twoFactorSecret", { length: 255 }),
+  twoFactorEnabled: boolean("twoFactorEnabled").default(false).notNull(),
+  twoFactorBackupCodes: text("twoFactorBackupCodes"), // JSON array of backup codes
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -261,3 +268,58 @@ export const networks = mysqlTable("networks", {
   confirmations: int("confirmations").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// Hot Wallet System Tables
+export const masterWallets = mysqlTable("masterWallets", {
+  id: int("id").autoincrement().primaryKey(),
+  network: varchar("network", { length: 50 }).notNull().unique(), // BTC, ETH, TRX, BNB, SOL, MATIC
+  asset: varchar("asset", { length: 20 }).notNull(), // BTC, ETH, USDT, USDC, etc.
+  address: varchar("address", { length: 255 }).notNull(),
+  encryptedPrivateKey: text("encryptedPrivateKey").notNull(), // AES-256 encrypted
+  encryptedMnemonic: text("encryptedMnemonic"), // For HD wallets
+  derivationPath: varchar("derivationPath", { length: 100 }), // m/44'/60'/0'/0 for ETH
+  balance: decimal("balance", { precision: 20, scale: 8 }).default("0").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const depositAddresses = mysqlTable("depositAddresses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  network: varchar("network", { length: 50 }).notNull(), // BTC, ETH, TRX, etc.
+  asset: varchar("asset", { length: 20 }).notNull(),
+  address: varchar("address", { length: 255 }).notNull().unique(),
+  derivationIndex: int("derivationIndex"), // For HD wallet derivation
+  masterWalletId: int("masterWalletId"),
+  isUsed: boolean("isUsed").default(false).notNull(), // Mark as used after first deposit
+  lastDepositAt: timestamp("lastDepositAt"),
+  totalDeposited: decimal("totalDeposited", { precision: 20, scale: 8 }).default("0").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const blockchainTransactions = mysqlTable("blockchainTransactions", {
+  id: int("id").autoincrement().primaryKey(),
+  txHash: varchar("txHash", { length: 255 }).notNull().unique(),
+  network: varchar("network", { length: 50 }).notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  fromAddress: varchar("fromAddress", { length: 255 }),
+  toAddress: varchar("toAddress", { length: 255 }).notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  fee: decimal("fee", { precision: 20, scale: 8 }).default("0").notNull(),
+  confirmations: int("confirmations").default(0).notNull(),
+  status: mysqlEnum("status", ["pending", "confirmed", "failed"]).default("pending").notNull(),
+  type: mysqlEnum("type", ["deposit", "withdrawal"]).notNull(),
+  userId: int("userId"), // Associated user for deposits
+  depositAddressId: int("depositAddressId"), // Link to deposit address
+  withdrawalId: int("withdrawalId"), // Link to withdrawal request
+  blockNumber: int("blockNumber"),
+  blockTimestamp: timestamp("blockTimestamp"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MasterWallet = typeof masterWallets.$inferSelect;
+export type DepositAddress = typeof depositAddresses.$inferSelect;
+export type BlockchainTransaction = typeof blockchainTransactions.$inferSelect;

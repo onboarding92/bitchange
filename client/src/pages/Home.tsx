@@ -61,6 +61,31 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold">BitChange Pro</span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => setLocation("/auth/login")}
+            >
+              Sign In
+            </Button>
+            <Button 
+              className="gradient-primary"
+              onClick={() => setLocation("/auth/register")}
+            >
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 border-b border-border">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
@@ -87,7 +112,7 @@ export default function Home() {
               <Button 
                 size="lg" 
                 className="gradient-primary text-lg px-8 group"
-                onClick={() => setLocation("/dashboard")}
+                onClick={() => setLocation("/auth/register")}
               >
                 Get Started
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -101,6 +126,16 @@ export default function Home() {
                 View Markets
               </Button>
             </div>
+            
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <button 
+                onClick={() => setLocation("/auth/login")} 
+                className="text-primary hover:underline font-medium"
+              >
+                Sign in
+              </button>
+            </p>
           </div>
 
           {/* Live Prices Ticker */}

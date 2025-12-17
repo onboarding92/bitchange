@@ -413,3 +413,85 @@
 **Test Results: 11/15 passing (73% success rate)**
 
 Remaining issues are minor mock/assertion fixes, core auth logic is fully tested and working.
+
+
+## CRITICAL FIXES (Dec 17 - Priority 1)
+
+### Login/Register UI Visibility
+- [x] Add Login/Register buttons to navbar (top-right)
+- [x] Add "Get Started" button on homepage linking to /auth/register
+- [x] Add login link on register page and vice versa
+- [ ] Test auth flow from homepage → register → verify → login → dashboard
+
+### Hot Wallet System Implementation
+- [ ] Create master wallet table (stores hot wallet private keys encrypted)
+- [ ] Create address pool table (pre-generated addresses for deposits)
+- [ ] Implement wallet generation service (BTC, ETH, USDT-ERC20/TRC20/BEP20)
+- [ ] Add address derivation from master seed (HD wallets)
+- [ ] Implement deposit detection service (monitors blockchain for incoming tx)
+- [ ] Implement withdrawal processing service (signs and broadcasts tx)
+- [ ] Add encryption for private keys storage (AES-256)
+- [ ] Create admin panel for wallet management
+
+### Real Crypto Address Generation
+- [x] Install crypto libraries (bitcoinjs-lib, ethers, tronweb, @solana/web3.js)
+- [x] Implement BTC address generation (SegWit/Native SegWit)
+- [x] Implement ETH address generation (ERC20 tokens use same address)
+- [x] Implement TRX address generation (TRC20 tokens)
+- [x] Implement BNB address generation (BEP20 tokens)
+- [x] Implement SOL address generation
+- [x] Implement MATIC address generation
+- [x] Add address validation for each network
+- [ ] Test address generation for all supported networks
+
+## NEW FEATURES (Dec 17 - Priority 2)
+
+### KYC Verification Flow
+- [ ] Create KYC status enum (pending, approved, rejected, expired)
+- [ ] Add KYC status to users table
+- [ ] Create KYC submission page with document upload
+- [ ] Implement selfie/face photo upload
+- [ ] Add address proof document upload
+- [ ] Create admin KYC review panel
+- [ ] Implement approve/reject workflow with notes
+- [ ] Add email notifications for KYC status changes
+- [ ] Require KYC for withdrawals above threshold
+- [ ] Add KYC expiration (annual renewal)
+
+### 2FA (Two-Factor Authentication)
+- [x] Install speakeasy library for TOTP
+- [x] Add 2FA fields to users table (secret, enabled, backupCodes)
+- [x] Create 2FA utility functions (generate, verify, backup codes)
+- [ ] Add 2FA router endpoints (setup, enable, disable, verify)
+- [ ] Create 2FA setup page with QR code generation
+- [ ] Implement TOTP verification on login
+- [ ] Generate and display backup codes (10 codes)
+- [ ] Add "Disable 2FA" option with password confirmation
+- [ ] Require 2FA for sensitive operations (withdrawal, settings change)
+- [ ] Add trusted devices feature (remember for 30 days)
+- [ ] Test 2FA flow with Google Authenticator app
+
+
+## Login/Register UI Progress (Dec 17)
+
+- [x] Add navbar to Home page with Sign In / Get Started buttons
+- [x] Update "Get Started" button to link to /auth/register
+- [x] Add "Already have an account? Sign in" link below hero CTA
+- [x] Auth routes already configured in App.tsx
+
+
+## Hot Wallet System Progress (Dec 17)
+
+- [x] Install crypto libraries (bitcoinjs-lib, ethers, tronweb, @solana/web3.js, bip32, bip39)
+- [x] Create hot wallet database tables (masterWallets, depositAddresses, blockchainTransactions)
+- [x] Implement real BTC wallet generation (Native SegWit bc1...)
+- [x] Implement real ETH wallet generation (works for ERC20)
+- [x] Implement real TRX wallet generation (works for TRC20)
+- [x] Implement SOL/BNB/MATIC wallet generation
+- [x] Add HD wallet derivation functions (deriveETHAddress, deriveBTCAddress)
+- [x] Add address validation for all networks
+- [x] Add encryption/decryption for private keys (AES-256-GCM)
+- [x] Create backward-compatible generateWalletAddress() wrapper
+- [ ] Create hot wallet management router (admin only)
+- [ ] Implement deposit detection service (blockchain monitoring)
+- [ ] Implement withdrawal processing service
