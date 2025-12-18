@@ -345,7 +345,7 @@ Last Updated: December 17, 2025
 - [x] Switch to softer dark theme with better contrast
 - [x] Improve color contrast for better readability (lighter backgrounds, brighter text)
 - [x] Update CSS variables in index.css
-- [ ] Test theme across all pages
+- [x] Test theme across all pages - Verified on homepage, login, dashboard, and transaction history
 
 ### Documentation
 - [x] Update README.md to specify educational/demo exchange purpose
