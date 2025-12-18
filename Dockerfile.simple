@@ -15,7 +15,23 @@ RUN npm install -g pnpm@9.15.4 && pnpm install
 # Copy application code
 COPY . .
 
-# Build frontend
+# Declare build arguments for Vite environment variables
+ARG VITE_APP_TITLE
+ARG VITE_APP_LOGO
+ARG VITE_FRONTEND_FORGE_API_URL
+ARG VITE_FRONTEND_FORGE_API_KEY
+ARG VITE_ANALYTICS_ENDPOINT
+ARG VITE_ANALYTICS_WEBSITE_ID
+
+# Convert ARG to ENV so Vite can access them during build
+ENV VITE_APP_TITLE=$VITE_APP_TITLE
+ENV VITE_APP_LOGO=$VITE_APP_LOGO
+ENV VITE_FRONTEND_FORGE_API_URL=$VITE_FRONTEND_FORGE_API_URL
+ENV VITE_FRONTEND_FORGE_API_KEY=$VITE_FRONTEND_FORGE_API_KEY
+ENV VITE_ANALYTICS_ENDPOINT=$VITE_ANALYTICS_ENDPOINT
+ENV VITE_ANALYTICS_WEBSITE_ID=$VITE_ANALYTICS_WEBSITE_ID
+
+# Build frontend with environment variables available
 RUN npx vite build
 
 # Copy built frontend to server location
