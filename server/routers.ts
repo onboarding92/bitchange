@@ -13,7 +13,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
 import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications } from "../drizzle/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 import { generateWalletAddress } from "./walletGenerator";
@@ -1749,6 +1749,44 @@ export const appRouter = router({
         ));
       return { success: true };
     }),
+  }),
+
+  transactions: router({
+    getHistory: protectedProcedure
+      .input(z.object({
+        type: z.enum(["deposit", "withdrawal", "trade"]).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return [];
+
+        const { transactions } = await import("../drizzle/schema");
+        let conditions = [eq(transactions.userId, ctx.user.id)];
+
+        if (input.type) {
+          conditions.push(eq(transactions.type, input.type));
+        }
+
+        if (input.startDate) {
+          conditions.push(gte(transactions.createdAt, new Date(input.startDate)));
+        }
+
+        if (input.endDate) {
+          const endDateTime = new Date(input.endDate);
+          endDateTime.setHours(23, 59, 59, 999);
+          conditions.push(lte(transactions.createdAt, endDateTime));
+        }
+
+        const result = await db
+          .select()
+          .from(transactions)
+          .where(and(...conditions))
+          .orderBy(desc(transactions.createdAt));
+
+        return result;
+      }),
   }),
 
   user: router({

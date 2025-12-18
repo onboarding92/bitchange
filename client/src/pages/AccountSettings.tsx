@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib/trpc";
-import { Key, Loader2, Lock, Shield } from "lucide-react";
+import { ArrowLeft, Key, Loader2, Lock, Shield } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 
 export default function AccountSettings() {
+  const [, setLocation] = useLocation();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -54,6 +56,14 @@ export default function AccountSettings() {
 
   return (
     <div className="container max-w-4xl py-8">
+      <Button
+        variant="ghost"
+        onClick={() => setLocation("/dashboard")}
+        className="mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Dashboard
+      </Button>
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
         <p className="text-muted-foreground mt-2">

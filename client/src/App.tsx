@@ -27,6 +27,7 @@ import UsersManagement from "./pages/admin/Users";
 import Trade from "./pages/Trade";
 import Profile from "./pages/Profile";
 import AccountSettings from "./pages/AccountSettings";
+import TransactionHistory from "./pages/TransactionHistory";
 
 function Router() {
   return (
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/support" component={Support} />
       <Route path="/profile" component={Profile} />
       <Route path="/settings" component={AccountSettings} />
+      <Route path="/transactions" component={TransactionHistory} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/panel" component={AdminPanel} />

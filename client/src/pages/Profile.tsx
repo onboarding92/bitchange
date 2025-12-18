@@ -4,12 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Save, User } from "lucide-react";
+import { ArrowLeft, Loader2, Save, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 
 export default function Profile() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [isEditing, setIsEditing] = useState(false);
@@ -45,6 +47,14 @@ export default function Profile() {
 
   return (
     <div className="container max-w-4xl py-8">
+      <Button
+        variant="ghost"
+        onClick={() => setLocation("/dashboard")}
+        className="mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Dashboard
+      </Button>
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
         <p className="text-muted-foreground mt-2">

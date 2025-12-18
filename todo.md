@@ -331,3 +331,33 @@ Last Updated: December 17, 2025
 - [ ] Add search by transaction ID or asset
 - [ ] Add export to CSV functionality
 - [ ] Add pagination for large datasets
+
+
+## 🎨 UI/UX IMPROVEMENTS - Phase 3 (Dec 18, 2025)
+
+### Navigation & Layout
+- [x] Change "Navigation" header to "BitChange Pro"
+- [x] Add back buttons to Profile page
+- [x] Add back buttons to Settings page
+- [ ] Add back buttons to other secondary pages (if needed)
+
+### Theme & Colors
+- [x] Switch to softer dark theme with better contrast
+- [x] Improve color contrast for better readability (lighter backgrounds, brighter text)
+- [x] Update CSS variables in index.css
+- [ ] Test theme across all pages
+
+### Documentation
+- [x] Update README.md to specify educational/demo exchange purpose
+- [x] Remove roadmap from README
+- [x] Simplify technical details
+- [x] Add disclaimer about educational use
+
+### ### Transaction History
+- [x] Create Transaction History page (/transactions)
+- [x] Display all transactions (deposits, withdrawals, trades)
+- [x] Add filters (type, date range)
+- [x] Add export to CSV functionality
+- [x] Add History link to sidebar navigation
+- [ ] Add pagination for large datasets (future enhancement)
+- [ ] Add transaction details modal (future enhancement)saction lists
