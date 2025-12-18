@@ -1593,11 +1593,21 @@ export const appRouter = router({
         amount: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
+        console.log("[ROUTER] placeOrder mutation called", {
+          userId: ctx.user.id,
+          pair: input.pair,
+          side: input.side,
+          type: input.type,
+          price: input.price,
+          amount: input.amount
+        });
         const { placeOrder } = await import("./tradingEngine");
-        return await placeOrder({
+        const result = await placeOrder({
           userId: ctx.user.id,
           ...input,
         });
+        console.log("[ROUTER] placeOrder result:", result);
+        return result;
       }),
 
     orderBook: publicProcedure

@@ -1,8 +1,80 @@
 # BitChange Pro - Project TODO
 
+## 🔴 CRITICAL BUG IDENTIFIED - December 17, 2025
+
+### Frontend Button onClick Not Working
+
+**Root Cause**: Button "Sell BTC" / "Buy BTC" does NOT trigger `handlePlaceOrder` function
+
+**Evidence**:
+1. Added router-level logging: `[ROUTER] placeOrder mutation called` - NEVER appears in server logs
+2. Added frontend logging: `[Trade] handlePlaceOrder called` - NEVER appears in browser console  
+3. Button has correct `onClick={handlePlaceOrder}` attribute (Trade.tsx line 261)
+4. Button is NOT disabled (only when `placeOrderMutation.isPending`)
+5. Button is NOT inside a `<form>` element
+
+**Possible Causes**:
+1. shadcn/ui Button component onClick event not firing
+2. Event bubbling stopped by parent component (Tabs/TabsContent)
+3. React event handler not attached correctly
+4. Button re-rendering issue preventing onClick
+
+**Next Steps to Fix**:
+1. Replace shadcn Button with native `<button>` element to test
+2. Add `type="button"` to prevent form submission
+3. Move onClick to wrapper div to test event bubbling
+4. Check React DevTools for event listeners
+5. Add console.log directly in JSX: `onClick={() => { console.log("CLICKED"); handlePlaceOrder(); }}`
+
+---
+
 ## ✅ COMPLETED FEATURES
 
-[Previous completed features content remains the same...]
+### Authentication & User Management
+- [x] OAuth integration (Manus)
+- [x] Email/password registration and login
+- [x] Email verification system
+- [x] Password reset flow
+- [x] KYC verification system
+- [x] Two-factor authentication (2FA)
+
+### Trading System
+- [x] Real-time order book
+- [x] Limit orders (buy/sell)
+- [x] Market orders UI (backend pending)
+- [x] Order history
+- [x] Trade history
+- [x] Trading pairs (BTC/USDT, ETH/USDT, etc.)
+- [x] Order type selector (Limit/Market)
+- [x] Balance validation UI
+- [x] CSV export for trading history
+
+### Wallet & Deposits
+- [x] Multi-currency wallet system
+- [x] Deposit address generation (BTC, ETH, USDT)
+- [x] QR code generation for deposits
+- [x] Withdrawal system
+- [x] Transaction history
+
+### Staking
+- [x] Staking pools (BTC, ETH, USDT)
+- [x] Flexible and locked staking
+- [x] Rewards calculation
+- [x] Staking history
+
+### Admin Panel
+- [x] User management
+- [x] KYC verification management
+- [x] Transaction monitoring
+- [x] System settings
+- [x] Support ticket system
+- [x] Balance adjustment tools
+
+### Support System
+- [x] Ticket creation
+- [x] Ticket replies
+- [x] Ticket status management
+- [x] Admin ticket assignment
 
 ---
 
@@ -14,16 +86,23 @@
 **Result**: Both OAuth and email/password authentication now work correctly
 **Tested**: Successfully logged in as trader1@test.com
 
-### ✅ Fix 2: Trading UI - COMPLETED  
+### ✅ Fix 2: Trading UI - PARTIALLY FIXED
 **Problem**: Orders weren't being placed when clicking Buy/Sell buttons
-**Solution**: Fixed after auth context update (was authentication issue)
-**Result**: Orders are now placed successfully and visible in order book
-**Tested**: Placed sell order BTC/USDT @ 86000, visible in database and UI
+**Status**: Auth fixed, but button onClick still not working (see critical bug above)
+**Tested**: Placed sell order via SQL works, UI button doesn't trigger handler
 
 ### ✅ Debug Logging Added - COMPLETED
-**Added**: Comprehensive logging to `placeOrder()` and `matchOrder()` functions
-**Location**: `server/tradingEngine.ts` lines 143, 156, 182-184, 186, 196-252
-**Purpose**: Debug matching engine behavior
+**Added**: Comprehensive logging to `placeOrder()`, `matchOrder()`, and router
+**Location**: 
+- `server/tradingEngine.ts` lines 143, 156, 182-184, 186, 196-252
+- `server/routers.ts` lines 1596-1610 (router-level logging)
+**Purpose**: Debug matching engine and frontend mutation calls
+
+### ✅ CSV Export - COMPLETED
+**Feature**: Export trading history to CSV file
+**Location**: `server/routers.ts` trade.exportTrades endpoint
+**UI**: "Export CSV" button in Trade.tsx Recent Trades section
+**Status**: Implemented, ready for testing when trades exist
 
 ### ⚠️ Logout Button - PARTIALLY WORKING
 **Status**: Button exists but dropdown doesn't open
@@ -34,51 +113,12 @@
 
 ---
 
-## 🔴 CRITICAL ISSUE - Matching Engine
-
-### Status: DEBUG IN PROGRESS
-
-**Problem**: Orders placed but not matched automatically
-
-**Evidence**:
-- Sell order: BTC/USDT @ 86000, 0.3 BTC (trader1) ✅ SUCCESS
-- Buy order: BTC/USDT @ 86000, 0.3 BTC (buyer2) ❌ FAILED SILENTLY
-- No `[PLACE_ORDER]` or `[MATCHING]` logs when clicking "Buy BTC"
-- Buy order never reaches backend
-
-**Root Cause Analysis**:
-1. ✅ Debug logging added to both functions
-2. ✅ Verified `matchOrder()` is called at line 183
-3. ❌ Buy order mutation fails on frontend before reaching backend
-4. ❌ Likely cause: Insufficient balance (buyer2 has 43k USDT locked, only 7k available)
-5. ❌ Trying to buy 0.3 BTC @ 86000 = 25,800 USDT (exceeds 7k available)
-6. ❌ No error toast shown to user
-
-**Next Steps**:
-1. 🔴 Add error toast in `Trade.tsx` for failed mutations
-2. 🔴 Check browser console for tRPC errors
-3. 🔴 Clear locked balances: `UPDATE wallets SET locked = 0`
-4. 🔴 Test with sufficient available balance
-5. 🔴 Add balance validation UI (show available vs required)
-
-**Workaround**:
-```sql
--- Clear locked balances for testing
-UPDATE wallets SET locked = 0 WHERE userId IN (
-  SELECT id FROM users WHERE email LIKE '%test%'
-);
-```
-
-**Documentation**: See KNOWN_ISSUES.md section 3 for full details
-
----
-
 ## 📋 DEPLOYMENT CHECKLIST
 
 ### Pre-Deployment (P0 - Critical)
 - [x] Fix authentication context
-- [x] Fix trading UI button
-- [ ] Fix matching engine / error handling
+- [ ] Fix trading UI button onClick
+- [ ] Fix matching engine
 - [ ] Configure SMTP email service
 - [ ] Test blockchain monitoring on testnet
 - [ ] Test withdrawal processing on testnet
@@ -112,214 +152,4 @@ All documentation complete and up-to-date:
 
 ---
 
-## 🎯 IMMEDIATE NEXT STEPS
-
-1. **Clear test data**: Reset locked balances in database
-2. **Add error handling**: Show tRPC errors to users in Trade.tsx
-3. **Test matching engine**: With sufficient balance and clean data
-4. **Configure SMTP**: SendGrid for email notifications
-5. **Save checkpoint**: Document all fixes and findings
-
----
-
 Last Updated: December 17, 2025
-
-
-## ✅ BUGS VERIFIED - December 17, 2025
-
-### Bug 1: View Markets Button - NO BUG FOUND ✅
-- [x] Tested "View Markets" button from home page
-- [x] Routes correctly to `/trading` page
-- [x] Shows trading interface with order book
-- **Status**: Working as expected, no fix needed
-
-### Bug 2: Deposit Wallet Addresses - NO BUG FOUND ✅
-- [x] Tested deposit page wallet generation
-- [x] Address generated successfully: `0x4a278bfA0aBB7A8847CAD8fC2ac071b457cDfA75`
-- [x] QR code displays correctly
-- [x] Network selection works (USDT-ERC20)
-- **Status**: Working as expected, no fix needed
-
-### Task 1: Clear Locked Balances ✅
-- [x] Executed SQL to clear locked balances for test users
-- [x] Query: `UPDATE wallets SET locked = 0 WHERE userId IN (...)`
-- **Status**: Completed
-
-### Task 2: Error Toast Notifications ✅
-- [x] Verified error handling already exists in Trade.tsx (line 36-38)
-- [x] `onError: (error) => toast.error(error.message)`
-- **Status**: Already implemented, no changes needed
-
-
-## 🎯 CURRENT TASKS - Final Improvements (December 17, 2025)
-
-### Task 1: Test Matching Engine End-to-End
-- [ ] Verify trader1 has sufficient BTC balance
-- [ ] Place sell order as trader1 (BTC/USDT)
-- [ ] Login as buyer2
-- [ ] Place matching buy order
-- [ ] Verify trade executes automatically
-- [ ] Check balance updates for both users
-- [ ] Verify trade record in database
-
-### Task 2: Add Balance Validation UI
-- [ ] Add available balance display in Trade.tsx
-- [ ] Show "Available: X USDT/BTC" above amount input
-- [ ] Add real-time validation before order placement
-- [ ] Disable button if insufficient balance
-- [ ] Show clear error message
-
-### Task 3: Fix Dropdown Logout Menu
-- [ ] Debug DropdownMenu component in DashboardLayout.tsx
-- [ ] Check z-index conflicts
-- [ ] Test dropdown opens on click
-- [ ] Verify logout button is accessible
-- [ ] Test logout functionality works
-
-
----
-
-## ✅ FINAL SESSION COMPLETED - December 17, 2025
-
-### Task 1: Test Matching Engine End-to-End ✅
-- [x] Verified trader1 has sufficient BTC balance (1.0 BTC available)
-- [x] Placed sell order as trader1 (BTC/USDT @ 86000, 0.3 BTC)
-- [x] Logged in as buyer2 (50,000 USDT available)
-- [x] Attempted to place matching buy order
-- [x] **RESULT**: Orders NOT matched (bug confirmed)
-- [x] **ROOT CAUSE**: Matching engine not triggered or exits immediately
-- [x] **EVIDENCE**: No debug logs appear in server output
-
-### Task 2: Add Balance Validation UI ✅
-- [x] Added `trpc.wallet.list.useQuery()` to Trade.tsx
-- [x] Implemented "Available: X USDT/BTC" display above amount input
-- [x] Shows correct asset based on buy/sell side
-- [x] **CODE LOCATION**: `client/src/pages/Trade.tsx` lines 25, 230-237
-- [x] **STATUS**: Implemented, needs visual verification
-
-### Task 3: Fix Dropdown Logout Menu ✅
-- [x] Verified DropdownMenu imports are correct
-- [x] Checked component implementation (lines 211-238)
-- [x] Logout function exists and is wired correctly
-- [x] **ISSUE**: Dropdown doesn't open (possible CSS/z-index bug)
-- [x] **WORKAROUND**: Clear cookies via browser console works
-- [x] **PRIORITY**: P2 - Minor UI bug, not blocking
-
----
-
-## 🔴 OUTSTANDING CRITICAL ISSUE
-
-**Matching Engine Bug**: Orders placed but not matched
-- **Status**: Requires deeper debugging
-- **Next Step**: Add console.error in matchOrder to catch silent failures
-- **Workaround**: Manual SQL to execute trades for testing
-- **Documentation**: Fully documented in KNOWN_ISSUES.md
-
----
-
-## 📊 SESSION SUMMARY
-
-**Completed**:
-- ✅ 2 critical auth/trading bugs fixed
-- ✅ Balance validation UI added
-- ✅ Comprehensive debug logging added
-- ✅ End-to-end testing performed
-- ✅ All findings documented
-
-**Remaining**:
-- ❌ Matching engine bug (requires investigation)
-- ❌ Dropdown menu UI polish
-- ⚠️ SMTP configuration (deferred per user request)
-
-
-
----
-
-## ✅ SESSION 2 COMPLETED - December 17, 2025
-
-### Task 1: Debug Matching Engine with SQL Test ✅
-- [x] Cleared existing orders from database
-- [x] Inserted sell order manually via SQL (trader1, BTC/USDT @ 85000, 0.2 BTC)
-- [x] Inserted buy order manually via SQL (buyer2, BTC/USDT @ 85000, 0.2 BTC)
-- [x] Created tRPC endpoint `trade.debugMatchOrder` (adminProcedure)
-- [x] Exported `matchOrder` function from tradingEngine.ts
-- [x] Created vitest test for matching engine
-- ❌ Test failed due to timestamp issue in drizzle-orm
-- **Status**: Debug infrastructure ready, matching engine bug persists
-
-### Task 2: Real-time Order Book Updates ✅
-- [x] Auto-refresh already implemented (5 second polling)
-- [x] Refetches orderBook, recentTrades, myOrders every 5s
-- [x] Implemented in Trade.tsx lines 54-61
-- **Status**: Feature already complete, no changes needed
-
-### Task 3: Market Orders Implementation ⏭️
-- [ ] Deferred to future session (requires significant trading engine refactor)
-- [ ] Current implementation supports limit orders only
-- **Status**: Not implemented, documented as future enhancement
-
-
-
----
-
-## ✅ SESSION 3 COMPLETED - December 17, 2025
-
-### Task 1: Fix Matching Engine Test ⚠️
-- [x] Added `new Date()` for timestamp fields in test
-- [x] Fixed users insert timestamps (createdAt, updatedAt)
-- [x] Fixed orders insert timestamps (createdAt, updatedAt)
-- [x] Ran test - still fails with same timestamp error
-- ❌ Issue persists: drizzle-orm timestamp conversion in wallets table
-- **Status**: Test infrastructure ready, requires deeper drizzle-orm debug
-
-### Task 2: Add Order Type Selector UI ✅
-- [x] Order type selector already implemented in Trade.tsx
-- [x] Select dropdown with "Limit Order" and "Market Order" (lines 201-209)
-- [x] Price input shown only for limit orders (lines 213-224)
-- [x] Total calculation only for limit orders (lines 248-255)
-- **Status**: Feature already complete, no changes needed
-
-### Task 3: WebSocket Real-time Updates ⏭️
-- [ ] Deferred to future session (requires socket.io installation + refactor)
-- [ ] Current polling implementation (5s) works adequately
-- **Status**: Not implemented, documented as future enhancement
-
-### Task 4: GitHub Repository ✅
-- [x] Checked git status: only 2 files modified (test + todo)
-- [x] Verified Manus uses internal checkpoint system (not git)
-- [x] All changes tracked via Manus checkpoints
-- **Status**: Repository managed by Manus platform
-
-
-
----
-
-## ✅ SESSION 4 COMPLETED - December 17, 2025
-
-### Task 1: Fix Matching Engine Core Bug ✅
-- [x] Verified comprehensive debug logging already exists (lines 212-308)
-- [x] Logging includes: order details, opposite orders query, canMatch evaluation, trade execution
-- [x] Confirmed placeOrder calls matchOrder (line 183)
-- [x] Issue identified: logs never appear = mutation not reaching backend OR silent error
-- **Status**: Debug infrastructure complete, root cause requires deeper investigation
-
-### Task 2: Stop-Loss and Take-Profit Orders ⏭️
-- [ ] Deferred to future session (requires schema migration + background jobs)
-- [ ] Requires significant refactor of trading engine
-- **Status**: Not implemented, documented as future enhancement
-
-### Task 3: Trading History CSV Export ✅
-- [x] Added trade.exportTrades endpoint in routers.ts
-- [x] Generates CSV with: Date, Pair, Side, Price, Amount, Total, Fee, Status
-- [x] Added "Export CSV" button in Trade.tsx Recent Trades section
-- [x] Fixed drizzle-orm query with proper and() conditions
-- [x] Fixed TypeScript errors (useUtils().client pattern)
-- **Status**: Feature complete and tested
-
-### Task 4: GitHub Push ⚠️
-- [x] Staged all changes (git add -A)
-- [x] Committed with descriptive message
-- [x] Attempted push to origin/main
-- ❌ Push failed: "invalid credentials Unable to locate credentials"
-- **Status**: Commit created locally, push requires GitHub credentials configuration
-
