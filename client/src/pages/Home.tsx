@@ -142,10 +142,10 @@ export default function Home() {
           {cryptoPrices.length > 0 && (
             <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {cryptoPrices.map((crypto) => (
-                <Card key={crypto.symbol} className="glass border-border/50">
+                <Card key={crypto.asset} className="glass border-border/50">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-sm">{crypto.symbol}/USDT</span>
+                      <span className="font-semibold text-sm">{crypto.asset}/USDT</span>
                       <span className={`text-xs font-medium ${crypto.change24h >= 0 ? "text-green-500" : "text-red-500"}`}>
                         {crypto.change24h >= 0 ? "+" : ""}{crypto.change24h.toFixed(2)}%
                       </span>

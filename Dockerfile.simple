@@ -7,7 +7,7 @@ RUN apk add --no-cache curl openssl
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
-COPY patches ./patches
+COPY patches/ ./patches/
 
 # Install pnpm and ALL dependencies (including dev for tsx)
 RUN npm install -g pnpm@9.15.4 && pnpm install
