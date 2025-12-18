@@ -198,7 +198,7 @@ export async function placeOrder(params: {
 /**
  * Match an order against the order book
  */
-async function matchOrder(db: any, orderId: number): Promise<Trade[]> {
+export async function matchOrder(db: any, orderId: number): Promise<Trade[]> {
   console.log(`[MATCHING] ========== Starting match for order ${orderId} ==========`);
   const executedTrades: Trade[] = [];
 

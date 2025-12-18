@@ -1639,6 +1639,21 @@ export const appRouter = router({
         { pair: "MATIC/USDT", baseAsset: "MATIC", quoteAsset: "USDT", minAmount: "1", maxAmount: "100000" },
       ];
     }),
+
+    // DEBUG: Manually trigger matching engine for an order
+    debugMatchOrder: adminProcedure
+      .input(z.object({ orderId: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        
+        console.log("[DEBUG_MATCH] Manually triggering matchOrder for orderId:", input.orderId);
+        const { matchOrder } = await import("./tradingEngine");
+        const executedTrades = await matchOrder(db, input.orderId);
+        console.log("[DEBUG_MATCH] Executed trades:", executedTrades);
+        
+        return { success: true, tradesCount: executedTrades.length, trades: executedTrades };
+      }),
   }),
 
   prices: router({
