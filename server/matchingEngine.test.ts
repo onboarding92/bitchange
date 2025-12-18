@@ -19,6 +19,8 @@ describe("Matching Engine", () => {
       name: "Test Seller",
       role: "user",
       emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     
     const [buyer] = await db.insert(users).values({
@@ -27,6 +29,8 @@ describe("Matching Engine", () => {
       name: "Test Buyer",
       role: "user",
       emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     
     sellerId = seller.insertId;
@@ -52,6 +56,8 @@ describe("Matching Engine", () => {
       amount: "0.2",
       filled: "0",
       status: "open",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     // Insert buy order
@@ -64,6 +70,8 @@ describe("Matching Engine", () => {
       amount: "0.2",
       filled: "0",
       status: "open",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     // Trigger matching engine
