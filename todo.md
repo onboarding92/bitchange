@@ -153,3 +153,35 @@ All documentation complete and up-to-date:
 ---
 
 Last Updated: December 17, 2025
+
+
+---
+
+## ✅ SESSION 5 COMPLETED - Critical Bug Fixed! - December 17, 2025
+
+### Task 1: Fix Button onClick ✅
+- [x] Replaced shadcn Button with native `<button>` element in Trade.tsx
+- [x] Added `type="button"` to prevent form submission
+- [x] Added inline console.log("BUTTON CLICKED") to verify onClick fires
+- [x] Tested button click triggers handlePlaceOrder - **WORKS!**
+- [x] Orders now appear in Order Book and Open Orders table
+- **Root Cause**: shadcn/ui Button component onClick event not firing
+- **Solution**: Native button with explicit type="button" and onClick handler
+
+### Task 2: Add Inline Error Display ✅
+- [x] Added error display component below Buy/Sell button (lines 274-287)
+- [x] Displays tRPC error messages with `placeOrderMutation.error.message`
+- [x] Shows specific error messages (insufficient balance, validation errors)
+- [x] Styled with red border, background, and warning icon
+- [x] Component renders when `placeOrderMutation.error` exists
+- **Status**: Feature complete, ready for testing with error scenarios
+
+### Task 3: Implement Order Cancellation ✅
+- [x] Verified cancelOrder tRPC endpoint exists (routers.ts line 1627-1632)
+- [x] Verified cancel logic exists in tradingEngine.ts (line 527+)
+- [x] Verified "Cancel" button exists in Open Orders table (Trade.tsx line 385-392)
+- [x] Tested order cancellation - **WORKS PERFECTLY!**
+- [x] Cancelled order removed from Open Orders table
+- [x] Cancelled order removed from Order Book
+- [x] Balance unlocked correctly (verified via UI update)
+- **Status**: Feature complete and tested successfully
