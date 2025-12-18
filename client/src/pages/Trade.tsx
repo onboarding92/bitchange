@@ -275,10 +275,34 @@ export default function Trade() {
 
           {/* Recent Trades */}
           <Card className="p-4">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Recent Trades
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Recent Trades
+              </h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const utils = trpc.useUtils();
+                    const result = await utils.client.trade.exportTrades.query({ pair: selectedPair });
+                    const blob = new Blob([result.csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = result.filename;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    toast.success('Trading history exported successfully');
+                  } catch (error: any) {
+                    toast.error(error.message || 'Failed to export trades');
+                  }
+                }}
+              >
+                Export CSV
+              </Button>
+            </div>
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {recentTrades?.map((trade) => (
                 <div key={trade.id} className="flex justify-between text-sm border-b pb-2">

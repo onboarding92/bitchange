@@ -290,3 +290,35 @@ Last Updated: December 17, 2025
 - [x] All changes tracked via Manus checkpoints
 - **Status**: Repository managed by Manus platform
 
+
+
+---
+
+## 🚀 SESSION 4 - Final Features & GitHub Push - December 17, 2025
+
+### Task 1: Fix Matching Engine Core Bug
+- [ ] Add comprehensive console.log in matchOrder function (lines 205-250)
+- [ ] Log opposite orders query results
+- [ ] Log canMatch condition evaluation
+- [ ] Test with existing orders in database
+- [ ] Identify why orders don't match
+
+### Task 2: Stop-Loss and Take-Profit Orders
+- [ ] Add stopLoss and takeProfit fields to orders schema
+- [ ] Update placeOrder to accept stop-loss/take-profit parameters
+- [ ] Create background job to monitor prices and trigger orders
+- [ ] Add UI controls in Trade.tsx for stop-loss/take-profit
+- [ ] Test with live price data
+
+### Task 3: Trading History CSV Export
+- [ ] Add exportTrades tRPC endpoint
+- [ ] Generate CSV with trade history (date, pair, side, price, amount, fee)
+- [ ] Add "Export CSV" button in My Trades section
+- [ ] Test CSV download with sample trades
+
+### Task 4: GitHub Push
+- [ ] Stage all changes (git add .)
+- [ ] Commit with descriptive message
+- [ ] Push to origin/main
+- [ ] Verify push successful
+

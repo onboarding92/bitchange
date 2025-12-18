@@ -1640,6 +1640,40 @@ export const appRouter = router({
       ];
     }),
 
+    // Export user's trading history as CSV
+    exportTrades: protectedProcedure
+      .input(z.object({ pair: z.string().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        
+        // Get user's trades
+        const conditions = [eq(trades.buyerId, ctx.user.id)];
+        if (input?.pair) {
+          conditions.push(eq(trades.pair, input.pair));
+        }
+        const userTrades = await db.select()
+          .from(trades)
+          .where(and(...conditions))
+          .orderBy(desc(trades.createdAt));
+        
+        // Generate CSV
+        const headers = ['Date', 'Pair', 'Side', 'Price', 'Amount', 'Total', 'Fee', 'Status'];
+        const rows = userTrades.map((trade: any) => [
+          new Date(trade.createdAt).toISOString(),
+          trade.pair,
+          trade.buyerId === ctx.user.id ? 'BUY' : 'SELL',
+          trade.price,
+          trade.amount,
+          (parseFloat(trade.price) * parseFloat(trade.amount)).toFixed(2),
+          trade.fee || '0',
+          'COMPLETED'
+        ]);
+        
+        const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+        return { csv, filename: `trades_${Date.now()}.csv` };
+      }),
+
     // DEBUG: Manually trigger matching engine for an order
     debugMatchOrder: adminProcedure
       .input(z.object({ orderId: z.number() }))
