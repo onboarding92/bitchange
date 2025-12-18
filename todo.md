@@ -303,3 +303,31 @@ Last Updated: December 17, 2025
 - [x] Add profile/account settings link in user menu
 - [x] Add visual separators between menu sections
 - [x] Add icons to menu items for better UX
+
+
+## 🚀 NEW FEATURES - Phase 2 Implementation (Dec 18, 2025)
+
+### Profile & Settings
+- [x] Create Profile page (/profile) with user information display
+- [x] Add edit profile functionality (name, email)
+- [x] Create Account Settings page (/settings) with security options
+- [x] Add change password functionality
+- [x] Add 2FA enable/disable toggle (placeholder)
+- [x] Wire Profile and Account Settings menu items to new pages
+
+### In-App Notifications
+- [x] Create notifications database table
+- [x] Implement notification bell icon in header
+- [x] Add notification dropdown with unread count badge
+- [x] Create notification types (deposit, withdrawal, KYC, trade, system)
+- [x] Add mark as read functionality
+- [x] Add mark all as read functionality
+- [ ] Add notification preferences in settings (future enhancement)
+
+### Transaction History
+- [ ] Create Transaction History page (/transactions)
+- [ ] Display all transactions (deposits, withdrawals, trades)
+- [ ] Add filtering by type and date range
+- [ ] Add search by transaction ID or asset
+- [ ] Add export to CSV functionality
+- [ ] Add pagination for large datasets

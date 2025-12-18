@@ -239,6 +239,19 @@ export const passwordHistory = mysqlTable("passwordHistory", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["deposit", "withdrawal", "kyc", "trade", "system"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("isRead").default(false).notNull(),
+  relatedId: int("relatedId"), // ID of related deposit/withdrawal/trade
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+
 export const networks = mysqlTable("networks", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),

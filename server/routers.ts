@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -1697,6 +1697,116 @@ export const appRouter = router({
         console.log("[DEBUG_MATCH] Executed trades:", executedTrades);
         
         return { success: true, tradesCount: executedTrades.length, trades: executedTrades };
+      }),
+  }),
+
+  notifications: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(notifications)
+        .where(eq(notifications.userId, ctx.user.id))
+        .orderBy(desc(notifications.createdAt))
+        .limit(50);
+    }),
+
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return 0;
+      const [result] = await db.select({ count: sql<number>`count(*)` })
+        .from(notifications)
+        .where(and(
+          eq(notifications.userId, ctx.user.id),
+          eq(notifications.isRead, false)
+        ));
+      return result?.count ?? 0;
+    }),
+
+    markAsRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db.update(notifications)
+          .set({ isRead: true })
+          .where(and(
+            eq(notifications.id, input.id),
+            eq(notifications.userId, ctx.user.id)
+          ));
+        return { success: true };
+      }),
+
+    markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      await db.update(notifications)
+        .set({ isRead: true })
+        .where(and(
+          eq(notifications.userId, ctx.user.id),
+          eq(notifications.isRead, false)
+        ));
+      return { success: true };
+    }),
+  }),
+
+  user: router({
+    updateProfile: protectedProcedure
+      .input(z.object({
+        name: z.string().min(2).optional(),
+        email: z.string().email().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const updateData: any = {};
+        if (input.name !== undefined) updateData.name = input.name;
+        if (input.email !== undefined) {
+          // Check if email is already taken
+          const existing = await db.select().from(users)
+            .where(and(eq(users.email, input.email), sql`id != ${ctx.user.id}`))
+            .limit(1);
+          if (existing.length > 0) {
+            throw new TRPCError({ code: "CONFLICT", message: "Email already in use" });
+          }
+          updateData.email = input.email;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No fields to update" });
+        }
+
+        await db.update(users).set(updateData).where(eq(users.id, ctx.user.id));
+        return { success: true };
+      }),
+
+    changePassword: protectedProcedure
+      .input(z.object({
+        currentPassword: z.string(),
+        newPassword: z.string().min(8),
+      }))
+      .mutation(async ({ ctx, input }) => { const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Get user with password
+        const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        if (!user || !user.password) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+        }
+
+        // Verify current password
+        const isValid = await comparePassword(input.currentPassword, user.password);
+        if (!isValid) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Current password is incorrect" });
+        }
+
+        // Hash and update new password
+        const hashedPassword = await hashPassword(input.newPassword);
+        await db.update(users).set({ password: hashedPassword }).where(eq(users.id, ctx.user.id));
+
+        return { success: true };
       }),
   }),
 

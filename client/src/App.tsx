@@ -25,6 +25,8 @@ import TransactionLogs from "./pages/admin/TransactionLogs";
 import AdminDashboard from "./pages/admin/Dashboard";
 import UsersManagement from "./pages/admin/Users";
 import Trade from "./pages/Trade";
+import Profile from "./pages/Profile";
+import AccountSettings from "./pages/AccountSettings";
 
 function Router() {
   return (
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/withdrawal" component={Withdrawal} />
       <Route path="/kyc" component={KYC} />
       <Route path="/support" component={Support} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/settings" component={AccountSettings} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/panel" component={AdminPanel} />
