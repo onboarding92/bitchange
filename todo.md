@@ -295,3 +295,11 @@ Last Updated: December 17, 2025
 4. Updated `Dockerfile.simple` - Added VITE_* build args
 5. Updated `docker-compose.production.yml` - Added build args for VITE_* variables
 6. Updated `.env` on VPS - Corrected FRONTEND_URL and BACKEND_URL to include www subdomain
+
+
+## 🎨 UI IMPROVEMENTS - User Menu Enhancement (Dec 18, 2025)
+
+- [x] Make logout button more visible in user menu
+- [x] Add profile/account settings link in user menu
+- [x] Add visual separators between menu sections
+- [x] Add icons to menu items for better UX
