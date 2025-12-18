@@ -224,3 +224,28 @@ Last Updated: December 17, 2025
 - [ ] Test order cancellation
 - [ ] Test deposit address generation
 - [ ] Verify all critical flows work
+
+
+---
+
+## 🔧 STANDALONE VPS CONVERSION - December 18, 2025
+
+### Remove Manus Dependencies
+- [ ] Remove OAuth integration (use email/password only)
+- [ ] Replace S3 storage with local filesystem
+- [ ] Remove VITE_FRONTEND_FORGE_API_URL dependency
+- [ ] Remove BUILT_IN_FORGE_API_URL dependency
+- [ ] Remove Manus analytics integration
+- [ ] Update environment variables for standalone operation
+
+### Fix VPS Deployment Issues
+- [ ] Fix "Invalid URL" error on /trading page
+- [ ] Fix login functionality
+- [ ] Create test user credentials
+- [ ] Verify all pages load without errors
+
+
+## 🔴 CRITICAL - Database Schema Error (Dec 18, 2025)
+- [ ] Fix database query error: "Failed query: select `id`, `openId`, `name`, `email`, `loginMethod`... from `users` where `users`.`email` = ? limit ?"
+- [ ] Issue: Query expects `openId` and `loginMethod` columns but these are OAuth-only fields
+- [ ] Solution: Update schema or query to work without OAuth columns
