@@ -145,12 +145,12 @@ export default function Home() {
                 <Card key={crypto.symbol} className="glass border-border/50">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">{crypto.symbol}</span>
-                      <span className={`text-xs ${crypto.change24h >= 0 ? "text-green-500" : "text-red-500"}`}>
+                      <span className="font-semibold text-sm">{crypto.symbol}/USDT</span>
+                      <span className={`text-xs font-medium ${crypto.change24h >= 0 ? "text-green-500" : "text-red-500"}`}>
                         {crypto.change24h >= 0 ? "+" : ""}{crypto.change24h.toFixed(2)}%
                       </span>
                     </div>
-                    <div className="text-2xl font-bold">
+                    <div className="text-xl font-bold">
                       ${crypto.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                   </CardContent>

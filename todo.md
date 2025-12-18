@@ -249,3 +249,22 @@ Last Updated: December 17, 2025
 - [ ] Fix database query error: "Failed query: select `id`, `openId`, `name`, `email`, `loginMethod`... from `users` where `users`.`email` = ? limit ?"
 - [ ] Issue: Query expects `openId` and `loginMethod` columns but these are OAuth-only fields
 - [ ] Solution: Update schema or query to work without OAuth columns
+
+
+---
+
+## 🎯 FINAL PUSH - December 18, 2025 (Evening)
+
+### Critical Tasks
+- [ ] Fix landing page crypto ticker - add pair labels (BTC/USDT, ETH/USDT, etc.)
+- [ ] Verify real-time price updates working
+- [ ] Create standalone VPS version (remove Manus deps WITHOUT breaking features)
+- [ ] Deploy to VPS with all features working
+- [ ] Test: wallet generation, deposits, trading, admin logs
+- [ ] Fix UI spacing issues
+- [ ] Final complete test
+
+### Focus: NO MORE ERRORS
+- Work methodically
+- Test each change before moving forward
+- Don't break existing functionality
