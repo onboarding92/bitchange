@@ -13,6 +13,8 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **Multi-Currency Wallet**: Support for 15+ cryptocurrencies (BTC, ETH, USDT, BNB, ADA, SOL, XRP, DOT, DOGE, AVAX, SHIB, MATIC, LTC, LINK, XLM)
 - **Authentication System**: Email/password registration, password reset, 2FA with Google Authenticator, session management
 - **Trading System**: Limit orders, real-time order book, trade history, and order management
+- **TradingView Charts**: Professional real-time price charts with technical indicators (MA, RSI) from Binance
+- **Order Book Depth Visualization**: Interactive depth chart showing cumulative bid/ask liquidity
 - **Staking**: 9 pre-configured staking plans with APR from 4% to 15%
 - **Deposit & Withdrawal**: Multi-network support, real crypto wallet address generation, withdrawal requests with admin approval
 - **KYC System**: Complete identity verification with document upload and review
@@ -38,6 +40,8 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **Smooth Animations**: Professional transitions and micro-interactions
 - **Live Price Ticker**: Real-time crypto prices on homepage
 - **Interactive Charts**: Data visualization with Recharts library
+- **TradingView Integration**: Professional trading charts with real-time data
+- **Depth Charts**: Visual representation of order book liquidity
 
 ## 🛠️ Tech Stack
 
