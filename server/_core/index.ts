@@ -38,6 +38,10 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // Configure cookie parser
   app.use(cookieParser());
+  
+  // API logging middleware
+  const { apiLoggingMiddleware } = await import("../middleware/apiLogger");
+  app.use(apiLoggingMiddleware);
   // Serve uploads folder as static files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
   
@@ -76,6 +80,11 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    
+    // Start alerting system
+    import("../alerting").then(({ startAlertingSystem }) => {
+      startAlertingSystem();
+    }).catch(console.error);
   });
 }
 

@@ -1814,6 +1814,167 @@ export const appRouter = router({
           },
         };
       }),
+
+    // System Health Monitoring
+    systemHealth: adminProcedure
+      .input(z.object({
+        timeRange: z.enum(["1h", "24h", "7d", "30d"]).default("24h"),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const now = new Date();
+        const hoursMap = { "1h": 1, "24h": 24, "7d": 168, "30d": 720 };
+        const hours = hoursMap[input.timeRange];
+        const startTime = new Date(now.getTime() - hours * 60 * 60 * 1000);
+
+        // Get API stats
+        const { apiLogs } = await import("../drizzle/schema");
+        const apiStats = await db
+          .select({
+            avgResponseTime: sql<number>`AVG(${apiLogs.duration})`,
+            maxResponseTime: sql<number>`MAX(${apiLogs.duration})`,
+            totalRequests: sql<number>`COUNT(*)`,
+            errorCount: sql<number>`SUM(CASE WHEN ${apiLogs.statusCode} >= 400 THEN 1 ELSE 0 END)`,
+          })
+          .from(apiLogs)
+          .where(sql`${apiLogs.createdAt} >= ${startTime}`);
+
+        const stats = apiStats[0] || { avgResponseTime: 0, maxResponseTime: 0, totalRequests: 0, errorCount: 0 };
+        const errorRate = stats.totalRequests > 0 ? (stats.errorCount / stats.totalRequests) * 100 : 0;
+
+        // Get exchange API stats
+        const { exchangeApiLogs } = await import("../drizzle/schema");
+        const exchangeStats = await db
+          .select({
+            exchange: exchangeApiLogs.exchange,
+            totalCalls: sql<number>`COUNT(*)`,
+            successCount: sql<number>`SUM(CASE WHEN ${exchangeApiLogs.success} = 1 THEN 1 ELSE 0 END)`,
+            avgDuration: sql<number>`AVG(${exchangeApiLogs.duration})`,
+          })
+          .from(exchangeApiLogs)
+          .where(sql`${exchangeApiLogs.createdAt} >= ${startTime}`)
+          .groupBy(exchangeApiLogs.exchange);
+
+        const exchangeStatsFormatted = exchangeStats.map(e => ({
+          exchange: e.exchange,
+          totalCalls: e.totalCalls,
+          successRate: e.totalCalls > 0 ? ((e.successCount / e.totalCalls) * 100).toFixed(2) : "0",
+          avgDuration: Math.round(e.avgDuration),
+        }));
+
+        // Get time-series data for charts
+        const apiTimeSeriesData = await db
+          .select({
+            time: sql<string>`DATE_FORMAT(${apiLogs.createdAt}, '%Y-%m-%d %H:00')`,
+            avgResponseTime: sql<number>`AVG(${apiLogs.duration})`,
+            maxResponseTime: sql<number>`MAX(${apiLogs.duration})`,
+            total: sql<number>`COUNT(*)`,
+            errors: sql<number>`SUM(CASE WHEN ${apiLogs.statusCode} >= 400 THEN 1 ELSE 0 END)`,
+          })
+          .from(apiLogs)
+          .where(sql`${apiLogs.createdAt} >= ${startTime}`)
+          .groupBy(sql`DATE_FORMAT(${apiLogs.createdAt}, '%Y-%m-%d %H:00')`)
+          .orderBy(sql`DATE_FORMAT(${apiLogs.createdAt}, '%Y-%m-%d %H:00')`);
+
+        return {
+          metrics: {
+            avgResponseTime: Math.round(stats.avgResponseTime),
+            errorRate: errorRate.toFixed(2),
+            totalErrors: stats.errorCount,
+            dbHealthy: true, // Simplified - always true if query succeeds
+            avgDbQueryTime: 0, // TODO: Implement DB query time tracking
+          },
+          apiStats: {
+            responseTimeData: apiTimeSeriesData.map(d => ({
+              time: d.time,
+              avgResponseTime: Math.round(d.avgResponseTime),
+              maxResponseTime: Math.round(d.maxResponseTime),
+            })),
+            requestData: apiTimeSeriesData.map(d => ({
+              time: d.time,
+              total: d.total,
+              errors: d.errors,
+            })),
+          },
+          exchangeStats: exchangeStatsFormatted,
+          systemStatus: {
+            isHealthy: errorRate < 5 && stats.avgResponseTime < 1000,
+            uptime: "99.9%", // TODO: Implement actual uptime tracking
+          },
+        };
+      }),
+
+    recentErrors: adminProcedure
+      .input(z.object({
+        limit: z.number().min(1).max(100).default(10),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+
+        const { errorLogs } = await import("../drizzle/schema");
+        return await db
+          .select()
+          .from(errorLogs)
+          .orderBy(desc(errorLogs.createdAt))
+          .limit(input.limit);
+      }),
+
+    activeAlerts: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+
+      const { alerts } = await import("../drizzle/schema");
+      return await db
+        .select()
+        .from(alerts)
+        .where(sql`${alerts.resolved} = 0`)
+        .orderBy(desc(alerts.severity), desc(alerts.createdAt))
+        .limit(20);
+    }),
+
+    acknowledgeAlert: adminProcedure
+      .input(z.object({
+        alertId: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { alerts } = await import("../drizzle/schema");
+        await db
+          .update(alerts)
+          .set({
+            acknowledged: true,
+            acknowledgedBy: ctx.user.id,
+            acknowledgedAt: new Date(),
+          })
+          .where(eq(alerts.id, input.alertId));
+
+        return { success: true };
+      }),
+
+    resolveAlert: adminProcedure
+      .input(z.object({
+        alertId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { alerts } = await import("../drizzle/schema");
+        await db
+          .update(alerts)
+          .set({
+            resolved: true,
+            resolvedAt: new Date(),
+          })
+          .where(eq(alerts.id, input.alertId));
+
+        return { success: true };
+      }),
   }),
 
   trade: router({

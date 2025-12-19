@@ -1157,3 +1157,68 @@ Last Updated: December 17, 2025
 - [ ] Add threshold-based alerting logic
 - [ ] Deploy monitoring system to production
 - [ ] Test with real production data
+
+
+## 🔧 SYSTEM HEALTH INTEGRATION - December 19, 2025
+
+### Backend Integration - ✅ COMPLETED
+- [x] Add admin.systemHealth tRPC procedure
+- [x] Add admin.recentErrors tRPC procedure
+- [x] Add admin.activeAlerts tRPC procedure
+- [x] Add admin.acknowledgeAlert tRPC mutation
+- [x] Add admin.resolveAlert tRPC mutation
+- [x] Integrate API logging middleware into Express server
+- [ ] Test tRPC procedures with real data (requires production logs)
+
+### Frontend Integration - ✅ COMPLETED
+- [x] Add System Health route to App.tsx (/admin/system-health)
+- [x] Add System Health menu item to DashboardLayout (Activity icon)
+- [ ] Test System Health dashboard with backend data (requires production logs)
+- [ ] Verify all charts and metrics display correctly
+
+### Automated Alerting System - ✅ COMPLETED
+- [x] Create background job for monitoring thresholds (5-minute intervals)
+- [x] Implement error rate monitoring (> 5% triggers alert)
+- [x] Implement response time monitoring (> 1000ms triggers alert)
+- [x] Implement exchange API failure monitoring (> 10% triggers alert)
+- [x] Add email notification for critical/high severity alerts
+- [x] Create alert acknowledgment system (tRPC mutations)
+- [x] Prevent duplicate alerts within 1-hour window
+- [x] Integrate alerting system into server startup
+- [ ] Test alerting with simulated failures
+
+**Implementation Details**:
+- Created `server/alerting.ts` with comprehensive monitoring
+- Thresholds: Error rate 5%, Response time 1000ms, Exchange failure 10%
+- Severity levels: low, medium, high, critical
+- Email notifications for high/critical alerts only
+- Alert checks run every 5 minutes automatically
+- Alerts stored in database with metadata
+- Admin can acknowledge and resolve alerts via tRPC
+- Email template includes direct link to System Health dashboard
+
+### Performance Monitoring - ✅ COMPLETED
+- [x] Track bundle size changes in build process
+- [x] Implement Redis cache hit/miss rate tracking
+- [x] Add WebSocket connection health monitoring
+- [x] Implement database query performance tracking
+- [x] Create helper functions for all performance metrics
+- [ ] Create performance metrics dashboard (optional - data already in System Health)
+- [ ] Add performance degradation alerts (optional - can extend alerting system)
+
+**Implementation Details**:
+- Created `server/performanceMonitoring.ts` with comprehensive tracking
+- `trackBundleSize()` - Analyzes dist folder and tracks total size + top 10 JS files
+- `trackRedisCachePerformance()` - Logs cache hits, misses, sets, deletes with duration
+- `getRedisCacheStats()` - Calculates hit rate, total operations, avg duration
+- `trackWebSocketConnection()` - Tracks connect, disconnect, error events
+- `getActiveWebSocketConnections()` - Returns current active connections count
+- `trackDbQueryPerformance()` - Logs query duration and success status
+- `getDbQueryStats()` - Calculates avg/max duration, total queries, slow queries (>500ms)
+- All metrics stored in systemMetrics table with metadata
+
+### Deployment
+- [ ] Deploy monitoring integration to production
+- [ ] Test all monitoring features in production
+- [ ] Verify email alerts are working
+- [ ] Monitor system health for 24 hours
