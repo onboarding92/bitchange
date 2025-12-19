@@ -29,6 +29,7 @@ import Profile from "./pages/Profile";
 import AccountSettings from "./pages/AccountSettings";
 import TransactionHistory from "./pages/TransactionHistory";
 import ReferralDashboard from "./pages/ReferralDashboard";
+import KYCSubmission from "./pages/KYCSubmission";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/deposit" component={Deposit} />
       <Route path="/withdrawal" component={Withdrawal} />
       <Route path="/kyc" component={KYC} />
+      <Route path="/kyc/submit" component={KYCSubmission} />
       <Route path="/support" component={Support} />
       <Route path="/profile" component={Profile} />
       <Route path="/settings" component={AccountSettings} />
