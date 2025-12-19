@@ -38,7 +38,7 @@ export function useAuth(options?: UseAuthOptions) {
       ) {
         // Already logged out, redirect anyway
         console.log('[Frontend Logout] Already logged out, redirecting');
-        window.location.href = getLoginUrl();
+        window.location.href = '/auth/login';
         return;
       }
       throw error;
@@ -47,7 +47,7 @@ export function useAuth(options?: UseAuthOptions) {
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
       // Redirect to login page after logout
-      window.location.href = getLoginUrl();
+      window.location.href = '/auth/login';
     }
   }, [logoutMutation, utils]);
 
