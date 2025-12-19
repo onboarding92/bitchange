@@ -485,3 +485,15 @@ Last Updated: December 17, 2025
 - [x] Install recharts package
 - [ ] Test all metrics and charts (requires login fix for db.ts TypeScript errors)
 - [ ] Deploy to VPS
+
+
+## 🎯 ANALYTICS TIME RANGE FILTERS - Current Tasks (Dec 19, 2025)
+
+- [x] Add time range selector UI to Analytics Dashboard (7d, 30d, 90d, 1y)
+- [x] Update admin.dashboardStats backend to accept timeRange parameter
+- [x] Modify SQL queries to filter by selected time range
+- [x] Update charts to reflect selected time period
+- [ ] Add "Custom Range" option with date picker (future enhancement)
+- [ ] Test all time range options (requires login fix)
+- [ ] Push to GitHub
+- [x] Create test user credentials SQL script (test-users.sql)

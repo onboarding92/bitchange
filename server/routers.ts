@@ -1200,7 +1200,11 @@ export const appRouter = router({
       }),
 
     // Dashboard Statistics
-    dashboardStats: adminProcedure.query(async () => {
+    dashboardStats: adminProcedure
+      .input(z.object({
+        timeRange: z.enum(["7d", "30d", "90d", "1y"]).default("30d"),
+      }).optional())
+      .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return {
         totalUsers: 0,
@@ -1217,6 +1221,12 @@ export const appRouter = router({
 
       // Total users
       const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+      
+      // Calculate time range
+      const timeRangeValue = input?.timeRange || "30d";
+      const daysMap = { "7d": 7, "30d": 30, "90d": 90, "1y": 365 };
+      const daysAgo = daysMap[timeRangeValue];
+      const rangeStartDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
       
       // Active users (logged in last 7 days)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -1236,6 +1246,7 @@ export const appRouter = router({
 
       // Volume calculations (from trades)
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const sevenDaysAgoDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
       const [dailyVol] = await db.select({ 
@@ -1244,29 +1255,29 @@ export const appRouter = router({
 
       const [weeklyVol] = await db.select({ 
         total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
-      }).from(trades).where(sql`${trades.createdAt} >= ${sevenDaysAgo}`);
+      }).from(trades).where(sql`${trades.createdAt} >= ${sevenDaysAgoDate}`);
 
       const [monthlyVol] = await db.select({ 
         total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
       }).from(trades).where(sql`${trades.createdAt} >= ${thirtyDaysAgo}`);
 
-      // User growth (last 30 days)
+      // User growth (based on selected time range)
       const userGrowthData = await db.select({
         date: sql<string>`DATE(${users.createdAt})`,
         count: sql<number>`count(*)`
       })
       .from(users)
-      .where(sql`${users.createdAt} >= ${thirtyDaysAgo}`)
+      .where(sql`${users.createdAt} >= ${rangeStartDate}`)
       .groupBy(sql`DATE(${users.createdAt})`)
       .orderBy(sql`DATE(${users.createdAt})`);
 
-      // Volume chart (last 30 days)
+      // Volume chart (based on selected time range)
       const volumeData = await db.select({
         date: sql<string>`DATE(${trades.createdAt})`,
         volume: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)`
       })
       .from(trades)
-      .where(sql`${trades.createdAt} >= ${thirtyDaysAgo}`)
+      .where(sql`${trades.createdAt} >= ${rangeStartDate}`)
       .groupBy(sql`DATE(${trades.createdAt})`)
       .orderBy(sql`DATE(${trades.createdAt})`);
 
@@ -1282,7 +1293,7 @@ export const appRouter = router({
         userGrowth: userGrowthData,
         volumeChart: volumeData,
       };
-    }),
+      }),
 
     stats: adminProcedure.query(async () => {
       const db = await getDb();

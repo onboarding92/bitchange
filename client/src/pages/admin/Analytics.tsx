@@ -1,12 +1,21 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, Clock, Shield, DollarSign, Activity } from "lucide-react";
+import { Users, TrendingUp, Clock, Shield, DollarSign, Activity, Calendar } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+
+type TimeRange = "7d" | "30d" | "90d" | "1y";
 
 export default function AdminAnalytics() {
-  const { data: stats, isLoading } = trpc.admin.dashboardStats.useQuery(undefined, {
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
+  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+  
+  const { data: stats, isLoading } = trpc.admin.dashboardStats.useQuery(
+    { timeRange },
+    {
+      refetchInterval: 30000, // Refresh every 30 seconds
+    }
+  );
 
   if (isLoading) {
     return (
@@ -96,11 +105,27 @@ export default function AdminAnalytics() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Real-time platform metrics and performance insights
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Real-time platform metrics and performance insights
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="1y">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Primary Metrics */}
@@ -154,7 +179,9 @@ export default function AdminAnalytics() {
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle>User Growth</CardTitle>
-            <CardDescription>New user registrations (Last 30 days)</CardDescription>
+            <CardDescription>
+              New user registrations ({timeRange === "7d" ? "Last 7 days" : timeRange === "30d" ? "Last 30 days" : timeRange === "90d" ? "Last 90 days" : "Last year"})
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {stats.userGrowth.length > 0 ? (
@@ -202,7 +229,9 @@ export default function AdminAnalytics() {
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle>Trading Volume</CardTitle>
-            <CardDescription>Daily trading volume (Last 30 days)</CardDescription>
+            <CardDescription>
+              Daily trading volume ({timeRange === "7d" ? "Last 7 days" : timeRange === "30d" ? "Last 30 days" : timeRange === "90d" ? "Last 90 days" : "Last year"})
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {stats.volumeChart.length > 0 ? (
