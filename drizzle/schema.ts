@@ -12,6 +12,9 @@ export const users = mysqlTable("users", {
   kycApprovedAt: timestamp("kycApprovedAt"),
   kycRejectedReason: text("kycRejectedReason"),
   kycExpiresAt: timestamp("kycExpiresAt"),
+  kycIdFrontPath: text("kycIdFrontPath"), // Local file path for ID front photo
+  kycIdBackPath: text("kycIdBackPath"), // Local file path for ID back photo
+  kycSelfiePath: text("kycSelfiePath"), // Local file path for selfie with ID
   twoFactorSecret: varchar("twoFactorSecret", { length: 255 }),
   twoFactorEnabled: boolean("twoFactorEnabled").default(false).notNull(),
   twoFactorBackupCodes: text("twoFactorBackupCodes"), // JSON array of backup codes
@@ -440,3 +443,19 @@ export const userLoyalty = mysqlTable("userLoyalty", {
   totalEarned: decimal("totalEarned", { precision: 20, scale: 8 }).default("0").notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
+
+export const rewards = mysqlTable("rewards", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // User who triggered the reward (referee)
+  referrerId: int("referrerId").notNull(), // User who receives the reward (referrer)
+  amount: decimal("amount", { precision: 20, scale: 8 }).default("10.00000000").notNull(),
+  currency: varchar("currency", { length: 10 }).default("USDT").notNull(),
+  type: mysqlEnum("type", ["first_deposit", "first_trade", "manual"]).notNull(),
+  status: mysqlEnum("status", ["pending", "completed", "cancelled"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+  notes: text("notes"),
+});
+
+export type Reward = typeof rewards.$inferSelect;
+export type InsertReward = typeof rewards.$inferInsert;

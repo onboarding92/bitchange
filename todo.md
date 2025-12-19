@@ -416,3 +416,37 @@ Last Updated: December 17, 2025
 - [x] Add Referrals link to sidebar navigation
 - [ ] Test referral flow end-to-end
 - [ ] Deploy to VPS
+
+
+## 🚀 DEPLOYMENT & NEW FEATURES - Phase 4
+
+### VPS Deployment
+- [ ] Deploy Redis service to VPS
+- [ ] Execute add-referral-fields.sql on VPS database
+- [ ] Rebuild and restart app container with new features
+- [ ] Test Redis caching on live site
+- [ ] Test Referral System on live site
+
+### Reward Distribution Logic
+- [ ] Create rewards table in database schema
+- [ ] Implement automatic reward distribution on first deposit
+- [ ] Implement automatic reward distribution on first trade
+- [ ] Add reward amount configuration (default $10 USDT)
+- [ ] Send notification to referrer when reward is earned
+- [ ] Send notification to referee when they complete qualifying action
+- [ ] Add rewards history to Referral Dashboard
+- [ ] Test reward distribution end-to-end
+
+### KYC Verification Flow
+- [ ] Update KYC database schema for document storage
+- [ ] Implement document upload (ID front/back, selfie)
+- [ ] Add file validation (size, format, image quality)
+- [ ] Store documents securely in S3
+- [ ] Create KYC submission form UI
+- [ ] Add KYC status tracking (pending, approved, rejected)
+- [ ] Implement admin KYC review panel
+- [ ] Add approve/reject actions with reason
+- [ ] Send email notifications on status changes
+- [ ] Add KYC badge/indicator in user profile
+- [ ] Restrict certain features until KYC approved
+- [ ] Test full KYC flow from submission to approval
