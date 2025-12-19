@@ -1,5 +1,6 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
+import { COOKIE_NAME } from "@shared/const";
 // import { sdk } from "./sdk"; // OAuth disabled - not needed
 import { getSession } from "../sessionManager";
 import { getDb } from "../db";
@@ -18,10 +19,10 @@ export async function createContext(
 ): Promise<TrpcContext> {
   let user: User | null = null;
 
-  // Priority 1: Check email/password session (auth_token cookie)
+  // Priority 1: Check email/password session (app_session_id cookie)
   try {
     const cookies = parseCookieHeader(opts.req.headers.cookie || "");
-    const authToken = cookies.auth_token;
+    const authToken = cookies[COOKIE_NAME];
     
     if (authToken) {
       const session = await getSession(authToken);
