@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
-import TradingChart from "@/components/TradingChart";
 import { TrendingUp, TrendingDown, X } from "lucide-react";
 import { TRADING_PAIRS } from "@shared/const";
 
@@ -80,9 +79,6 @@ export default function Trading() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Trading Chart */}
-        <TradingChart pair={selectedPair} currentPrice={pairPrice?.price} />
-
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Trading</h1>
