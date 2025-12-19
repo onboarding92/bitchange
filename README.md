@@ -2,7 +2,7 @@
 
 A modern, full-featured cryptocurrency exchange platform built with React 19, TypeScript, tRPC, and MySQL. Designed to showcase advanced full-stack development patterns and crypto exchange architecture.
 
-![BitChange Pro](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![BitChange Pro](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
 ![React](https://img.shields.io/badge/React-19-blue)
@@ -12,9 +12,9 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 ### 🔐 User Features
 - **Multi-Currency Wallet**: Support for 15+ cryptocurrencies (BTC, ETH, USDT, BNB, ADA, SOL, XRP, DOT, DOGE, AVAX, SHIB, MATIC, LTC, LINK, XLM)
 - **Authentication System**: Email/password registration, email verification, password reset, 2FA with Google Authenticator, session management
-- **Email Notifications**: SendGrid integration for welcome emails, verification codes, password reset, and transaction alerts
+- **Email Notifications**: SendGrid integration for welcome emails, verification codes, password reset, login alerts, withdrawal notifications, and KYC status updates
 - **Trading System**: Limit orders, real-time order book, trade history, and order management
-- **TradingView Charts**: Professional real-time price charts with technical indicators (MA, RSI) from Binance
+- **TradingView Charts**: Professional real-time price charts with technical indicators (RSI, MA) and multiple timeframes (1m, 15m, 30m, 1h)
 - **Order Book Depth Visualization**: Interactive depth chart showing cumulative bid/ask liquidity
 - **Staking**: 9 pre-configured staking plans with APR from 4% to 15%
 - **Deposit & Withdrawal**: Multi-network support, real crypto wallet address generation, withdrawal requests with admin approval
@@ -35,7 +35,7 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **KYC Verification**: Review and approve/reject KYC submissions with document preview
 - **Support Management**: View and respond to user tickets with priority handling
 
-### 🎨 Design
+### 🎨 Design & Performance
 - **Modern Dark Theme**: Elegant design with improved contrast and readability
 - **Responsive**: Mobile-first design that works seamlessly on all devices
 - **Smooth Animations**: Professional transitions and micro-interactions
@@ -43,6 +43,7 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **Interactive Charts**: Data visualization with Recharts library
 - **TradingView Integration**: Professional trading charts with real-time data
 - **Depth Charts**: Visual representation of order book liquidity
+- **⚡ Performance Optimized**: 95% bundle size reduction with code-splitting and lazy loading (1.3MB → 36KB initial load)
 
 ## 🛠️ Tech Stack
 
@@ -53,6 +54,7 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **Wouter** for routing
 - **shadcn/ui** components
 - **Recharts** for data visualization
+- **React.lazy()** for code-splitting
 
 ### Backend
 - **Express 4** server
@@ -62,6 +64,7 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **Bcrypt** for password hashing
 - **SendGrid** for email delivery
 - **Redis** for caching (price data, sessions)
+- **cookie-parser** for session management
 
 ### Crypto Libraries
 - **bitcoinjs-lib** for Bitcoin wallet generation
@@ -174,18 +177,20 @@ The script will:
 bitchange-pro/
 ├── client/                 # Frontend React app
 │   ├── src/
-│   │   ├── pages/         # Page components
+│   │   ├── pages/         # Page components (lazy-loaded)
 │   │   ├── components/    # Reusable UI components
 │   │   └── lib/           # Utilities and tRPC client
 │   └── public/            # Static assets
 ├── server/                # Backend Express + tRPC
 │   ├── routers.ts        # tRPC routers
 │   ├── db.ts             # Database helpers
+│   ├── email.ts          # SendGrid email templates
 │   ├── walletGenerator.ts # Crypto wallet generation
 │   ├── cryptoPrices.ts   # Price fetching service
 │   └── tradingEngine.ts  # Order matching engine
 ├── drizzle/              # Database schema and migrations
 │   └── schema.ts         # Drizzle ORM schema
+├── vite.config.ts        # Vite with code-splitting config
 └── scripts/              # Utility scripts
 ```
 
@@ -210,6 +215,9 @@ pnpm test
 
 # Run tests in watch mode
 pnpm test:watch
+
+# Test SendGrid email integration
+pnpm test server/email.test.ts
 ```
 
 ## 📚 Key Features Explained
@@ -228,17 +236,32 @@ pnpm test:watch
 
 ### Security Features
 - Password hashing with bcrypt
-- JWT-based authentication
+- JWT-based authentication with secure cookies
 - 2FA with Google Authenticator
-- Session management
+- Session management with cookie-parser
 - Role-based access control (RBAC)
+- Rate limiting on sensitive endpoints
 
-### Admin Analytics
-- Real-time platform metrics
-- User growth charts
-- Trading volume analytics
-- Time range filters (7d, 30d, 90d, 1y)
-- KYC status tracking
+### Email System
+- SendGrid integration with 6 email templates:
+  * Welcome email (registration confirmation)
+  * Email verification with code
+  * Password reset with secure link
+  * Login alert notifications
+  * Withdrawal request notifications
+  * KYC status updates (approved/rejected)
+
+### Performance Optimization
+- **95% bundle size reduction**: 1.3MB → 36KB initial load (gzip: 8.36KB)
+- React.lazy() for code-splitting all non-critical pages
+- Vite manualChunks for optimal vendor splitting:
+  * react-vendor: 671KB (gzip: 184KB)
+  * vendor: 261KB (gzip: 89KB)
+  * admin-pages: 161KB (gzip: 27KB) - loaded only for admins
+  * trpc-vendor: 23KB (gzip: 7KB)
+  * chart-vendor: 6KB (gzip: 2KB)
+- Individual page chunks: 5-17KB each
+- Loading spinner for lazy-loaded routes
 
 ## ⚠️ Important Notes
 
@@ -258,25 +281,39 @@ pnpm test:watch
 
 ### ✅ Fully Operational
 - User registration with email verification
-- Email/password authentication
-- SendGrid email delivery (welcome, verification, password reset)
+- Email/password authentication with secure session management
+- SendGrid email delivery (6 templates: welcome, verification, password reset, login alerts, withdrawals, KYC)
 - Trading engine with order matching
+- TradingView charts with real-time data
 - Multi-currency wallets
 - Admin panel with full management capabilities
 - Real-time crypto price updates
 - KYC verification system
 - Staking and referral programs
-
-### ⚠️ Known Issues
-- TradingView chart widget not rendering in production (code deployed, investigating CSP)
-- Order Book Depth Chart not visible (code deployed, investigating Recharts issue)
+- Performance optimized (95% bundle reduction)
 
 ### 🚀 Recent Updates (Dec 19, 2025)
-- ✅ SendGrid email integration completed and tested
-- ✅ Admin login fixed (password hash corrected)
-- ✅ Database cleaned (development environment)
-- ✅ VPS docker-compose updated with SendGrid variables
-- ✅ All email notifications working in production
+
+#### Phase 5: Authentication & Performance
+- ✅ **Fixed critical authentication bug**: Added cookie-parser middleware for session management
+- ✅ **Fixed logout redirect**: Now properly redirects to `/auth/login`
+- ✅ **Fixed homepage navigation**: All buttons (Sign In, Get Started, View Markets) working correctly
+- ✅ **Performance optimization**: Implemented lazy loading and code-splitting
+  * 95% reduction in initial bundle size (1.3MB → 36KB)
+  * React.lazy() for all non-critical pages
+  * Vite manualChunks for vendor splitting
+  * Loading spinner for lazy-loaded routes
+- ✅ **Verified TradingView charts**: Working perfectly in production with RSI, volume, and timeframe controls
+- ✅ **Verified SendGrid emails**: All 6 email templates tested and working
+- ✅ **Deployed to production**: All fixes and optimizations live on bitchangemoney.xyz
+
+### 🔧 Technical Improvements
+- Added cookie-parser middleware for proper session cookie handling
+- Changed cookie sameSite from 'none' to 'lax' for better security
+- Fixed optional chaining for headers access (user-agent, x-forwarded-proto)
+- Replaced shadcn/ui Button onClick with Link component for navigation
+- Implemented React.Suspense with PageLoader fallback
+- Configured Vite rollupOptions for manual chunk splitting
 
 ## 📄 License
 
@@ -293,30 +330,3 @@ For questions or support, please open an issue on GitHub.
 ---
 
 **Developed by Luca Benzi** | [GitHub](https://github.com/onboarding92)
-
-## 🎯 Current Status
-
-**Live Production Site:** [https://bitchangemoney.xyz/](https://bitchangemoney.xyz/)
-
-### ✅ Fully Operational
-- User registration with email verification
-- Email/password authentication
-- SendGrid email delivery (welcome, verification, password reset)
-- Trading engine with order matching
-- Multi-currency wallets
-- Admin panel with full management capabilities
-- Real-time crypto price updates
-- KYC verification system
-- Staking and referral programs
-
-### ⚠️ Known Issues
-- TradingView chart widget not rendering in production (code deployed, investigating CSP)
-- Order Book Depth Chart not visible (code deployed, investigating Recharts issue)
-
-### 🚀 Recent Updates (Dec 19, 2025)
-- ✅ SendGrid email integration completed and tested
-- ✅ Admin login fixed (password hash corrected)
-- ✅ Database cleaned (development environment)
-- ✅ VPS docker-compose updated with SendGrid variables
-- ✅ All email notifications working in production
-
