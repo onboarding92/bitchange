@@ -755,3 +755,54 @@ Last Updated: December 17, 2025
 - [x] Document TradingView chart integration
 - [x] Document Order Book Depth Chart feature
 - [ ] Add screenshots or demo links if available
+
+
+---
+
+## 🔧 NEW TASKS - December 19, 2025 (Session 2)
+
+### TradingView Rendering Fix
+- [ ] Investigate Content Security Policy (CSP) headers blocking external scripts
+- [ ] Check nginx configuration for CSP directives
+- [ ] Verify TradingView script loads in browser console
+- [ ] Test TradingView widget in development vs production
+- [ ] Add CSP allow-list for TradingView domains if needed
+- [ ] Verify Order Book Depth Chart (Recharts) renders correctly
+
+### Welcome Email Automation
+- [ ] Hook sendWelcomeEmail() into registration flow
+- [ ] Update auth.register procedure in routers.ts
+- [ ] Test welcome email sent on new user registration
+- [ ] Verify email content and formatting
+- [ ] Test with both email/password and OAuth registration
+
+### Password Reset Email Flow
+- [ ] Create password reset request endpoint
+- [ ] Generate secure reset tokens with expiration
+- [ ] Store reset tokens in database (or Redis with TTL)
+- [ ] Create password reset email template
+- [ ] Implement sendPasswordResetEmail() call
+- [ ] Create password reset form page
+- [ ] Add token validation logic
+- [ ] Update password in database after verification
+- [ ] Test complete password reset flow
+
+
+---
+
+## 🔴 CRITICAL BUGS - December 19, 2025 (Reported by User)
+
+### Signout Not Working
+- [ ] Investigate logout button click handler
+- [ ] Verify tRPC auth.logout mutation is called
+- [ ] Check if session is revoked in database
+- [ ] Check if cookies are cleared
+- [ ] Test signout flow end-to-end
+
+### Email Verification Not Sending
+- [ ] Check SendGrid API key is loaded in production
+- [ ] Verify sendWelcomeEmail() is called during registration
+- [ ] Check email verification code generation
+- [ ] Test email sending with SendGrid test endpoint
+- [ ] Check server logs for email errors
+- [ ] Verify SENDGRID_FROM_EMAIL is verified sender in SendGrid dashboard
