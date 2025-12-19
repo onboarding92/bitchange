@@ -441,8 +441,9 @@ Last Updated: December 17, 2025
 - [x] Fix context cookie reading - Use COOKIE_NAME constant
 - [x] Fix rate limiting - Added optional chaining for headers access
 - [x] Test login flow end-to-end - **WORKS PERFECTLY!**
-- [ ] Fix TradingView chart rendering issue in production (deferred)
-- [ ] Implement logout redirect to /auth/login (deferred)
+- [x] Implement logout redirect to /auth/login
+- [x] Fix DashboardLayout Sign in button to use /auth/login
+- [ ] Fix TradingView chart rendering issue in production (deferred - low priority)
 
 **Root Cause**: Missing cookie-parser middleware in Express causing session cookies to not persist
 **Solution**: Added `app.use(cookieParser())` to server/_core/index.ts
