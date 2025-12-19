@@ -1,4 +1,5 @@
 import axios from "axios";
+import { cacheGet, cacheSet } from "./_core/redis";
 
 // CoinGecko API (free tier, no API key required)
 const COINGECKO_API = "https://api.coingecko.com/api/v3";
@@ -46,7 +47,13 @@ export async function getCryptoPrice(asset: string): Promise<PriceData | null> {
     return null;
   }
 
-  // Check cache
+  // Check Redis cache first
+  const redisCached = await cacheGet<PriceData>(`price:${asset}`);
+  if (redisCached) {
+    return redisCached;
+  }
+
+  // Check in-memory cache
   const cached = priceCache.get(asset);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
@@ -80,8 +87,9 @@ export async function getCryptoPrice(asset: string): Promise<PriceData | null> {
       lastUpdated: data.last_updated_at * 1000 || Date.now(),
     };
 
-    // Update cache
+    // Update both caches
     priceCache.set(asset, { data: priceData, timestamp: Date.now() });
+    await cacheSet(`price:${asset}`, priceData, 60); // 60 seconds TTL
 
     return priceData;
   } catch (error: any) {
@@ -94,6 +102,12 @@ export async function getCryptoPrice(asset: string): Promise<PriceData | null> {
  * Ottiene i prezzi di tutti gli asset supportati
  */
 export async function getAllCryptoPrices(): Promise<PriceData[]> {
+  // Check Redis cache for all prices
+  const redisCached = await cacheGet<PriceData[]>('prices:all');
+  if (redisCached && redisCached.length > 0) {
+    return redisCached;
+  }
+
   const assets = Object.keys(ASSET_TO_COINGECKO);
   const coinIds = Object.values(ASSET_TO_COINGECKO).join(",");
 
@@ -130,6 +144,9 @@ export async function getAllCryptoPrices(): Promise<PriceData[]> {
         priceCache.set(asset, { data: priceData, timestamp: Date.now() });
       }
     }
+
+    // Cache all prices in Redis
+    await cacheSet('prices:all', prices, 60); // 60 seconds TTL
 
     return prices;
   } catch (error: any) {

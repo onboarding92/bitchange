@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: bitchange_redis
+    restart: always
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    networks:
+      - bitchange_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   # MySQL Database
   db:
     image: mysql:8.0
@@ -51,6 +67,7 @@ services:
       - UPLOAD_DIR=/app/uploads
       - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW}
       - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS}
+      - REDIS_URL=redis://redis:6379
     volumes:
       - uploads_data:/app/uploads
     ports:
@@ -59,6 +76,8 @@ services:
       - bitchange_network
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]

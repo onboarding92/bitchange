@@ -28,6 +28,7 @@ import Trade from "./pages/Trade";
 import Profile from "./pages/Profile";
 import AccountSettings from "./pages/AccountSettings";
 import TransactionHistory from "./pages/TransactionHistory";
+import ReferralDashboard from "./pages/ReferralDashboard";
 
 function Router() {
   return (
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/settings" component={AccountSettings} />
       <Route path="/transactions" component={TransactionHistory} />
+      <Route path="/referrals" component={ReferralDashboard} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/panel" component={AdminPanel} />

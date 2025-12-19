@@ -361,3 +361,58 @@ Last Updated: December 17, 2025
 - [x] Add History link to sidebar navigation
 - [ ] Add pagination for large datasets (future enhancement)
 - [ ] Add transaction details modal (future enhancement)saction lists
+
+
+## 🚀 NEW FEATURES - Phase 3 (Redis Caching & Referral System)
+
+### Redis Caching for Crypto Prices
+- [ ] Add Redis to docker-compose.production.yml
+- [ ] Install ioredis package
+- [ ] Create Redis client wrapper in server/_core/redis.ts
+- [ ] Update cryptoPrices.ts to use Redis caching
+- [ ] Set cache TTL to 60 seconds for price data
+- [ ] Add cache invalidation logic
+- [ ] Test Redis caching locally
+- [ ] Deploy Redis to VPS
+
+### Referral System
+- [ ] Create referrals table in database schema
+- [ ] Create referral_rewards table for tracking rewards
+- [ ] Generate unique referral codes for each user
+- [ ] Add referral code field to user registration
+- [ ] Create backend procedures for referral tracking
+- [ ] Implement reward distribution logic
+- [ ] Create Referral Dashboard page (/referrals)
+- [ ] Add referral stats (total referrals, pending rewards, earned rewards)
+- [ ] Add referral code display and copy button
+- [ ] Add referral link generator
+- [ ] Add referral history table
+- [ ] Add Referrals link to sidebar navigation
+- [ ] Test referral flow end-to-end
+- [ ] Deploy to VPS
+
+
+## 🚀 NEW FEATURES - Phase 3 (Redis Caching & Referral System)
+
+### Redis Caching for Crypto Prices
+- [x] Add Redis to docker-compose.production.yml
+- [x] Install ioredis package
+- [x] Create Redis client wrapper in server/_core/redis.ts
+- [x] Update cryptoPrices.ts to use Redis caching
+- [x] Set cache TTL to 60 seconds for price data
+- [ ] Test Redis caching locally
+- [ ] Deploy Redis to VPS
+
+### Referral System
+- [x] Create referrals table in database schema (already exists)
+- [x] Add referral code field to users table
+- [x] Generate unique referral codes for each user
+- [x] Create backend procedures for referral tracking (getStats, getHistory)
+- [x] Create Referral Dashboard page (/referrals)
+- [x] Add referral stats (total referrals, pending/earned rewards)
+- [x] Add referral code display and copy button
+- [x] Add referral link generator
+- [x] Add referral history table
+- [x] Add Referrals link to sidebar navigation
+- [ ] Test referral flow end-to-end
+- [ ] Deploy to VPS

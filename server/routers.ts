@@ -1848,6 +1848,76 @@ export const appRouter = router({
       }),
   }),
 
+  referral: router({
+    // Get user's referral stats
+    getStats: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const userId = ctx.user.id;
+
+      // Get user's referral code
+      const user = await db.select({ referralCode: users.referralCode })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!user[0] || !user[0].referralCode) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Referral code not found" });
+      }
+
+      // Count total referrals
+      const totalReferrals = await db.select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(eq(users.referredBy, userId));
+
+      // Get referral list with details
+      const referralList = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        createdAt: users.createdAt,
+      })
+        .from(users)
+        .where(eq(users.referredBy, userId))
+        .orderBy(desc(users.createdAt))
+        .limit(50);
+
+      // Calculate total rewards (placeholder - implement based on your reward logic)
+      const pendingRewards = 0;
+      const earnedRewards = 0;
+
+      return {
+        referralCode: user[0].referralCode,
+        totalReferrals: totalReferrals[0]?.count || 0,
+        pendingRewards,
+        earnedRewards,
+        referrals: referralList,
+      };
+    }),
+
+    // Get referral history
+    getHistory: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const userId = ctx.user.id;
+
+      // Get list of users referred by this user
+      const referrals = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        createdAt: users.createdAt,
+      })
+        .from(users)
+        .where(eq(users.referredBy, userId))
+        .orderBy(desc(users.createdAt));
+
+      return referrals;
+    }),
+  }),
+
   prices: router({
     get: publicProcedure
       .input(z.object({ asset: z.string() }))

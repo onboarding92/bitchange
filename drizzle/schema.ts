@@ -18,6 +18,8 @@ export const users = mysqlTable("users", {
   accountStatus: mysqlEnum("accountStatus", ["active", "suspended"]).default("active").notNull(),
   antiPhishingCode: varchar("antiPhishingCode", { length: 50 }), // Personal code shown in emails
   ipWhitelist: text("ipWhitelist"), // JSON array of whitelisted IPs (admin only)
+  referralCode: varchar("referralCode", { length: 20 }).unique(), // Unique referral code for this user
+  referredBy: int("referredBy"), // User ID who referred this user
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
