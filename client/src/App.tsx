@@ -36,7 +36,7 @@ const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 const ReferralDashboard = lazy(() => import("./pages/ReferralDashboard"));
 const KYCSubmission = lazy(() => import("./pages/KYCSubmission"));
 const KYCReview = lazy(() => import("./pages/admin/KYCReview"));
-const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 
 // Loading fallback component
 function PageLoader() {
@@ -77,6 +77,7 @@ function Router() {
         <Route path="/admin" component={Admin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/panel" component={AdminPanel} />
+        <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/admin/hot-wallets" component={HotWallets} />
         <Route path="/admin/logs" component={TransactionLogs} />
         <Route path="/admin/users" component={UsersManagement} />

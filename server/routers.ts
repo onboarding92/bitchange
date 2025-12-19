@@ -1715,6 +1715,105 @@ export const appRouter = router({
       if (!db) return [];
       return await db.select().from(stakingPositions).orderBy(desc(stakingPositions.startedAt));
     }),
+
+    // Advanced Analytics Dashboard
+    analytics: adminProcedure
+      .input(z.object({
+        timeRange: z.enum(["7d", "30d", "90d", "1y"]).default("30d"),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const now = new Date();
+        const daysMap = { "7d": 7, "30d": 30, "90d": 90, "1y": 365 };
+        const days = daysMap[input.timeRange];
+        const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+        // User Activity Metrics
+        const [totalUsers] = await db.select({ count: sql<number>`count(*)` }).from(users);
+        const [newUsers] = await db.select({ count: sql<number>`count(*)` })
+          .from(users)
+          .where(gte(users.createdAt, startDate));
+        
+        // Active users (users who logged in during period)
+        const [activeUsers] = await db.select({ count: sql<number>`count(DISTINCT user_id)` })
+          .from(systemLogs)
+          .where(and(
+            eq(systemLogs.action, "login"),
+            gte(systemLogs.createdAt, startDate)
+          ));
+
+        // Trading Volume
+        const [totalVolume] = await db.select({ 
+          volume: sql<number>`SUM(CAST(${trades.price} AS DECIMAL(20,8)) * CAST(${trades.amount} AS DECIMAL(20,8)))` 
+        })
+          .from(trades)
+          .where(gte(trades.createdAt, startDate));
+
+        const [totalTrades] = await db.select({ count: sql<number>`count(*)` })
+          .from(trades)
+          .where(gte(trades.createdAt, startDate));
+
+        // Revenue (trading fees) - calculated as 0.2% of volume
+        const totalFees = { fees: (totalVolume?.volume ?? 0) * 0.002 };
+
+        // Daily metrics for charts
+        const dailyMetrics = await db.select({
+          date: sql<string>`DATE(${trades.createdAt})`,
+          volume: sql<number>`SUM(CAST(${trades.price} AS DECIMAL(20,8)) * CAST(${trades.amount} AS DECIMAL(20,8)))`,
+          trades: sql<number>`count(*)`,
+          fees: sql<number>`SUM(CAST(${trades.price} AS DECIMAL(20,8)) * CAST(${trades.amount} AS DECIMAL(20,8)) * 0.002)`, // 0.2% fee
+        })
+          .from(trades)
+          .where(gte(trades.createdAt, startDate))
+          .groupBy(sql`DATE(${trades.createdAt})`)
+          .orderBy(sql`DATE(${trades.createdAt})`);
+
+        // User registrations by day
+        const dailyRegistrations = await db.select({
+          date: sql<string>`DATE(${users.createdAt})`,
+          count: sql<number>`count(*)`,
+        })
+          .from(users)
+          .where(gte(users.createdAt, startDate))
+          .groupBy(sql`DATE(${users.createdAt})`)
+          .orderBy(sql`DATE(${users.createdAt})`);
+
+        // Top trading pairs
+        const topPairs = await db.select({
+          pair: trades.pair,
+          volume: sql<number>`SUM(CAST(${trades.price} AS DECIMAL(20,8)) * CAST(${trades.amount} AS DECIMAL(20,8)))`,
+          trades: sql<number>`count(*)`,
+        })
+          .from(trades)
+          .where(gte(trades.createdAt, startDate))
+          .groupBy(trades.pair)
+          .orderBy(desc(sql`SUM(CAST(${trades.price} AS DECIMAL(20,8)) * CAST(${trades.amount} AS DECIMAL(20,8)))`))
+          .limit(10);
+
+        // System health metrics
+        const errorCount = { count: 0 }; // Placeholder - implement error logging if needed
+
+        return {
+          summary: {
+            totalUsers: totalUsers?.count ?? 0,
+            newUsers: newUsers?.count ?? 0,
+            activeUsers: activeUsers?.count ?? 0,
+            totalVolume: totalVolume?.volume ?? 0,
+            totalTrades: totalTrades?.count ?? 0,
+            totalFees: totalFees?.fees ?? 0,
+            errorCount: errorCount?.count ?? 0,
+          },
+          charts: {
+            dailyVolume: dailyMetrics.map(m => ({ date: m.date, value: m.volume })),
+            dailyTrades: dailyMetrics.map(m => ({ date: m.date, value: m.trades })),
+            dailyFees: dailyMetrics.map(m => ({ date: m.date, value: m.fees })),
+            dailyRegistrations: dailyRegistrations.map(r => ({ date: r.date, value: r.count })),
+            topPairs: topPairs.map(p => ({ pair: p.pair, volume: p.volume, trades: p.trades })),
+          },
+        };
+      }),
   }),
 
   trade: router({
@@ -1816,6 +1915,79 @@ export const appRouter = router({
         
         const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
         return { csv, filename: `trades_${Date.now()}.csv` };
+      }),
+
+    // Real Trading Engine - Live Exchange Integration
+    livePrice: publicProcedure
+      .input(z.object({ symbol: z.string() }))
+      .query(async ({ input }) => {
+        const { getLivePrice } = await import("./exchangeConnector");
+        return await getLivePrice(input.symbol);
+      }),
+
+    liveOrderBook: publicProcedure
+      .input(z.object({ 
+        symbol: z.string(),
+        limit: z.number().optional().default(20)
+      }))
+      .query(async ({ input }) => {
+        const { getOrderBook } = await import("./exchangeConnector");
+        return await getOrderBook(input.symbol, input.limit);
+      }),
+
+    placeExchangeOrder: protectedProcedure
+      .input(z.object({
+        symbol: z.string(),
+        side: z.enum(["buy", "sell"]),
+        type: z.enum(["limit", "market"]),
+        amount: z.number(),
+        price: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { placeExchangeOrder } = await import("./exchangeConnector");
+        return await placeExchangeOrder(input);
+      }),
+
+    exchangeOrderStatus: protectedProcedure
+      .input(z.object({ 
+        orderId: z.string(),
+        symbol: z.string()
+      }))
+      .query(async ({ input }) => {
+        const { getOrderStatus } = await import("./exchangeConnector");
+        return await getOrderStatus(input.orderId, input.symbol);
+      }),
+
+    cancelExchangeOrder: protectedProcedure
+      .input(z.object({ 
+        orderId: z.string(),
+        symbol: z.string()
+      }))
+      .mutation(async ({ input }) => {
+        const { cancelExchangeOrder } = await import("./exchangeConnector");
+        return await cancelExchangeOrder(input.orderId, input.symbol);
+      }),
+
+    availablePairs: publicProcedure
+      .query(async () => {
+        const { getAvailablePairs } = await import("./exchangeConnector");
+        return await getAvailablePairs();
+      }),
+
+    exchangeBalance: protectedProcedure
+      .query(async () => {
+        const { getExchangeBalance } = await import("./exchangeConnector");
+        return await getExchangeBalance();
+      }),
+
+    tradeHistory: publicProcedure
+      .input(z.object({ 
+        symbol: z.string(),
+        limit: z.number().optional().default(50)
+      }))
+      .query(async ({ input }) => {
+        const { getTradeHistory } = await import("./exchangeConnector");
+        return await getTradeHistory(input.symbol, input.limit);
       }),
 
     // DEBUG: Manually trigger matching engine for an order

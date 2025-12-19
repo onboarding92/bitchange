@@ -137,6 +137,9 @@ importers:
       bitcoinjs-lib:
         specifier: ^7.0.0
         version: 7.0.0(typescript@5.9.3)
+      ccxt:
+        specifier: ^4.5.28
+        version: 4.5.28(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -3066,6 +3069,10 @@ packages:
 
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
+
+  ccxt@4.5.28:
+    resolution: {integrity: sha512-L0RxW3pUGqQOLn00SGfPAiX+gigxHHxZhFSYkAgXOKVklhO3bBNF8VmOHZZ3RtImFPTwRAFj/897BPvMxzeS1w==}
+    engines: {node: '>=15.0.0'}
 
   chai@5.3.3:
     resolution: {integrity: sha512-4zNhdJD/iOjSH0A05ea+Ke6MU5mmpQcbQsSOkgdaUMJ9zTlDTD/GYlwohmIE2u0gaxHYiVHEn1Fw9mZ/ktJWgw==}
@@ -8988,6 +8995,13 @@ snapshots:
 
   ccount@2.0.1: {}
 
+  ccxt@4.5.28(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    dependencies:
+      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   chai@5.3.3:
     dependencies:
       assertion-error: 2.0.1
@@ -11054,7 +11068,7 @@ snapshots:
       buffer: 6.0.3
       eventemitter3: 5.0.1
       uuid: 8.3.2
-      ws: 8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
       bufferutil: 4.0.9
       utf-8-validate: 5.0.10
