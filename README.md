@@ -11,7 +11,8 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 
 ### 🔐 User Features
 - **Multi-Currency Wallet**: Support for 15+ cryptocurrencies (BTC, ETH, USDT, BNB, ADA, SOL, XRP, DOT, DOGE, AVAX, SHIB, MATIC, LTC, LINK, XLM)
-- **Authentication System**: Email/password registration, password reset, 2FA with Google Authenticator, session management
+- **Authentication System**: Email/password registration, email verification, password reset, 2FA with Google Authenticator, session management
+- **Email Notifications**: SendGrid integration for welcome emails, verification codes, password reset, and transaction alerts
 - **Trading System**: Limit orders, real-time order book, trade history, and order management
 - **TradingView Charts**: Professional real-time price charts with technical indicators (MA, RSI) from Binance
 - **Order Book Depth Visualization**: Interactive depth chart showing cumulative bid/ask liquidity
@@ -59,7 +60,8 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **MySQL** database (via Drizzle ORM)
 - **JWT** for authentication
 - **Bcrypt** for password hashing
-- **Redis** for caching (optional)
+- **SendGrid** for email delivery
+- **Redis** for caching (price data, sessions)
 
 ### Crypto Libraries
 - **bitcoinjs-lib** for Bitcoin wallet generation
@@ -108,7 +110,12 @@ NODE_ENV=development
 PORT=3000
 DOMAIN=localhost
 
-# Redis (optional)
+# SendGrid Email (required for email notifications)
+SENDGRID_API_KEY=your-sendgrid-api-key
+SENDGRID_FROM_EMAIL=noreply@yourdomain.com
+SENDGRID_FROM_NAME="BitChange Pro"
+
+# Redis (recommended for production)
 REDIS_URL=redis://localhost:6379
 
 # CoinGecko API (optional, uses free tier by default)
@@ -191,9 +198,9 @@ Alternatively, update user role in database:
 UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
 ```
 
-Or use the provided test credentials (see `test-users.sql`):
+Or use the provided test credentials:
 - **Admin**: admin@bitchangemoney.xyz / Admin123!
-- **User**: user@bitchange.test / User123!
+- **User**: trader1@test.com / Test123!
 
 ## 🧪 Testing
 
@@ -235,13 +242,41 @@ pnpm test:watch
 
 ## ⚠️ Important Notes
 
-1. **Security**: This project implements industry-standard security practices including password hashing, JWT authentication, and input validation. However, for production use, additional security audits are recommended.
+1. **Email Configuration**: SendGrid is required for email notifications (registration verification, password reset, etc.). Sign up at [SendGrid](https://sendgrid.com/) and configure the API key in your `.env` file.
 
-2. **Wallet Security**: The wallet generation system uses HD wallets with BIP39 mnemonic phrases. For production, consider implementing hardware security modules (HSMs) and multi-signature wallets.
+2. **Security**: This project implements industry-standard security practices including password hashing, JWT authentication, and input validation. However, for production use, additional security audits are recommended.
 
-3. **Regulatory Compliance**: Operating a cryptocurrency exchange may require licenses and compliance with financial regulations in your jurisdiction. Ensure you understand and comply with all applicable laws.
+3. **Wallet Security**: The wallet generation system uses HD wallets with BIP39 mnemonic phrases. For production, consider implementing hardware security modules (HSMs) and multi-signature wallets.
 
-4. **Testing**: Always test thoroughly in a staging environment before deploying to production.
+4. **Regulatory Compliance**: Operating a cryptocurrency exchange may require licenses and compliance with financial regulations in your jurisdiction. Ensure you understand and comply with all applicable laws.
+
+5. **Testing**: Always test thoroughly in a staging environment before deploying to production.
+
+## 🎯 Current Status
+
+**Live Production Site:** [https://bitchangemoney.xyz/](https://bitchangemoney.xyz/)
+
+### ✅ Fully Operational
+- User registration with email verification
+- Email/password authentication
+- SendGrid email delivery (welcome, verification, password reset)
+- Trading engine with order matching
+- Multi-currency wallets
+- Admin panel with full management capabilities
+- Real-time crypto price updates
+- KYC verification system
+- Staking and referral programs
+
+### ⚠️ Known Issues
+- TradingView chart widget not rendering in production (code deployed, investigating CSP)
+- Order Book Depth Chart not visible (code deployed, investigating Recharts issue)
+
+### 🚀 Recent Updates (Dec 19, 2025)
+- ✅ SendGrid email integration completed and tested
+- ✅ Admin login fixed (password hash corrected)
+- ✅ Database cleaned (development environment)
+- ✅ VPS docker-compose updated with SendGrid variables
+- ✅ All email notifications working in production
 
 ## 📄 License
 
@@ -258,3 +293,30 @@ For questions or support, please open an issue on GitHub.
 ---
 
 **Developed by Luca Benzi** | [GitHub](https://github.com/onboarding92)
+
+## 🎯 Current Status
+
+**Live Production Site:** [https://bitchangemoney.xyz/](https://bitchangemoney.xyz/)
+
+### ✅ Fully Operational
+- User registration with email verification
+- Email/password authentication
+- SendGrid email delivery (welcome, verification, password reset)
+- Trading engine with order matching
+- Multi-currency wallets
+- Admin panel with full management capabilities
+- Real-time crypto price updates
+- KYC verification system
+- Staking and referral programs
+
+### ⚠️ Known Issues
+- TradingView chart widget not rendering in production (code deployed, investigating CSP)
+- Order Book Depth Chart not visible (code deployed, investigating Recharts issue)
+
+### 🚀 Recent Updates (Dec 19, 2025)
+- ✅ SendGrid email integration completed and tested
+- ✅ Admin login fixed (password hash corrected)
+- ✅ Database cleaned (development environment)
+- ✅ VPS docker-compose updated with SendGrid variables
+- ✅ All email notifications working in production
+
