@@ -139,7 +139,7 @@ export const appRouter = router({
 
         // Set cookie
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie("auth_token", token, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
+        ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
 
         // Record successful login
         await recordLoginAttempt({
@@ -175,7 +175,7 @@ export const appRouter = router({
         }
         const cookieOptions = getSessionCookieOptions(ctx.req);
         console.log('[Logout] Clearing cookies');
-        ctx.res.clearCookie("auth_token", { ...cookieOptions, maxAge: -1 });
+        // auth_token cookie already cleared by COOKIE_NAME
         ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
         console.log('[Logout] Logout successful');
         return { success: true } as const;
