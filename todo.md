@@ -603,3 +603,68 @@ Last Updated: December 17, 2025
 - [ ] Verify dashboard loads correctly
 - [ ] Test admin panel access
 - [ ] Verify all features work in production
+
+
+## 🔴 CRITICAL BUGS - December 19, 2025
+
+### Signout Not Working
+- [ ] Fix logout functionality in DashboardLayout
+- [ ] Verify auth.logout mutation works correctly
+- [ ] Test signout clears session cookie
+- [ ] Test redirect to login page after signout
+
+### Referrals Page Loading Forever
+- [ ] Debug referrals.getStats query
+- [ ] Check database referrals table exists
+- [ ] Fix loading state handling
+- [ ] Test referrals page loads correctly
+
+### Profile Page Button Label
+- [ ] Change "Edit Profile" button to "Save" or "Save Changes"
+- [ ] Improve button UX (show when editing vs saved state)
+
+### Wallet Security & Key Management
+- [ ] Document wallet generation process
+- [ ] Explain where private keys are stored
+- [ ] Clarify deposit flow (how funds are received and credited)
+- [ ] Add security disclaimer for demo/educational exchange
+
+---
+
+## 📧 SENDGRID EMAIL INTEGRATION - December 19, 2025
+
+- [ ] Install @sendgrid/mail package
+- [ ] Create email service module (server/email.ts)
+- [ ] Add SENDGRID_API_KEY to environment variables
+- [ ] Create email templates (KYC approval, deposit confirmation, withdrawal alert, referral reward)
+- [ ] Implement sendEmail helper function
+- [ ] Add email notifications to KYC approval workflow
+- [ ] Add email notifications to deposit confirmation workflow
+- [ ] Add email notifications to withdrawal workflow
+- [ ] Add email notifications to referral reward distribution
+- [ ] Test email sending locally
+- [ ] Deploy to production
+
+---
+
+## 📊 ANALYTICS DASHBOARD TIME FILTERS - December 19, 2025
+
+- [ ] Verify time range selector UI exists in Analytics.tsx
+- [ ] Verify admin.dashboardStats accepts timeRange parameter
+- [ ] Test 7 days filter
+- [ ] Test 30 days filter
+- [ ] Test 90 days filter
+- [ ] Test 1 year filter
+- [ ] Verify charts update with selected time range
+- [ ] Deploy to production
+
+
+## 📈 TRADING CHART - December 19, 2025
+
+- [ ] Add TradingView lightweight chart to trading page
+- [ ] Display price history for selected trading pair
+- [ ] Show candlestick chart with volume
+- [ ] Add timeframe selector (1m, 5m, 15m, 1h, 4h, 1d)
+- [ ] Integrate with real-time price updates
+- [ ] Test chart responsiveness
+- [ ] Deploy to production

@@ -1,5 +1,15 @@
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
+import sgMail from "@sendgrid/mail";
+
+// Initialize SendGrid if API key is provided
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || "";
+const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || "noreply@bitchangemoney.xyz";
+
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log("[email] SendGrid initialized");
+}
 
 export function escapeHtml(str: string): string {
   return str
@@ -55,10 +65,28 @@ type SendEmailParams = {
  * If SMTP not configured, logs and returns without throwing errors.
  */
 export async function sendEmail(params: SendEmailParams): Promise<void> {
+  // Try SendGrid first if configured
+  if (SENDGRID_API_KEY) {
+    try {
+      await sgMail.send({
+        from: SENDGRID_FROM_EMAIL,
+        to: params.to,
+        subject: params.subject,
+        text: params.text,
+        html: params.html ?? params.text,
+      });
+      console.log(`[email] Sent via SendGrid to ${params.to}: ${params.subject}`);
+      return;
+    } catch (err) {
+      console.error("[email] SendGrid failed, falling back to SMTP:", err);
+    }
+  }
+
+  // Fallback to SMTP
   const transporter = getTransporter();
   if (!transporter) {
     console.log(
-      "[email] Email sending skipped (no SMTP config). Intended email:",
+      "[email] Email sending skipped (no SMTP/SendGrid config). Intended email:",
       {
         to: params.to,
         subject: params.subject,
@@ -77,7 +105,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
       text: params.text,
       html: params.html ?? params.text,
     });
-    console.log(`[email] Sent email to ${params.to}: ${params.subject}`);
+    console.log(`[email] Sent via SMTP to ${params.to}: ${params.subject}`);
   } catch (err) {
     console.error("[email] Failed to send email:", err);
   }

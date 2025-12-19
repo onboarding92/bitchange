@@ -1990,8 +1990,14 @@ export const appRouter = router({
         .where(eq(users.id, userId))
         .limit(1);
 
-      if (!user[0] || !user[0].referralCode) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Referral code not found" });
+      let referralCode = user[0]?.referralCode;
+
+      // Generate referral code if missing
+      if (!referralCode) {
+        referralCode = `REF${userId}${Date.now().toString(36).toUpperCase()}`;
+        await db.update(users)
+          .set({ referralCode })
+          .where(eq(users.id, userId));
       }
 
       // Count total referrals
@@ -2016,7 +2022,7 @@ export const appRouter = router({
       const earnedRewards = 0;
 
       return {
-        referralCode: user[0].referralCode,
+        referralCode,
         totalReferrals: totalReferrals[0]?.count || 0,
         pendingRewards,
         earnedRewards,
