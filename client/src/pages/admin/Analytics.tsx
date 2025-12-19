@@ -11,7 +11,7 @@ type TimeRange = "7d" | "30d" | "90d" | "1y";
 export default function AdminAnalytics() {
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
   
-  const { data: stats, isLoading } = trpc.admin.dashboardStats.useQuery(
+  const { data: stats, isLoading, error } = trpc.admin.dashboardStats.useQuery(
     { timeRange },
     {
       refetchInterval: 30000, // Refresh every 30 seconds
@@ -38,13 +38,31 @@ export default function AdminAnalytics() {
     );
   }
 
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="text-center text-red-500">
+            <h2 className="text-xl font-bold mb-2">Failed to load analytics data</h2>
+            <p className="text-sm">{error.message}</p>
+            <pre className="mt-4 text-left bg-muted p-4 rounded text-xs overflow-auto">
+              {JSON.stringify(error, null, 2)}
+            </pre>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (!stats) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center text-muted-foreground">
-          Failed to load analytics data
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="text-center text-muted-foreground">
+            No analytics data available
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 

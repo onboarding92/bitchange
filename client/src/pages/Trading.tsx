@@ -10,6 +10,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { TrendingUp, TrendingDown, X } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { TRADING_PAIRS } from "@shared/const";
 
 export default function Trading() {
@@ -167,6 +168,86 @@ export default function Trading() {
           </CardHeader>
           <CardContent>
             <div id="tradingview_chart" style={{ height: "500px" }}></div>
+          </CardContent>
+        </Card>
+
+        {/* Order Book Depth Chart */}
+        <Card className="glass">
+          <CardHeader>
+            <CardTitle>Order Book Depth</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {orderBook && (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart
+                  data={[
+                    ...orderBook.bids
+                      .slice(0, 20)
+                      .reverse()
+                      .map((bid, idx, arr) => ({
+                        price: parseFloat(bid.price.toFixed(2)),
+                        bidDepth: arr.slice(0, idx + 1).reduce((sum, b) => sum + b.amount, 0),
+                        askDepth: 0,
+                      })),
+                    ...orderBook.asks
+                      .slice(0, 20)
+                      .map((ask, idx, arr) => ({
+                        price: parseFloat(ask.price.toFixed(2)),
+                        bidDepth: 0,
+                        askDepth: arr.slice(0, idx + 1).reduce((sum, a) => sum + a.amount, 0),
+                      })),
+                  ].sort((a, b) => a.price - b.price)}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="bidGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="askGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.2} />
+                  <XAxis
+                    dataKey="price"
+                    stroke="#888"
+                    tick={{ fill: "#888" }}
+                    tickFormatter={(value) => value.toFixed(0)}
+                  />
+                  <YAxis stroke="#888" tick={{ fill: "#888" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(0, 0, 0, 0.9)",
+                      border: "1px solid #333",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{ color: "#fff" }}
+                    formatter={(value: number) => value.toFixed(4)}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="bidDepth"
+                    stroke="#22c55e"
+                    fill="url(#bidGradient)"
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="askDepth"
+                    stroke="#ef4444"
+                    fill="url(#askGradient)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+            {!orderBook && (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                Loading order book depth...
+              </div>
+            )}
           </CardContent>
         </Card>
 

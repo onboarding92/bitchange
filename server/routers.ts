@@ -1226,13 +1226,11 @@ export const appRouter = router({
       const timeRangeValue = input.timeRange;
       const daysMap = { "7d": 7, "30d": 30, "90d": 90, "1y": 365 };
       const daysAgo = daysMap[timeRangeValue];
-      const rangeStartDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
       
       // Active users (logged in last 7 days)
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const [activeCount] = await db.select({ count: sql<number>`count(*)` })
         .from(users)
-        .where(sql`${users.lastSignedIn} >= ${sevenDaysAgo}`);
+        .where(sql`${users.lastSignedIn} >= DATE_SUB(NOW(), INTERVAL 7 DAY)`);
 
       // Pending withdrawals
       const [withdrawalCount] = await db.select({ count: sql<number>`count(*)` })
@@ -1245,21 +1243,18 @@ export const appRouter = router({
         .where(eq(kycDocuments.status, "pending"));
 
       // Volume calculations (from trades)
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const sevenDaysAgoDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
       const [dailyVol] = await db.select({ 
         total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
-      }).from(trades).where(sql`${trades.createdAt} >= ${oneDayAgo}`);
+      }).from(trades).where(sql`${trades.createdAt} >= DATE_SUB(NOW(), INTERVAL 1 DAY)`);
 
       const [weeklyVol] = await db.select({ 
         total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
-      }).from(trades).where(sql`${trades.createdAt} >= ${sevenDaysAgoDate}`);
+      }).from(trades).where(sql`${trades.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)`);
 
       const [monthlyVol] = await db.select({ 
         total: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)` 
-      }).from(trades).where(sql`${trades.createdAt} >= ${thirtyDaysAgo}`);
+      }).from(trades).where(sql`${trades.createdAt} >= DATE_SUB(NOW(), INTERVAL 30 DAY)`);
 
       // User growth (based on selected time range)
       const userGrowthData = await db.select({
@@ -1267,7 +1262,7 @@ export const appRouter = router({
         count: sql<number>`count(*)`
       })
       .from(users)
-      .where(sql`${users.createdAt} >= ${rangeStartDate}`)
+      .where(sql`${users.createdAt} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY)`)
       .groupBy(sql`DATE(${users.createdAt})`)
       .orderBy(sql`DATE(${users.createdAt})`);
 
@@ -1277,7 +1272,7 @@ export const appRouter = router({
         volume: sql<string>`COALESCE(SUM(CAST(${trades.amount} AS DECIMAL(20,8))), 0)`
       })
       .from(trades)
-      .where(sql`${trades.createdAt} >= ${rangeStartDate}`)
+      .where(sql`${trades.createdAt} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY)`)
       .groupBy(sql`DATE(${trades.createdAt})`)
       .orderBy(sql`DATE(${trades.createdAt})`);
 

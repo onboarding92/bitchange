@@ -692,3 +692,66 @@ Last Updated: December 17, 2025
 - [x] Verify signout clears auth cookies (auth_token + COOKIE_NAME)
 - [x] Verify signout redirects to login page (window.location.href)
 - [x] Test signout on both OAuth and email/password sessions
+
+
+---
+
+## 🔧 NEW TASKS - December 19, 2025 (Session 2)
+
+### Analytics Auth Issue Debug
+- [ ] Investigate why Analytics page returns "Failed to load analytics data"
+- [ ] Check admin authentication in browser console
+- [ ] Test dashboardStats query manually
+- [ ] Verify database connection and query execution
+- [ ] Fix any permission or query errors
+- [ ] Test all time range filters (7d, 30d, 90d, 1y) end-to-end
+
+### Order Book Depth Chart
+- [ ] Add depth chart visualization component
+- [ ] Integrate with existing order book data
+- [ ] Show bid/ask liquidity with area chart
+- [ ] Add hover tooltips for price levels
+- [ ] Make chart responsive and styled with dark theme
+- [ ] Test with different trading pairs
+
+### GitHub & Documentation
+- [ ] Push all changes to GitHub repository
+- [ ] Update README.md with new features (TradingView chart, Analytics filters)
+- [ ] Document known issues and solutions
+- [ ] Add screenshots if needed
+
+
+---
+
+## 🔧 NEW TASKS - December 19, 2025
+
+### Analytics Debug Issue
+- [ ] Fix Analytics Dashboard date query error (system clock shows 2025 instead of 2024)
+- [ ] Investigate Drizzle ORM prepared statement compatibility with MySQL DATE_SUB
+- [ ] Consider refactoring to use raw SQL queries or alternative date filtering approach
+- [ ] Test Analytics time range filters (7d, 30d, 90d, 1y) after fix
+
+### TradingView Chart Integration ✅
+- [x] Add TradingView widget script to Trading page
+- [x] Configure chart for real-time crypto prices from Binance
+- [x] Add technical indicators support (Moving Average + RSI)
+- [x] Implement symbol mapping for all trading pairs
+- [x] Test chart responsiveness and loading
+
+### Order Book Depth Chart ✅
+- [x] Design depth chart visualization component
+- [x] Calculate cumulative bid/ask depths from order book data
+- [x] Implement area chart with Recharts
+- [x] Add gradient fills for bid (green) and ask (red) areas
+- [x] Add CartesianGrid, XAxis, YAxis, and Tooltip
+- [x] Test chart responsiveness and data updates
+- [x] Verify chart displays correctly below TradingView chart
+
+### GitHub Push & README Update
+- [ ] Stage all changes for commit
+- [ ] Create meaningful commit message
+- [ ] Push changes to GitHub repository
+- [ ] Update README.md with new features section
+- [ ] Document TradingView chart integration
+- [ ] Document Order Book Depth Chart feature
+- [ ] Add screenshots or demo links if available
