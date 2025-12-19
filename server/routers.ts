@@ -164,14 +164,24 @@ export const appRouter = router({
       }),
 
     logout: publicProcedure.mutation(async ({ ctx }) => {
-      const token = ctx.req.cookies["auth_token"];
-      if (token) {
-        await revokeSession(token);
+      try {
+        console.log('[Logout] Starting logout process');
+        const token = ctx.req.cookies["auth_token"];
+        console.log('[Logout] Token:', token ? 'present' : 'missing');
+        if (token) {
+          await revokeSession(token);
+          console.log('[Logout] Session revoked');
+        }
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        console.log('[Logout] Clearing cookies');
+        ctx.res.clearCookie("auth_token", { ...cookieOptions, maxAge: -1 });
+        ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+        console.log('[Logout] Logout successful');
+        return { success: true } as const;
+      } catch (error) {
+        console.error('[Logout] Error during logout:', error);
+        throw error;
       }
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie("auth_token", { ...cookieOptions, maxAge: -1 });
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return { success: true } as const;
     }),
 
     verifyEmail: publicProcedure

@@ -806,3 +806,23 @@ Last Updated: December 17, 2025
 - [ ] Test email sending with SendGrid test endpoint
 - [ ] Check server logs for email errors
 - [ ] Verify SENDGRID_FROM_EMAIL is verified sender in SendGrid dashboard
+
+
+---
+
+## 🔴 URGENT - December 19, 2025 (Evening)
+
+### Delete Test Users
+- [ ] Delete lucabac2000@icloud.com from development database
+- [ ] Delete benziluca92@gmail.com from development database
+- [ ] Delete lucabac2000@icloud.com from production database (VPS)
+- [ ] Delete benziluca92@gmail.com from production database (VPS)
+- [ ] Delete associated sessions and notifications
+
+### Fix Signout Bug (CRITICAL)
+- [ ] Debug signout button - user stays logged in after clicking
+- [ ] Check logout mutation execution
+- [ ] Verify session deletion from database
+- [ ] Verify cookie clearing
+- [ ] Test redirect to login page
+- [ ] Deploy fix to production VPS
