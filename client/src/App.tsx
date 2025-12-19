@@ -1,72 +1,91 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+
+// Eager load critical pages (auth, home, 404)
 import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import Trading from "./pages/Trading";
-import Staking from "./pages/Staking";
-import Deposit from "./pages/Deposit";
-import Withdrawal from "./pages/Withdrawal";
-import KYC from "./pages/KYC";
-import Support from "./pages/Support";
-import Admin from "./pages/Admin";
-import AdminPanel from "./pages/AdminPanel";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import VerifyEmail from "./pages/auth/VerifyEmail";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
-import Setup2FA from "./pages/Setup2FA";
-import HotWallets from "./pages/admin/HotWallets";
-import TransactionLogs from "./pages/admin/TransactionLogs";
-import AdminDashboard from "./pages/admin/Dashboard";
-import UsersManagement from "./pages/admin/Users";
-import Trade from "./pages/Trade";
-import Profile from "./pages/Profile";
-import AccountSettings from "./pages/AccountSettings";
-import TransactionHistory from "./pages/TransactionHistory";
-import ReferralDashboard from "./pages/ReferralDashboard";
-import KYCSubmission from "./pages/KYCSubmission";
-import KYCReview from "./pages/admin/KYCReview";
-import AdminAnalytics from "./pages/admin/Analytics";
+import NotFound from "./pages/NotFound";
+
+// Lazy load heavy/admin pages for code-splitting
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Trading = lazy(() => import("./pages/Trading"));
+const Staking = lazy(() => import("./pages/Staking"));
+const Deposit = lazy(() => import("./pages/Deposit"));
+const Withdrawal = lazy(() => import("./pages/Withdrawal"));
+const KYC = lazy(() => import("./pages/KYC"));
+const Support = lazy(() => import("./pages/Support"));
+const Admin = lazy(() => import("./pages/Admin"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const Setup2FA = lazy(() => import("./pages/Setup2FA"));
+const HotWallets = lazy(() => import("./pages/admin/HotWallets"));
+const TransactionLogs = lazy(() => import("./pages/admin/TransactionLogs"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const UsersManagement = lazy(() => import("./pages/admin/Users"));
+const Trade = lazy(() => import("./pages/Trade"));
+const Profile = lazy(() => import("./pages/Profile"));
+const AccountSettings = lazy(() => import("./pages/AccountSettings"));
+const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
+const ReferralDashboard = lazy(() => import("./pages/ReferralDashboard"));
+const KYCSubmission = lazy(() => import("./pages/KYCSubmission"));
+const KYCReview = lazy(() => import("./pages/admin/KYCReview"));
+const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
+
+// Loading fallback component
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/auth/login" component={Login} />
-      <Route path="/auth/register" component={Register} />
-      <Route path="/auth/verify-email" component={VerifyEmail} />
-      <Route path="/auth/forgot-password" component={ForgotPassword} />
-      <Route path="/auth/reset-password" component={ResetPassword} />
-      <Route path="/setup-2fa" component={Setup2FA} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/trading" component={Trading} />
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/auth/login" component={Login} />
+        <Route path="/auth/register" component={Register} />
+        <Route path="/auth/verify-email" component={VerifyEmail} />
+        <Route path="/auth/forgot-password" component={ForgotPassword} />
+        <Route path="/auth/reset-password" component={ResetPassword} />
+        <Route path="/setup-2fa" component={Setup2FA} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/trading" component={Trading} />
         <Route path="/trade" component={Trade} />
-      <Route path="/staking" component={Staking} />
-      <Route path="/deposit" component={Deposit} />
-      <Route path="/withdrawal" component={Withdrawal} />
-      <Route path="/kyc" component={KYC} />
-      <Route path="/kyc/submit" component={KYCSubmission} />
-      <Route path="/support" component={Support} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/settings" component={AccountSettings} />
-      <Route path="/transactions" component={TransactionHistory} />
-      <Route path="/referrals" component={ReferralDashboard} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/admin/dashboard" component={AdminDashboard} />
-      <Route path="/admin/panel" component={AdminPanel} />
-      <Route path="/admin/hot-wallets" component={HotWallets} />
-      <Route path="/admin/logs" component={TransactionLogs} />
-      <Route path="/admin/users" component={UsersManagement} />
-      <Route path="/admin/kyc-review" component={KYCReview} />
-      <Route path="/admin/analytics" component={AdminAnalytics} />
-      <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
+        <Route path="/staking" component={Staking} />
+        <Route path="/deposit" component={Deposit} />
+        <Route path="/withdrawal" component={Withdrawal} />
+        <Route path="/kyc" component={KYC} />
+        <Route path="/kyc/submit" component={KYCSubmission} />
+        <Route path="/support" component={Support} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/settings" component={AccountSettings} />
+        <Route path="/transactions" component={TransactionHistory} />
+        <Route path="/referrals" component={ReferralDashboard} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/admin/dashboard" component={AdminDashboard} />
+        <Route path="/admin/panel" component={AdminPanel} />
+        <Route path="/admin/hot-wallets" component={HotWallets} />
+        <Route path="/admin/logs" component={TransactionLogs} />
+        <Route path="/admin/users" component={UsersManagement} />
+        <Route path="/admin/kyc-review" component={KYCReview} />
+        <Route path="/admin/analytics" component={AdminAnalytics} />
+        <Route path="/404" component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
