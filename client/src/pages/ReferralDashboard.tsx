@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Copy, Users, DollarSign, Clock, CheckCircle2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+
 
 export default function ReferralDashboard() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
   const [copied, setCopied] = useState(false);
 
   const { data: stats, isLoading } = trpc.referral.getStats.useQuery();
@@ -18,10 +18,7 @@ export default function ReferralDashboard() {
     if (stats?.referralCode) {
       navigator.clipboard.writeText(stats.referralCode);
       setCopied(true);
-      toast({
-        title: "Copied!",
-        description: "Referral code copied to clipboard",
-      });
+
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -30,10 +27,7 @@ export default function ReferralDashboard() {
     if (stats?.referralCode) {
       const link = `${window.location.origin}/auth/register?ref=${stats.referralCode}`;
       navigator.clipboard.writeText(link);
-      toast({
-        title: "Copied!",
-        description: "Referral link copied to clipboard",
-      });
+
     }
   };
 
@@ -41,7 +35,7 @@ export default function ReferralDashboard() {
     return (
       <div className="container max-w-6xl py-8">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="icon" onClick={() => setLocation("/dashboard")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-3xl font-bold">Referral Program</h1>
@@ -55,7 +49,7 @@ export default function ReferralDashboard() {
     <div className="container max-w-6xl py-8">
       {/* Header with Back Button */}
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+        <Button variant="ghost" size="icon" onClick={() => setLocation("/dashboard")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
