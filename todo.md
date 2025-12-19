@@ -1,5 +1,19 @@
 # BitChange Pro - Project TODO
 
+## 🔴 NEW BUG REPORTED - December 19, 2025
+
+### Homepage Button Issues - ✅ FIXED
+- [x] Fix "Sign In" button on homepage - not working after logout redirect
+- [x] Fix "View Markets" button on homepage - not navigating to trading page
+- [x] Investigate if buttons use correct routing (Link vs button with onClick)
+- [x] Test all homepage navigation buttons
+
+**Root Cause**: shadcn/ui Button component onClick handlers not firing (same issue as Trading page)
+**Solution**: Replaced all Button components with Link component wrapping native buttons
+**Tested**: All navigation buttons work correctly (Sign In, Get Started, View Markets, Sign in link)
+
+---
+
 ## 🔴 CRITICAL BUG IDENTIFIED - December 17, 2025
 
 ### Frontend Button onClick Not Working

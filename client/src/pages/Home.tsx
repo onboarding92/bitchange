@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Shield, TrendingUp, Zap, Users, Lock, BarChart3, Wallet } from "lucide-react";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 export default function Home() {
-  const [, setLocation] = useLocation();
   const [cryptoPrices, setCryptoPrices] = useState<any[]>([]);
   
   const { data: prices } = trpc.prices.getAll.useQuery(undefined, {
@@ -70,18 +69,16 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              onClick={() => setLocation("/auth/login")}
-            >
-              Sign In
-            </Button>
-            <Button 
-              className="gradient-primary"
-              onClick={() => setLocation("/auth/register")}
-            >
-              Get Started
-            </Button>
+            <Link href="/auth/login">
+              <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                Sign In
+              </button>
+            </Link>
+            <Link href="/auth/register">
+              <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 gradient-primary">
+                Get Started
+              </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -109,32 +106,24 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button 
-                size="lg" 
-                className="gradient-primary text-lg px-8 group"
-                onClick={() => setLocation("/auth/register")}
-              >
-                Get Started
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="text-lg px-8"
-                onClick={() => setLocation("/trading")}
-              >
-                View Markets
-              </Button>
+              <Link href="/auth/register">
+                <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-11 px-8 gradient-primary text-lg group">
+                  Get Started
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </Link>
+              <Link href="/trading">
+                <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-transparent hover:bg-accent hover:text-accent-foreground h-11 px-8 text-lg">
+                  View Markets
+                </button>
+              </Link>
             </div>
             
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
-              <button 
-                onClick={() => setLocation("/auth/login")} 
-                className="text-primary hover:underline font-medium"
-              >
+              <Link href="/auth/login" className="text-primary hover:underline font-medium">
                 Sign in
-              </button>
+              </Link>
             </p>
           </div>
 
@@ -217,14 +206,12 @@ export default function Home() {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Start trading cryptocurrency with confidence. Secure, fast, and professional.
               </p>
-              <Button 
-                size="lg" 
-                className="gradient-primary text-lg px-12"
-                onClick={() => setLocation("/dashboard")}
-              >
-                Create Free Account
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              <Link href="/auth/register">
+                <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-11 px-12 gradient-primary text-lg">
+                  Create Free Account
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </button>
+              </Link>
             </CardContent>
           </Card>
         </div>
