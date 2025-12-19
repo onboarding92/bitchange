@@ -833,24 +833,24 @@ Last Updated: December 17, 2025
 ## 🔴 URGENT FIXES - December 19, 2025 (Final Session)
 
 ### Database Cleanup
-- [ ] Remove benziluca92@gmail.com from production database
-- [ ] Remove lucabac2000@icloud.com from production database  
-- [ ] Verify only admin and trader1 remain
+- [x] Remove benziluca92@gmail.com from production database
+- [x] Remove lucabac2000@icloud.com from production database  
+- [x] Verify only admin and trader1 remain (plus some test users)
 
 ### Logout 500 Error Fix
-- [ ] Test logout endpoint with curl directly
-- [ ] Check tRPC middleware for errors
-- [ ] Inspect auth_token cookie format
-- [ ] Verify session lookup in database
-- [ ] Fix root cause of 500 error
-- [ ] Test logout on production site
+- [x] Test logout endpoint with curl directly
+- [x] Check tRPC middleware for errors
+- [x] Inspect auth_token cookie format
+- [x] Verify session lookup in database
+- [x] Fix root cause of 500 error (added cookies to tRPC context)
+- [x] Test logout on production site (WORKING!)
 
 ### Password Reset UI
-- [ ] Create /auth/forgot-password page
-- [ ] Add form with email input
-- [ ] Connect to requestPasswordReset endpoint
-- [ ] Create /auth/reset-password page with token
-- [ ] Add form with new password input
-- [ ] Connect to resetPassword endpoint
-- [ ] Add "Forgot password?" link to login page
-- [ ] Test full password reset flow
+- [x] Create /auth/forgot-password page (already exists)
+- [x] Add form with email input (already exists)
+- [x] Connect to requestPasswordReset endpoint (already exists)
+- [x] Create /auth/reset-password page with token (already exists)
+- [x] Add form with new password input (already exists)
+- [x] Connect to resetPassword endpoint (already exists)
+- [x] Add "Forgot password?" link to login page (already exists)
+- [ ] Test full password reset flow (needs testing)
