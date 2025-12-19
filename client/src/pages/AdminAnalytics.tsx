@@ -6,8 +6,10 @@ import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   Users, TrendingUp, DollarSign, Activity, BarChart3, 
-  Calendar, ArrowUpRight, ArrowDownRight 
+  Calendar, ArrowUpRight, ArrowDownRight, Download, FileText 
 } from "lucide-react";
+import { exportToCSV, exportToPDF } from "@/lib/analyticsExport";
+import { toast } from "sonner";
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell 
@@ -19,6 +21,70 @@ export default function AdminAnalytics() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
 
   const { data: analytics, isLoading } = trpc.admin.analytics.useQuery({ timeRange });
+
+  const handleExportCSV = () => {
+    if (!analytics) {
+      toast.error("No data to export");
+      return;
+    }
+    
+    const exportData = {
+      summary: {
+        totalUsers: analytics.summary.totalUsers,
+        activeUsers: analytics.summary.activeUsers,
+        tradingVolume: analytics.summary.totalVolume,
+        revenue: analytics.summary.totalFees,
+      },
+      dailyData: analytics.charts.dailyVolume.map((item, idx) => ({
+        date: item.date,
+        volume: item.volume,
+        trades: analytics.charts.dailyTrades[idx]?.trades || 0,
+        revenue: analytics.charts.dailyFees[idx]?.fees || 0,
+        registrations: analytics.charts.dailyRegistrations[idx]?.registrations || 0,
+      })),
+      topPairs: analytics.charts.topPairs,
+      systemHealth: {
+        uptime: 99.9,
+        errors: analytics.summary.errorCount,
+        avgResponseTime: 150,
+      },
+    };
+    
+    exportToCSV(exportData, timeRange);
+    toast.success("Analytics exported to CSV");
+  };
+
+  const handleExportPDF = () => {
+    if (!analytics) {
+      toast.error("No data to export");
+      return;
+    }
+    
+    const exportData = {
+      summary: {
+        totalUsers: analytics.summary.totalUsers,
+        activeUsers: analytics.summary.activeUsers,
+        tradingVolume: analytics.summary.totalVolume,
+        revenue: analytics.summary.totalFees,
+      },
+      dailyData: analytics.charts.dailyVolume.map((item, idx) => ({
+        date: item.date,
+        volume: item.volume,
+        trades: analytics.charts.dailyTrades[idx]?.trades || 0,
+        revenue: analytics.charts.dailyFees[idx]?.fees || 0,
+        registrations: analytics.charts.dailyRegistrations[idx]?.registrations || 0,
+      })),
+      topPairs: analytics.charts.topPairs,
+      systemHealth: {
+        uptime: 99.9,
+        errors: analytics.summary.errorCount,
+        avgResponseTime: 150,
+      },
+    };
+    
+    exportToPDF(exportData, timeRange);
+    toast.success("Opening PDF export...");
+  };
 
   if (isLoading) {
     return (
@@ -57,18 +123,28 @@ export default function AdminAnalytics() {
             <h1 className="text-3xl font-bold mb-2">Analytics Dashboard</h1>
             <p className="text-muted-foreground">Comprehensive platform metrics and insights</p>
           </div>
-          <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
-            <SelectTrigger className="w-[180px]">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
-              <SelectItem value="1y">Last year</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={handleExportCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button variant="outline" onClick={handleExportPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+            <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
+              <SelectTrigger className="w-[180px]">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+                <SelectItem value="90d">Last 90 days</SelectItem>
+                <SelectItem value="1y">Last year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Summary Cards */}

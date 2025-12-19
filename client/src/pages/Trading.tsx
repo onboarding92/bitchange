@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import OrderExecutionPanel from "@/components/OrderExecutionPanel";
 import { TrendingUp, TrendingDown, X } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { TRADING_PAIRS } from "@shared/const";
@@ -16,9 +17,6 @@ import { TRADING_PAIRS } from "@shared/const";
 export default function Trading() {
   const { user } = useAuth();
   const [selectedPair, setSelectedPair] = useState("BTC/USDT");
-  const [orderSide, setOrderSide] = useState<"buy" | "sell">("buy");
-  const [price, setPrice] = useState("");
-  const [amount, setAmount] = useState("");
 
   const { data: pairPrice, refetch: refetchPrice } = trpc.prices.getPair.useQuery({ pair: selectedPair });
 
@@ -38,18 +36,7 @@ export default function Trading() {
   const { data: myOrders, refetch: refetchMyOrders } = trpc.trading.myOrders.useQuery();
   const { data: myTrades } = trpc.trading.myTrades.useQuery();
 
-  const placeOrder = trpc.trading.placeLimitOrder.useMutation({
-    onSuccess: () => {
-      toast.success("Order placed successfully!");
-      setPrice("");
-      setAmount("");
-      refetchOrderBook();
-      refetchMyOrders();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+
 
   const cancelOrder = trpc.trading.cancelOrder.useMutation({
     onSuccess: () => {
@@ -62,17 +49,9 @@ export default function Trading() {
     },
   });
 
-  const handlePlaceOrder = () => {
-    if (!price || !amount) {
-      toast.error("Please enter price and amount");
-      return;
-    }
-    placeOrder.mutate({
-      pair: selectedPair,
-      side: orderSide,
-      price,
-      amount,
-    });
+  const handleOrderPlaced = () => {
+    refetchOrderBook();
+    refetchMyOrders();
   };
 
   const openOrders = myOrders?.filter(o => o.status === "open") || [];
@@ -296,89 +275,15 @@ export default function Trading() {
           </Card>
 
           {/* Place Order */}
-          <Card className="glass lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Place Order</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={orderSide} onValueChange={(v) => setOrderSide(v as "buy" | "sell")}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="buy" className="data-[state=active]:bg-green-500/20">
-                    <TrendingUp className="mr-2 h-4 w-4" /> Buy
-                  </TabsTrigger>
-                  <TabsTrigger value="sell" className="data-[state=active]:bg-red-500/20">
-                    <TrendingDown className="mr-2 h-4 w-4" /> Sell
-                  </TabsTrigger>
-                </TabsList>
+          <div className="lg:col-span-2">
+            <OrderExecutionPanel
+              selectedPair={selectedPair}
+              currentPrice={pairPrice?.price}
+              onOrderPlaced={handleOrderPlaced}
+            />
+          </div>
 
-                <TabsContent value="buy" className="space-y-4 mt-6">
-                  <div>
-                    <Label>Price (USDT)</Label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Amount ({selectedPair.split("/")[0]})</Label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-                  <div className="pt-2">
-                    <div className="text-sm text-muted-foreground mb-2">
-                      Total: {price && amount ? (parseFloat(price) * parseFloat(amount)).toFixed(2) : "0.00"} USDT
-                    </div>
-                    <Button
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      onClick={handlePlaceOrder}
-                      disabled={placeOrder.isPending}
-                    >
-                      {placeOrder.isPending ? "Placing..." : "Buy " + selectedPair.split("/")[0]}
-                    </Button>
-                  </div>
-                </TabsContent>
 
-                <TabsContent value="sell" className="space-y-4 mt-6">
-                  <div>
-                    <Label>Price (USDT)</Label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Amount ({selectedPair.split("/")[0]})</Label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-                  <div className="pt-2">
-                    <div className="text-sm text-muted-foreground mb-2">
-                      Total: {price && amount ? (parseFloat(price) * parseFloat(amount)).toFixed(2) : "0.00"} USDT
-                    </div>
-                    <Button
-                      className="w-full bg-red-600 hover:bg-red-700"
-                      onClick={handlePlaceOrder}
-                      disabled={placeOrder.isPending}
-                    >
-                      {placeOrder.isPending ? "Placing..." : "Sell " + selectedPair.split("/")[0]}
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Open Orders */}
