@@ -868,3 +868,23 @@ Last Updated: December 17, 2025
 - [x] Connect to resetPassword endpoint (already exists)
 - [x] Add "Forgot password?" link to login page (already exists)
 - [ ] Test full password reset flow (needs testing)
+
+
+## 🚀 DEPLOYMENT & FIXES - December 19, 2025
+
+### VPS Deployment
+- [ ] Pull latest changes from GitHub on VPS
+- [ ] Rebuild Docker containers with new code
+- [ ] Restart services
+- [ ] Test homepage buttons on production
+
+### TradingView Chart Fix
+- [ ] Investigate why TradingView widget not rendering in production
+- [ ] Check CSP headers in nginx configuration
+- [ ] Check script loading in browser console
+- [ ] Test chart rendering after fixes
+
+### Logout Redirect Fix
+- [ ] Modify DashboardLayout logout handler to redirect to /auth/login
+- [ ] Test logout flow redirects correctly
+- [ ] Verify no broken navigation after logout

@@ -84,7 +84,7 @@ export const appRouter = router({
 
         // Rate limiting
         const ip = extractClientIp(ctx.req);
-        const userAgent = ctx.req.headers["user-agent"] || "unknown";
+        const userAgent = ctx.req.headers?.["user-agent"] || "unknown";
         checkLoginRateLimit({ ip, email: input.email });
 
         // Find user by email
