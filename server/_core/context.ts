@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { parse as parseCookieHeader } from "cookie";
 
 export type TrpcContext = {
-  req: CreateExpressContextOptions["req"];
+  req: CreateExpressContextOptions["req"] & { cookies?: Record<string, string> };
   res: CreateExpressContextOptions["res"];
   user: User | null;
 };
@@ -51,8 +51,11 @@ export async function createContext(
     console.log("[Auth] No valid session found");
   }
 
+  // Parse cookies manually and add to req object
+  const cookies = parseCookieHeader(opts.req.headers.cookie || "");
+  
   return {
-    req: opts.req,
+    req: { ...opts.req, cookies },
     res: opts.res,
     user,
   };

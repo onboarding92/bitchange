@@ -826,3 +826,31 @@ Last Updated: December 17, 2025
 - [ ] Verify cookie clearing
 - [ ] Test redirect to login page
 - [ ] Deploy fix to production VPS
+
+
+---
+
+## 🔴 URGENT FIXES - December 19, 2025 (Final Session)
+
+### Database Cleanup
+- [ ] Remove benziluca92@gmail.com from production database
+- [ ] Remove lucabac2000@icloud.com from production database  
+- [ ] Verify only admin and trader1 remain
+
+### Logout 500 Error Fix
+- [ ] Test logout endpoint with curl directly
+- [ ] Check tRPC middleware for errors
+- [ ] Inspect auth_token cookie format
+- [ ] Verify session lookup in database
+- [ ] Fix root cause of 500 error
+- [ ] Test logout on production site
+
+### Password Reset UI
+- [ ] Create /auth/forgot-password page
+- [ ] Add form with email input
+- [ ] Connect to requestPasswordReset endpoint
+- [ ] Create /auth/reset-password page with token
+- [ ] Add form with new password input
+- [ ] Connect to resetPassword endpoint
+- [ ] Add "Forgot password?" link to login page
+- [ ] Test full password reset flow

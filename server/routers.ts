@@ -166,8 +166,9 @@ export const appRouter = router({
     logout: publicProcedure.mutation(async ({ ctx }) => {
       try {
         console.log('[Logout] Starting logout process');
-        const token = ctx.req.cookies["auth_token"];
+        const token = ctx.req.cookies?.["auth_token"];
         console.log('[Logout] Token:', token ? 'present' : 'missing');
+        console.log('[Logout] Cookies object:', ctx.req.cookies ? 'present' : 'undefined');
         if (token) {
           await revokeSession(token);
           console.log('[Logout] Session revoked');
