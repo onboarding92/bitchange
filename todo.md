@@ -668,3 +668,27 @@ Last Updated: December 17, 2025
 - [ ] Integrate with real-time price updates
 - [ ] Test chart responsiveness
 - [ ] Deploy to production
+
+
+---
+
+## 🎯 NEW FEATURES - December 19, 2025
+
+### TradingView Chart Integration
+- [x] Add TradingView widget script to Trading page
+- [x] Configure chart for real-time crypto prices
+- [x] Add technical indicators support (MA + RSI)
+- [x] Test chart responsiveness and loading
+
+### Admin Analytics Time Filters
+- [x] Add time range selector UI (7d, 30d, 90d, 1y)
+- [x] Implement backend filtering for user growth data
+- [x] Implement backend filtering for trading volume data
+- [x] Update charts to reflect selected time range
+- [ ] Test all time range options (BLOCKED: Analytics page auth issue)
+
+### Signout Verification
+- [x] Verify signout deletes session from database (revokeSession called)
+- [x] Verify signout clears auth cookies (auth_token + COOKIE_NAME)
+- [x] Verify signout redirects to login page (window.location.href)
+- [x] Test signout on both OAuth and email/password sessions

@@ -4,6 +4,7 @@ import { Users, TrendingUp, Clock, Shield, DollarSign, Activity, Calendar } from
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
 
@@ -104,7 +105,8 @@ export default function AdminAnalytics() {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
@@ -288,6 +290,7 @@ export default function AdminAnalytics() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

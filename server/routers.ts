@@ -1203,7 +1203,7 @@ export const appRouter = router({
     dashboardStats: adminProcedure
       .input(z.object({
         timeRange: z.enum(["7d", "30d", "90d", "1y"]).default("30d"),
-      }).optional())
+      }))
       .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return {
@@ -1223,7 +1223,7 @@ export const appRouter = router({
       const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
       
       // Calculate time range
-      const timeRangeValue = input?.timeRange || "30d";
+      const timeRangeValue = input.timeRange;
       const daysMap = { "7d": 7, "30d": 30, "90d": 90, "1y": 365 };
       const daysAgo = daysMap[timeRangeValue];
       const rangeStartDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
