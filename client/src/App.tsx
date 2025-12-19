@@ -31,6 +31,7 @@ import TransactionHistory from "./pages/TransactionHistory";
 import ReferralDashboard from "./pages/ReferralDashboard";
 import KYCSubmission from "./pages/KYCSubmission";
 import KYCReview from "./pages/admin/KYCReview";
+import AdminAnalytics from "./pages/admin/Analytics";
 
 function Router() {
   return (
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/admin/logs" component={TransactionLogs} />
       <Route path="/admin/users" component={UsersManagement} />
       <Route path="/admin/kyc-review" component={KYCReview} />
+      <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

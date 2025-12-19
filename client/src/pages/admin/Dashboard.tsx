@@ -21,6 +21,7 @@ import {
   RefreshCw,
   CheckCircle,
   Clock,
+  BarChart3,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -241,7 +242,7 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <Card className="bg-slate-800/90 border-slate-700 p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Button
               onClick={() => setLocation("/admin/users")}
               className="bg-slate-700 hover:bg-slate-600 h-20 flex-col gap-2"
@@ -269,6 +270,13 @@ export default function AdminDashboard() {
             >
               <Clock className="w-5 h-5" />
               <span>Pending Actions</span>
+            </Button>
+            <Button
+              onClick={() => setLocation("/admin/analytics")}
+              className="bg-slate-700 hover:bg-slate-600 h-20 flex-col gap-2"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span>Analytics</span>
             </Button>
           </div>
         </Card>

@@ -465,3 +465,23 @@ Last Updated: December 17, 2025
 - [x] Commit changes locally
 - [ ] Deploy to VPS (manual - see DEPLOY_KYC_REVIEW.md)
 - [ ] Test full KYC flow on production
+
+
+## 🎯 REFERRAL & ADMIN ANALYTICS - Current Tasks (Dec 19, 2025)
+
+### Referrals Sidebar Link
+- [x] Add "Referrals" link to main sidebar navigation (already exists in DashboardLayout.tsx)
+- [x] Position between "History" and "Admin" links
+- [x] Use gift icon for visual consistency
+- [x] Test navigation to /referrals page
+
+### Admin Analytics Dashboard
+- [x] Create Admin Analytics Dashboard page (/admin/analytics)
+- [x] Add backend procedures for analytics data (admin.dashboardStats already exists)
+- [x] Implement real-time metrics cards with icons (4 primary + 3 secondary metrics)
+- [x] Add charts using recharts library (LineChart for user growth, BarChart for trading volume)
+- [x] Add Analytics button to Admin Dashboard Quick Actions
+- [x] Add route in App.tsx
+- [x] Install recharts package
+- [ ] Test all metrics and charts (requires login fix for db.ts TypeScript errors)
+- [ ] Deploy to VPS
