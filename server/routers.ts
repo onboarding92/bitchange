@@ -848,6 +848,123 @@ export const appRouter = router({
         .limit(1);
       return doc || null;
     }),
+
+    // Admin procedures
+    getPending: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+      }
+
+      const db = await getDb();
+      if (!db) return [];
+
+      const pending = await db.select().from(kycDocuments)
+        .where(eq(kycDocuments.status, "pending"))
+        .orderBy(desc(kycDocuments.createdAt));
+
+      return pending;
+    }),
+
+    approve: protectedProcedure
+      .input(z.object({ kycId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Get KYC document
+        const [kycDoc] = await db.select().from(kycDocuments)
+          .where(eq(kycDocuments.id, input.kycId))
+          .limit(1);
+
+        if (!kycDoc) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "KYC document not found" });
+        }
+
+        if (kycDoc.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "KYC already processed" });
+        }
+
+        // Update KYC document status
+        await db.update(kycDocuments)
+          .set({
+            status: "approved",
+          })
+          .where(eq(kycDocuments.id, input.kycId));
+
+        // Update user KYC status
+        await db.update(users)
+          .set({
+            kycStatus: "approved",
+            kycApprovedAt: new Date(),
+          })
+          .where(eq(users.id, kycDoc.userId));
+
+        // Create notification for user
+        await db.insert(notifications).values({
+          userId: kycDoc.userId,
+          type: "kyc",
+          title: "KYC Approved",
+          message: "Your KYC verification has been approved. You can now access all features.",
+        });
+
+        return { ok: true };
+      }),
+
+    reject: protectedProcedure
+      .input(z.object({
+        kycId: z.number(),
+        reason: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Get KYC document
+        const [kycDoc] = await db.select().from(kycDocuments)
+          .where(eq(kycDocuments.id, input.kycId))
+          .limit(1);
+
+        if (!kycDoc) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "KYC document not found" });
+        }
+
+        if (kycDoc.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "KYC already processed" });
+        }
+
+        // Update KYC document status
+        await db.update(kycDocuments)
+          .set({
+            status: "rejected",
+          })
+          .where(eq(kycDocuments.id, input.kycId));
+
+        // Update user KYC status
+        await db.update(users)
+          .set({
+            kycStatus: "rejected",
+            kycRejectedReason: input.reason,
+          })
+          .where(eq(users.id, kycDoc.userId));
+
+        // Create notification for user
+        await db.insert(notifications).values({
+          userId: kycDoc.userId,
+          type: "kyc",
+          title: "KYC Rejected",
+          message: `Your KYC verification has been rejected. Reason: ${input.reason}`,
+        });
+
+        return { ok: true };
+      }),
   }),
 
   support: router({

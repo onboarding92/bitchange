@@ -450,3 +450,17 @@ Last Updated: December 17, 2025
 - [ ] Add KYC badge/indicator in user profile
 - [ ] Restrict certain features until KYC approved
 - [ ] Test full KYC flow from submission to approval
+
+
+## 🔧 ADMIN KYC REVIEW PANEL - Current Task (Dec 19, 2025)
+
+- [ ] Create Admin KYC Review Panel page (/admin/kyc-review)
+- [ ] Display list of pending KYC submissions with user info
+- [ ] Show document previews (ID front/back, selfie)
+- [ ] Add approve button with confirmation dialog
+- [ ] Add reject button with reason input field
+- [ ] Implement backend procedures for approve/reject actions
+- [ ] Add KYC review link to admin sidebar navigation
+- [ ] Test full KYC flow (submit → review → approve/reject)
+- [ ] Push all changes to GitHub
+- [ ] Deploy to VPS and verify functionality
