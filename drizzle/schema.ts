@@ -459,3 +459,96 @@ export const rewards = mysqlTable("rewards", {
 
 export type Reward = typeof rewards.$inferSelect;
 export type InsertReward = typeof rewards.$inferInsert;
+
+// System Monitoring Tables
+export const apiLogs = mysqlTable("apiLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  method: varchar("method", { length: 10 }).notNull(),
+  url: varchar("url", { length: 500 }).notNull(),
+  statusCode: int("statusCode").notNull(),
+  duration: int("duration").notNull(), // milliseconds
+  userId: int("userId"),
+  ip: varchar("ip", { length: 45 }),
+  userAgent: text("userAgent"),
+  error: text("error"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ApiLog = typeof apiLogs.$inferSelect;
+export type InsertApiLog = typeof apiLogs.$inferInsert;
+
+export const systemMetrics = mysqlTable("systemMetrics", {
+  id: int("id").autoincrement().primaryKey(),
+  metricType: mysqlEnum("metricType", [
+    "api_response_time",
+    "db_query_time",
+    "cache_hit_rate",
+    "active_users",
+    "trading_volume",
+    "error_rate",
+    "cpu_usage",
+    "memory_usage",
+  ]).notNull(),
+  value: decimal("value", { precision: 20, scale: 8 }).notNull(),
+  unit: varchar("unit", { length: 20 }), // ms, %, count, MB, etc.
+  metadata: text("metadata"), // JSON for additional context
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SystemMetric = typeof systemMetrics.$inferSelect;
+export type InsertSystemMetric = typeof systemMetrics.$inferInsert;
+
+export const errorLogs = mysqlTable("errorLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  errorType: varchar("errorType", { length: 100 }).notNull(),
+  message: text("message").notNull(),
+  stack: text("stack"),
+  userId: int("userId"),
+  context: text("context"), // JSON for additional context
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  resolved: boolean("resolved").default(false).notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+  resolvedBy: int("resolvedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertErrorLog = typeof errorLogs.$inferInsert;
+
+export const exchangeApiLogs = mysqlTable("exchangeApiLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  exchange: varchar("exchange", { length: 50 }).notNull(), // binance, kraken, etc.
+  method: varchar("method", { length: 100 }).notNull(), // fetchTicker, createOrder, etc.
+  success: boolean("success").notNull(),
+  duration: int("duration").notNull(), // milliseconds
+  rateLimitRemaining: int("rateLimitRemaining"),
+  error: text("error"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ExchangeApiLog = typeof exchangeApiLogs.$inferSelect;
+export type InsertExchangeApiLog = typeof exchangeApiLogs.$inferInsert;
+
+export const alerts = mysqlTable("alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  alertType: mysqlEnum("alertType", [
+    "high_error_rate",
+    "slow_response_time",
+    "exchange_api_failure",
+    "low_balance",
+    "suspicious_activity",
+    "system_down",
+  ]).notNull(),
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  message: text("message").notNull(),
+  metadata: text("metadata"), // JSON for additional context
+  acknowledged: boolean("acknowledged").default(false).notNull(),
+  acknowledgedBy: int("acknowledgedBy"),
+  acknowledgedAt: timestamp("acknowledgedAt"),
+  resolved: boolean("resolved").default(false).notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Alert = typeof alerts.$inferSelect;
+export type InsertAlert = typeof alerts.$inferInsert;
