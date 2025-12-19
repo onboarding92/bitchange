@@ -1,6 +1,6 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
-import { sdk } from "./sdk";
+// import { sdk } from "./sdk"; // OAuth disabled - not needed
 import { getSession } from "../sessionManager";
 import { getDb } from "../db";
 import { users } from "../../drizzle/schema";
@@ -46,16 +46,9 @@ export async function createContext(
     console.warn("[Auth] Email/password session check failed:", error);
   }
 
-  // Priority 2: Fallback to OAuth session if no email/password session
+  // OAuth authentication disabled - using email/password only
   if (!user) {
-    try {
-      user = await sdk.authenticateRequest(opts.req);
-      console.log("[Auth] Authenticated via OAuth:", user?.email);
-    } catch (error) {
-      // Authentication is optional for public procedures.
-      console.log("[Auth] No valid session found (OAuth or email/password)");
-      user = null;
-    }
+    console.log("[Auth] No valid session found");
   }
 
   return {
