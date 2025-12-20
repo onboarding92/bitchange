@@ -2409,6 +2409,22 @@ export const appRouter = router({
         return { pair: input.pair, price };
       }),
   }),
+
+  // Business Metrics
+  businessMetrics: router({
+    transactionVolume: adminProcedure.query(async () => {
+      const { getTransactionVolumeMetrics } = await import("./businessMetrics");
+      return await getTransactionVolumeMetrics();
+    }),
+    conversion: adminProcedure.query(async () => {
+      const { getConversionMetrics } = await import("./businessMetrics");
+      return await getConversionMetrics();
+    }),
+    revenue: adminProcedure.query(async () => {
+      const { getRevenueMetrics } = await import("./businessMetrics");
+      return await getRevenueMetrics();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

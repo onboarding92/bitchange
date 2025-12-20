@@ -2,8 +2,10 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean,
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
+  openId: varchar("openId", { length: 64 }).unique(), // Manus OAuth ID
   name: text("name"),
   email: varchar("email", { length: 320 }).notNull().unique(),
+  loginMethod: varchar("loginMethod", { length: 64 }), // OAuth provider or 'email'
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   password: varchar("password", { length: 255 }),
   emailVerified: timestamp("emailVerified"),

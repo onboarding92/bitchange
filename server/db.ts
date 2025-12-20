@@ -20,7 +20,33 @@ export async function getDb() {
   return _db;
 }
 
-// OAuth legacy functions removed - system now uses email/password authentication only
+// User management functions for OAuth
+export async function getUserByOpenId(openId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  return result[0] || null;
+}
+
+export async function upsertUser(data: Partial<InsertUser> & { openId: string }) {
+  const db = await getDb();
+  if (!db) return;
+  
+  const existing = await getUserByOpenId(data.openId);
+  
+  if (existing) {
+    // Update existing user
+    await db.update(users)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.openId, data.openId));
+  } else {
+    // Insert new user
+    await db.insert(users).values(data as InsertUser);
+  }
+}
 
 export async function initializeUserWallets(userId: number) {
   const db = await getDb();
