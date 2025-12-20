@@ -1462,7 +1462,11 @@ Last Updated: December 17, 2025
 
 ### Phase 1: VPS Build Fix
 - [x] Remove --external:vite flag from build script (causing production errors)
-- [ ] Update Dockerfile CMD path from dist/server/_core/index.js to dist/index.js
+- [x] Separate serveStatic into static.ts to avoid Vite imports
+- [x] Use dynamic import for setupVite in development mode
+- [x] Add --external:./server/_core/vite.ts to build script
+- [x] Test production build successfully (no Vite errors)
+- [ ] Push changes to GitHub
 - [ ] Rebuild and deploy to VPS
 - [ ] Verify Portfolio page loads correctly in production
 
