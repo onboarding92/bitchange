@@ -1454,3 +1454,26 @@ Last Updated: December 17, 2025
 ### Phase 3: Documentation
 - [x] Create VPS operations manual (commands, migrations, directory structure)
 - [x] Create comprehensive functionality guide with screenshots
+
+
+---
+
+## 🔧 VPS DEPLOYMENT FIX & OPTIMIZATION - December 20, 2025
+
+### Phase 1: VPS Build Fix
+- [x] Remove --external:vite flag from build script (causing production errors)
+- [ ] Update Dockerfile CMD path from dist/server/_core/index.js to dist/index.js
+- [ ] Rebuild and deploy to VPS
+- [ ] Verify Portfolio page loads correctly in production
+
+### Phase 2: Portfolio Enhancements
+- [ ] Implement 30-day portfolio value trend chart component
+- [ ] Add chart visualization using recharts library
+- [ ] Connect to portfolio.history API endpoint
+- [ ] Add loading states and error handling
+
+### Phase 3: Frontend Optimization
+- [ ] Implement code splitting for large admin pages
+- [ ] Optimize bundle sizes (current: react-vendor 882kB)
+- [ ] Review component loading performance
+- [ ] Add lazy loading for heavy components
