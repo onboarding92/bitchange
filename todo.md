@@ -1505,3 +1505,16 @@ Last Updated: December 17, 2025
 - [ ] Fix Dashboard.tsx missing arguments error (non-critical warning)
 - [ ] Fix context.ts Request type error (complex type issue, non-blocking)
 - [x] Reduced TypeScript errors from 25 to 23 (92% improvement)
+
+
+---
+
+## 🐛 LOGIN BUG FIX - December 20, 2025
+
+### Critical Issue
+- [x] Login failing with "Failed query: select `id`, `openId`..." database error
+- [x] Investigate users table schema mismatch
+- [x] ROOT CAUSE: VPS database is completely empty - no tables exist
+- [ ] Solution: Rebuild Docker containers to install drizzle-kit and run migrations
+- [ ] Alternative: Manually execute SQL schema creation script
+- [ ] Test login after database tables are created
