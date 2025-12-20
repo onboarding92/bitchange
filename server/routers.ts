@@ -2410,6 +2410,22 @@ export const appRouter = router({
       }),
   }),
 
+  // Portfolio Analytics
+  portfolio: router({
+    summary: protectedProcedure.query(async ({ ctx }) => {
+      const { getPortfolioSummary } = await import("./portfolioAnalytics");
+      return await getPortfolioSummary(ctx.user.id);
+    }),
+    profitLoss: protectedProcedure.query(async ({ ctx }) => {
+      const { getProfitLoss } = await import("./portfolioAnalytics");
+      return await getProfitLoss(ctx.user.id);
+    }),
+    history: protectedProcedure.query(async ({ ctx }) => {
+      const { getPortfolioHistory } = await import("./portfolioAnalytics");
+      return await getPortfolioHistory(ctx.user.id);
+    }),
+  }),
+
   // Business Metrics
   businessMetrics: router({
     transactionVolume: adminProcedure.query(async () => {

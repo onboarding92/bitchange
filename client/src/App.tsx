@@ -38,6 +38,7 @@ const KYCSubmission = lazy(() => import("./pages/KYCSubmission"));
 const KYCReview = lazy(() => import("./pages/admin/KYCReview"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const SystemHealth = lazy(() => import("./pages/SystemHealth"));
+const Portfolio = lazy(() => import("./pages/Portfolio"));
 
 // Loading fallback component
 function PageLoader() {
@@ -72,6 +73,7 @@ function Router() {
         <Route path="/kyc/submit" component={KYCSubmission} />
         <Route path="/support" component={Support} />
         <Route path="/profile" component={Profile} />
+        <Route path="/portfolio" component={Portfolio} />
         <Route path="/settings" component={AccountSettings} />
         <Route path="/transactions" component={TransactionHistory} />
         <Route path="/referrals" component={ReferralDashboard} />
