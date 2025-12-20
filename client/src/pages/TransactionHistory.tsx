@@ -39,7 +39,7 @@ export default function TransactionHistory() {
       tx.asset || "-",
       tx.amount?.toString() || "-",
       tx.status || "-",
-      tx.description || "-",
+      tx.reference || "-",
     ]);
 
     const csvContent = [
@@ -222,7 +222,7 @@ export default function TransactionHistory() {
                       </TableCell>
                       <TableCell className="font-mono">{tx.asset || "-"}</TableCell>
                       <TableCell className="text-right font-mono">
-                        {tx.amount ? tx.amount.toFixed(8) : "-"}
+                        {tx.amount ? parseFloat(tx.amount).toFixed(8) : "-"}
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(tx.status || "pending")}`}>
@@ -230,7 +230,7 @@ export default function TransactionHistory() {
                         </span>
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {tx.description || "-"}
+                        {tx.reference || "-"}
                       </TableCell>
                     </TableRow>
                   ))}

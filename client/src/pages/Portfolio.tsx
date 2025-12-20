@@ -2,10 +2,12 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, TrendingDown, Wallet, Lock, DollarSign } from "lucide-react";
+import { PortfolioChart } from "@/components/PortfolioChart";
 
 export default function Portfolio() {
   const { data: summary, isLoading: summaryLoading } = trpc.portfolio.summary.useQuery();
   const { data: profitLoss, isLoading: plLoading } = trpc.portfolio.profitLoss.useQuery();
+  const { data: history, isLoading: historyLoading } = trpc.portfolio.history.useQuery();
 
   if (summaryLoading || plLoading) {
     return (
@@ -95,6 +97,25 @@ export default function Portfolio() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Portfolio Value Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Portfolio Value (30 Days)</CardTitle>
+          <CardDescription>Track your portfolio performance over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {historyLoading ? (
+            <Skeleton className="h-[300px] w-full" />
+          ) : history && history.length > 0 ? (
+            <PortfolioChart data={history} />
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              No historical data available yet
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Assets Breakdown */}
       <Card>
