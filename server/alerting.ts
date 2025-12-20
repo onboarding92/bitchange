@@ -236,7 +236,7 @@ Please check the System Health dashboard for more details: https://bitchangemone
 
     logger.info(`Alert email sent for ${alertType}`);
   } catch (error) {
-    logger.error("Failed to send alert email", { error });
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Failed to send alert email");
   }
 }
 
@@ -284,7 +284,7 @@ async function runAlertChecks(): Promise<void> {
 
     logger.info("Alert checks completed");
   } catch (error) {
-    logger.error("Error running alert checks", { error });
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Error running alert checks");
   }
 }
 

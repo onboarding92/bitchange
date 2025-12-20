@@ -21,7 +21,7 @@ export async function trackBundleSize(): Promise<void> {
 
     for (const file of files) {
       if (file.isFile()) {
-        const filePath = path.join(file.path || distPath, file.name);
+        const filePath = path.join(distPath, file.name);
         const stats = fs.statSync(filePath);
         totalSize += stats.size;
 
@@ -37,7 +37,7 @@ export async function trackBundleSize(): Promise<void> {
       
       await db.insert(systemMetrics).values({
         metricType: "bundle_size",
-        value: totalSize,
+        value: totalSize.toString(),
         unit: "bytes",
         metadata: JSON.stringify({
           totalSize,
@@ -48,7 +48,7 @@ export async function trackBundleSize(): Promise<void> {
       logger.info(`Bundle size tracked: ${(totalSize / 1024 / 1024).toFixed(2)}MB`);
     }
   } catch (error) {
-    logger.error("Failed to track bundle size", error as Error);
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Failed to track bundle size");
   }
 }
 
@@ -68,7 +68,7 @@ export async function trackRedisCachePerformance(
     
     await db.insert(systemMetrics).values({
       metricType: "redis_cache",
-      value: duration || 0,
+      value: (duration || 0).toString(),
       unit: "ms",
       metadata: JSON.stringify({
         operation,
@@ -77,7 +77,7 @@ export async function trackRedisCachePerformance(
       }),
     });
   } catch (error) {
-    logger.error("Failed to track Redis cache performance", error as Error);
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Failed to track Redis cache performance");
   }
 }
 
@@ -113,7 +113,7 @@ export async function getRedisCacheStats(hours: number = 24): Promise<{
       const metadata = JSON.parse(metric.metadata || "{}");
       if (metadata.operation === "hit") hits++;
       if (metadata.operation === "miss") misses++;
-      totalDuration += metric.value;
+      totalDuration += parseFloat(metric.value);
     }
 
     const totalOperations = hits + misses;
@@ -126,7 +126,7 @@ export async function getRedisCacheStats(hours: number = 24): Promise<{
       avgDuration,
     };
   } catch (error) {
-    logger.error("Failed to get Redis cache stats", error as Error);
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Failed to get Redis cache stats");
     return { hitRate: 0, totalOperations: 0, avgDuration: 0 };
   }
 }
@@ -147,7 +147,7 @@ export async function trackWebSocketConnection(
     
     await db.insert(systemMetrics).values({
       metricType: "websocket",
-      value: action === "connect" ? 1 : action === "disconnect" ? -1 : 0,
+      value: (action === "connect" ? 1 : action === "disconnect" ? -1 : 0).toString(),
       unit: "connections",
       metadata: JSON.stringify({
         action,
@@ -157,9 +157,9 @@ export async function trackWebSocketConnection(
       }),
     });
 
-    logger.info(`WebSocket ${action}`, { userId, metadata });
+    logger.info({ userId, metadata }, `WebSocket ${action}`);
   } catch (error) {
-    logger.error("Failed to track WebSocket connection", error as Error);
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Failed to track WebSocket connection");
   }
 }
 
@@ -186,7 +186,7 @@ export async function getActiveWebSocketConnections(): Promise<number> {
 
     return Math.max(0, result[0]?.total || 0);
   } catch (error) {
-    logger.error("Failed to get active WebSocket connections", error as Error);
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Failed to get active WebSocket connections");
     return 0;
   }
 }
@@ -207,7 +207,7 @@ export async function trackDbQueryPerformance(
     
     await db.insert(systemMetrics).values({
       metricType: "db_query",
-      value: duration,
+      value: duration.toString(),
       unit: "ms",
       metadata: JSON.stringify({
         query: query.substring(0, 200), // Limit query length
@@ -260,7 +260,7 @@ export async function getDbQueryStats(hours: number = 24): Promise<{
       slowQueries: result.slowQueries,
     };
   } catch (error) {
-    logger.error("Failed to get DB query stats", error as Error);
+    logger.error({ error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) }, "Failed to get DB query stats");
     return { avgDuration: 0, maxDuration: 0, totalQueries: 0, slowQueries: 0 };
   }
 }
