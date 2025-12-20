@@ -1,5 +1,16 @@
 # BitChange Pro - Project TODO
 
+## 🔴 URGENT BUGS - December 20, 2025
+
+### Regression Issues
+- [x] SendGrid email configuration - FIXED (API key configured and tested in sandbox)
+- [x] Verification code email not sent after sign up - FIXED (works in sandbox, needs VPS deployment)
+- [x] Wallet generation broken in deposits page - ROOT CAUSE FOUND: networks table missing in VPS database (needs migration)
+- [x] System health page errors - FIXED (TypeScript error resolved)
+- [x] Missing back buttons and dashboard navigation - VERIFIED: All pages use DashboardLayout with full sidebar navigation
+
+---
+
 ## 🔴 NEW BUG REPORTED - December 19, 2025
 
 ### Homepage Button Issues - ✅ FIXED

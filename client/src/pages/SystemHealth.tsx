@@ -80,7 +80,7 @@ export default function SystemHealth() {
           <CardContent>
             <div className="text-2xl font-bold">{metrics?.avgResponseTime || 0}ms</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {metrics?.avgResponseTime < 200 ? "Excellent" : metrics?.avgResponseTime < 500 ? "Good" : "Slow"}
+              {(metrics?.avgResponseTime ?? 0) < 200 ? "Excellent" : (metrics?.avgResponseTime ?? 0) < 500 ? "Good" : "Slow"}
             </p>
           </CardContent>
         </Card>

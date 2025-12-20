@@ -27,7 +27,7 @@ import { useLocation } from "wouter";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
-  const { data: stats, isLoading, refetch } = trpc.admin.dashboardStats.useQuery();
+  const { data: stats, isLoading, refetch } = trpc.admin.dashboardStats.useQuery({ timeRange: "30d" });
 
   const StatCard = ({ title, value, icon: Icon, color, subtitle }: any) => (
     <Card className="bg-slate-800/90 border-slate-700 p-6">
