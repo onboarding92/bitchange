@@ -1741,3 +1741,25 @@ Last Updated: December 17, 2025
 - [ ] Verify all cryptocurrency deposits are functional (BTC, ETH, USDT, BNB, SOL, TRX, etc.)
 - [ ] Test address generation for each coin type
 - [ ] Verify QR code generation works for all coins
+
+
+## 🎨 TRADING & STAKING IMPROVEMENTS - December 21, 2025
+
+### Trading Page Investment-Focused Design
+- [x] Add prominent 24h price change indicators with colors (green/red)
+- [x] Add 24h volume and trades count stats cards
+- [x] Highlight spread and best bid/ask prices (already present)
+- [x] Add quick trade buttons (25%, 50%, 75%, 100% of balance)
+- [ ] Add profit/loss calculator based on current price
+- [ ] Add strong CTAs ("Start Trading Now", "Deposit to Trade")
+- [ ] Improve order book visualization with depth chart
+
+### Staking Page Investment-Focused Design
+- [x] Highlight APY percentages with large, colorful badges (green gradient badges on cards)
+- [x] Add earning calculator interface (amount, APY, lock period inputs)
+- [x] Show total staked and rewards earned prominently (3 stats cards with gradients)
+- [x] Enhanced plan cards with hover effects and earnings preview
+- [ ] Make earning calculator functional (calculate on input change)
+- [ ] Add strong CTAs ("Start Earning", "Stake Now", "Compound Rewards")
+- [ ] Add countdown timers for locked staking periods
+- [ ] Show historical APY chart
