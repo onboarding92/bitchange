@@ -2,6 +2,23 @@
 
 ## 🚀 NEW FEATURES IN PROGRESS - December 20, 2025
 
+### WebSocket Notifications Extension
+- [ ] Add WebSocket notification for deposit confirmations (deposits use blockchain monitoring)
+- [x] Add WebSocket notification for trade executions
+- [x] Add WebSocket notification for security alerts (login from new device)
+- [ ] Test all notification types in production
+
+### 2FA Backup Code Recovery
+- [x] Add "Use backup code" link in login 2FA verification
+- [x] Create backup code input UI
+- [x] Implement backup code verification in login flow
+- [x] Mark used backup codes in database (removes used codes)
+- [ ] Test backup code recovery flow in production
+
+---
+
+## ✅ COMPLETED FEATURES - December 20, 2025
+
 ### WebSocket Real-Time Notifications
 - [x] Install ws and @types/ws packages
 - [x] Create WebSocket server module (server/websocket.ts)

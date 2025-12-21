@@ -80,7 +80,8 @@ export const appRouter = router({
       .input(z.object({ 
         email: z.string().email(), 
         password: z.string(),
-        twoFactorCode: z.string().optional()
+        twoFactorCode: z.string().optional(),
+        backupCode: z.string().optional()
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -136,16 +137,38 @@ export const appRouter = router({
 
         // Check if 2FA is enabled
         if (user.twoFactorEnabled && user.twoFactorSecret) {
-          if (!input.twoFactorCode) {
+          if (!input.twoFactorCode && !input.backupCode) {
             throw new TRPCError({ 
               code: "UNAUTHORIZED", 
-              message: "2FA code required. Please provide your authenticator code." 
+              message: "2FA code required. Please provide your authenticator code or backup code." 
             });
           }
 
-          // Verify 2FA code
-          const { verify2FAToken } = await import("./twoFactor");
-          const valid = verify2FAToken(user.twoFactorSecret, input.twoFactorCode);
+          // Verify 2FA code or backup code
+          const { verify2FAToken, hashBackupCode } = await import("./twoFactor");
+          let valid = false;
+
+          if (input.backupCode) {
+            // Verify backup code
+            const hashedBackupCode = hashBackupCode(input.backupCode);
+            const backupCodes = user.twoFactorBackupCodes ? JSON.parse(user.twoFactorBackupCodes) : [];
+            
+            if (backupCodes.includes(hashedBackupCode)) {
+              valid = true;
+              
+              // Mark backup code as used by removing it
+              const updatedBackupCodes = backupCodes.filter((code: string) => code !== hashedBackupCode);
+              await db.update(users)
+                .set({ twoFactorBackupCodes: JSON.stringify(updatedBackupCodes) })
+                .where(eq(users.id, user.id));
+              
+              console.log(`[2FA] Backup code used for user ${user.id}, ${updatedBackupCodes.length} codes remaining`);
+            }
+          } else if (input.twoFactorCode) {
+            // Verify TOTP code
+            valid = verify2FAToken(user.twoFactorSecret, input.twoFactorCode);
+          }
+
           if (!valid) {
             await recordLoginAttempt({
               userId: user.id,
@@ -156,7 +179,7 @@ export const appRouter = router({
               success: false,
             });
             recordLoginResult({ ip, email: input.email, success: false });
-            throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid 2FA code" });
+            throw new TRPCError({ code: "UNAUTHORIZED", message: input.backupCode ? "Invalid backup code" : "Invalid 2FA code" });
           }
         }
 
@@ -188,6 +211,16 @@ export const appRouter = router({
           ip,
           userAgent,
           timestamp: new Date().toLocaleString(),
+        });
+
+        // Send WebSocket security alert for new login
+        const { sendNotificationToUser } = await import("./websocket");
+        sendNotificationToUser(user.id, {
+          id: Date.now(),
+          type: "security_alert",
+          title: "New Login Detected",
+          message: `Login from ${ip} using ${userAgent.substring(0, 50)}...`,
+          createdAt: new Date(),
         });
 
         return { success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
@@ -2045,6 +2078,19 @@ export const appRouter = router({
           ...input,
         });
         console.log("[ROUTER] placeOrder result:", result);
+        
+        // Send WebSocket notification for trade execution
+        if (result.success) {
+          const { sendNotificationToUser } = await import("./websocket");
+          sendNotificationToUser(ctx.user.id, {
+            id: Date.now(),
+            type: "trade_executed",
+            title: "Trade Executed",
+            message: `Your ${input.side} order for ${input.amount} ${input.pair.split("/")[0]} has been executed at ${input.price || 'market price'}`,
+            createdAt: new Date(),
+          });
+        }
+        
         return result;
       }),
 

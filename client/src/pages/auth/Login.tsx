@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, AlertCircle, Key } from "lucide-react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -15,6 +15,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [requires2FA, setRequires2FA] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [backupCode, setBackupCode] = useState("");
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
@@ -44,15 +46,25 @@ export default function Login() {
       return;
     }
 
-    if (requires2FA && (!twoFactorCode || twoFactorCode.length !== 6)) {
-      setError("Please enter a valid 6-digit code");
-      return;
+    if (requires2FA) {
+      if (useBackupCode) {
+        if (!backupCode || backupCode.length < 8) {
+          setError("Please enter a valid backup code");
+          return;
+        }
+      } else {
+        if (!twoFactorCode || twoFactorCode.length !== 6) {
+          setError("Please enter a valid 6-digit code");
+          return;
+        }
+      }
     }
 
     loginMutation.mutate({ 
       email, 
       password,
-      ...(requires2FA && { twoFactorCode })
+      ...(requires2FA && !useBackupCode && { twoFactorCode }),
+      ...(requires2FA && useBackupCode && { backupCode })
     });
   };
 
@@ -118,25 +130,68 @@ export default function Login() {
             {/* 2FA Code Input (shown when 2FA is required) */}
             {requires2FA && (
               <div className="space-y-2">
-                <Label htmlFor="2fa-code">Two-Factor Authentication Code</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="2fa-code"
-                    type="text"
-                    maxLength={6}
-                    placeholder="000000"
-                    value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
-                    className="pl-10 text-center text-xl tracking-widest font-mono"
-                    disabled={loginMutation.isPending}
-                    autoFocus
-                    required
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Enter the 6-digit code from your authenticator app
-                </p>
+                {!useBackupCode ? (
+                  <>
+                    <Label htmlFor="2fa-code">Two-Factor Authentication Code</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="2fa-code"
+                        type="text"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={twoFactorCode}
+                        onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
+                        className="pl-10 text-center text-xl tracking-widest font-mono"
+                        disabled={loginMutation.isPending}
+                        autoFocus
+                        required
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        Enter the 6-digit code from your authenticator app
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setUseBackupCode(true)}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Use backup code
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Label htmlFor="backup-code">Backup Code</Label>
+                    <div className="relative">
+                      <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="backup-code"
+                        type="text"
+                        placeholder="XXXX-XXXX-XXXX-XXXX"
+                        value={backupCode}
+                        onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
+                        className="pl-10 font-mono"
+                        disabled={loginMutation.isPending}
+                        autoFocus
+                        required
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        Enter one of your backup codes
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setUseBackupCode(false)}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Use authenticator
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </CardContent>
