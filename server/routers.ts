@@ -77,7 +77,11 @@ export const appRouter = router({
       }),
 
     login: publicProcedure
-      .input(z.object({ email: z.string().email(), password: z.string() }))
+      .input(z.object({ 
+        email: z.string().email(), 
+        password: z.string(),
+        twoFactorCode: z.string().optional()
+      }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
@@ -128,6 +132,32 @@ export const appRouter = router({
           });
           recordLoginResult({ ip, email: input.email, success: false });
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+        }
+
+        // Check if 2FA is enabled
+        if (user.twoFactorEnabled && user.twoFactorSecret) {
+          if (!input.twoFactorCode) {
+            throw new TRPCError({ 
+              code: "UNAUTHORIZED", 
+              message: "2FA code required. Please provide your authenticator code." 
+            });
+          }
+
+          // Verify 2FA code
+          const { verify2FAToken } = await import("./twoFactor");
+          const valid = verify2FAToken(user.twoFactorSecret, input.twoFactorCode);
+          if (!valid) {
+            await recordLoginAttempt({
+              userId: user.id,
+              email: input.email,
+              ipAddress: ip,
+              userAgent,
+              method: "2fa",
+              success: false,
+            });
+            recordLoginResult({ ip, email: input.email, success: false });
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid 2FA code" });
+          }
         }
 
         // Create session
@@ -1344,6 +1374,20 @@ export const appRouter = router({
         await db.update(withdrawals)
           .set({ status: "completed", processedAt: new Date() })
           .where(eq(withdrawals.id, input.id));
+
+        // Send real-time notification to user
+        try {
+          const { sendNotificationToUser } = await import("./websocket");
+          sendNotificationToUser(withdrawal.userId, {
+            id: Date.now(),
+            type: "withdrawal",
+            title: "Withdrawal Approved",
+            message: `Your withdrawal of ${withdrawal.amount} ${withdrawal.asset} has been approved and processed.`,
+            createdAt: new Date()
+          });
+        } catch (error) {
+          console.error("[WebSocket] Failed to send notification:", error);
+        }
 
         return { ok: true };
       }),

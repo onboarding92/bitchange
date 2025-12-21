@@ -13,6 +13,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
@@ -21,9 +23,17 @@ export default function Login() {
       window.location.reload(); // Reload to update auth context
     },
     onError: (err) => {
-      setError(err.message);
+      // Check if 2FA is required
+      if (err.message.includes("2FA") || err.message.includes("two-factor")) {
+        setRequires2FA(true);
+        setError("");
+      } else {
+        setError(err.message);
+      }
     },
   });
+
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +44,16 @@ export default function Login() {
       return;
     }
 
-    loginMutation.mutate({ email, password });
+    if (requires2FA && (!twoFactorCode || twoFactorCode.length !== 6)) {
+      setError("Please enter a valid 6-digit code");
+      return;
+    }
+
+    loginMutation.mutate({ 
+      email, 
+      password,
+      ...(requires2FA && { twoFactorCode })
+    });
   };
 
   return (
@@ -95,6 +114,31 @@ export default function Login() {
                 />
               </div>
             </div>
+
+            {/* 2FA Code Input (shown when 2FA is required) */}
+            {requires2FA && (
+              <div className="space-y-2">
+                <Label htmlFor="2fa-code">Two-Factor Authentication Code</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="2fa-code"
+                    type="text"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
+                    className="pl-10 text-center text-xl tracking-widest font-mono"
+                    disabled={loginMutation.isPending}
+                    autoFocus
+                    required
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Enter the 6-digit code from your authenticator app
+                </p>
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">

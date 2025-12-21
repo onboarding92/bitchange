@@ -1,0 +1,179 @@
+/**
+ * WebSocket Server for Real-Time Notifications
+ * 
+ * Provides real-time push notifications to connected clients for:
+ * - Deposit confirmations
+ * - Withdrawal approvals
+ * - Trade executions
+ * - System alerts
+ */
+
+import { WebSocketServer, WebSocket } from "ws";
+import { IncomingMessage } from "http";
+import { parse } from "cookie";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+
+interface AuthenticatedWebSocket extends WebSocket {
+  userId?: number;
+  userEmail?: string;
+}
+
+interface WebSocketMessage {
+  type: "notification";
+  data: {
+    id: number;
+    type: string;
+    title: string;
+    message: string;
+    createdAt: Date;
+  };
+}
+
+// Store active connections by userId
+const connections = new Map<number, Set<AuthenticatedWebSocket>>();
+
+/**
+ * Initialize WebSocket server
+ */
+export function initWebSocketServer(wss: WebSocketServer) {
+  wss.on("connection", (ws: AuthenticatedWebSocket, req: IncomingMessage) => {
+    console.log("[WebSocket] New connection attempt");
+
+    // Authenticate via JWT cookie
+    const cookies = parse(req.headers.cookie || "");
+    const token = cookies.auth_token;
+
+    if (!token) {
+      console.log("[WebSocket] No auth token, closing connection");
+      ws.close(1008, "Authentication required");
+      return;
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; email: string };
+      ws.userId = decoded.userId;
+      ws.userEmail = decoded.email;
+
+      // Add to connections map
+      if (!connections.has(decoded.userId)) {
+        connections.set(decoded.userId, new Set());
+      }
+      connections.get(decoded.userId)!.add(ws);
+
+      console.log(`[WebSocket] User ${decoded.email} (${decoded.userId}) connected`);
+
+      // Send welcome message
+      ws.send(JSON.stringify({
+        type: "connected",
+        message: "WebSocket connection established"
+      }));
+
+      // Handle incoming messages (ping/pong)
+      ws.on("message", (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          if (message.type === "ping") {
+            ws.send(JSON.stringify({ type: "pong" }));
+          }
+        } catch (error) {
+          console.error("[WebSocket] Invalid message format:", error);
+        }
+      });
+
+      // Handle disconnection
+      ws.on("close", () => {
+        if (ws.userId) {
+          const userConnections = connections.get(ws.userId);
+          if (userConnections) {
+            userConnections.delete(ws);
+            if (userConnections.size === 0) {
+              connections.delete(ws.userId);
+            }
+          }
+          console.log(`[WebSocket] User ${ws.userEmail} (${ws.userId}) disconnected`);
+        }
+      });
+
+      // Handle errors
+      ws.on("error", (error) => {
+        console.error("[WebSocket] Connection error:", error);
+      });
+
+    } catch (error) {
+      console.error("[WebSocket] Authentication failed:", error);
+      ws.close(1008, "Invalid authentication token");
+    }
+  });
+
+  console.log("[WebSocket] Server initialized");
+}
+
+/**
+ * Send notification to specific user
+ */
+export function sendNotificationToUser(userId: number, notification: WebSocketMessage["data"]) {
+  const userConnections = connections.get(userId);
+  
+  if (!userConnections || userConnections.size === 0) {
+    console.log(`[WebSocket] No active connections for user ${userId}`);
+    return false;
+  }
+
+  const message: WebSocketMessage = {
+    type: "notification",
+    data: notification
+  };
+
+  let sentCount = 0;
+  userConnections.forEach((ws) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(message));
+      sentCount++;
+    }
+  });
+
+  console.log(`[WebSocket] Sent notification to ${sentCount} connection(s) for user ${userId}`);
+  return sentCount > 0;
+}
+
+/**
+ * Broadcast notification to all connected users
+ */
+export function broadcastNotification(notification: WebSocketMessage["data"]) {
+  let sentCount = 0;
+  
+  connections.forEach((userConnections) => {
+    userConnections.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: "notification",
+          data: notification
+        }));
+        sentCount++;
+      }
+    });
+  });
+
+  console.log(`[WebSocket] Broadcast notification to ${sentCount} connection(s)`);
+  return sentCount;
+}
+
+/**
+ * Get connection stats
+ */
+export function getConnectionStats() {
+  const totalUsers = connections.size;
+  let totalConnections = 0;
+  
+  connections.forEach((userConnections) => {
+    totalConnections += userConnections.size;
+  });
+
+  return {
+    totalUsers,
+    totalConnections,
+    averageConnectionsPerUser: totalUsers > 0 ? (totalConnections / totalUsers).toFixed(2) : 0
+  };
+}

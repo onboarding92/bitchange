@@ -4,16 +4,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Key, Loader2, Lock, Shield } from "lucide-react";
+import { ArrowLeft, Key, Loader2, Lock, Shield, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function AccountSettings() {
   const [, setLocation] = useLocation();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [show2FASetup, setShow2FASetup] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [secret, setSecret] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [copiedSecret, setCopiedSecret] = useState(false);
+  const [copiedBackup, setCopiedBackup] = useState(false);
 
   const { data: user } = trpc.auth.me.useQuery();
   const utils = trpc.useUtils();
@@ -29,6 +45,74 @@ export default function AccountSettings() {
       toast.error(error.message || "Failed to change password");
     },
   });
+
+  const setup2FA = trpc.auth.setup2FA.useMutation({
+    onSuccess: (data) => {
+      setQrCodeUrl(data.qrCodeUrl);
+      setSecret(data.secret);
+      setShow2FASetup(true);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to setup 2FA");
+    },
+  });
+
+  const enable2FA = trpc.auth.enable2FA.useMutation({
+    onSuccess: (data) => {
+      setBackupCodes(data.backupCodes);
+      toast.success("2FA enabled successfully!");
+      utils.auth.me.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Invalid 2FA code");
+      setTwoFactorCode("");
+    },
+  });
+
+  const disable2FA = trpc.auth.disable2FA.useMutation({
+    onSuccess: () => {
+      toast.success("2FA disabled successfully");
+      setShow2FASetup(false);
+      setQrCodeUrl("");
+      setSecret("");
+      setBackupCodes([]);
+      setTwoFactorCode("");
+      utils.auth.me.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to disable 2FA");
+    },
+  });
+
+  const handleSetup2FA = () => {
+    setup2FA.mutate();
+  };
+
+  const handleEnable2FA = () => {
+    if (!twoFactorCode || twoFactorCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+    enable2FA.mutate({ token: twoFactorCode });
+  };
+
+  const handleDisable2FA = () => {
+    const password = prompt("Enter your password to disable 2FA:");
+    if (!password) return;
+    disable2FA.mutate({ password });
+  };
+
+  const copyToClipboard = (text: string, type: 'secret' | 'backup') => {
+    navigator.clipboard.writeText(text);
+    if (type === 'secret') {
+      setCopiedSecret(true);
+      setTimeout(() => setCopiedSecret(false), 2000);
+    } else {
+      setCopiedBackup(true);
+      setTimeout(() => setCopiedBackup(false), 2000);
+    }
+    toast.success("Copied to clipboard!");
+  };
 
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,9 +245,13 @@ export default function AccountSettings() {
                 </p>
               </div>
               <Switch
-                checked={false}
-                onCheckedChange={() => {
-                  toast.info("2FA feature coming soon");
+                checked={user?.twoFactorEnabled || false}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    handleSetup2FA();
+                  } else {
+                    handleDisable2FA();
+                  }
                 }}
               />
             </div>
@@ -208,6 +296,126 @@ export default function AccountSettings() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 2FA Setup Dialog */}
+      <Dialog open={show2FASetup} onOpenChange={setShow2FASetup}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enable Two-Factor Authentication</DialogTitle>
+            <DialogDescription>
+              Scan the QR code with your authenticator app (Google Authenticator, Authy, etc.)
+            </DialogDescription>
+          </DialogHeader>
+
+          {backupCodes.length === 0 ? (
+            <div className="space-y-4">
+              {/* QR Code */}
+              {qrCodeUrl && (
+                <div className="flex justify-center p-4 bg-white rounded-lg">
+                  <QRCodeSVG value={qrCodeUrl} size={200} />
+                </div>
+              )}
+
+              {/* Manual Entry */}
+              {secret && (
+                <div className="space-y-2">
+                  <Label>Or enter this code manually:</Label>
+                  <div className="flex gap-2">
+                    <Input value={secret} readOnly className="font-mono text-sm" />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(secret, 'secret')}
+                    >
+                      {copiedSecret ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Verification Code Input */}
+              <div className="space-y-2">
+                <Label htmlFor="2fa-code">Enter 6-digit code from your app:</Label>
+                <Input
+                  id="2fa-code"
+                  type="text"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
+                  className="text-center text-2xl tracking-widest font-mono"
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShow2FASetup(false);
+                    setQrCodeUrl("");
+                    setSecret("");
+                    setTwoFactorCode("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleEnable2FA}
+                  disabled={enable2FA.isPending || twoFactorCode.length !== 6}
+                >
+                  {enable2FA.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enable 2FA
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            /* Backup Codes Display */
+            <div className="space-y-4">
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm font-medium text-yellow-800 mb-2">
+                  ⚠️ Save these backup codes in a safe place!
+                </p>
+                <p className="text-xs text-yellow-700">
+                  You can use these codes to access your account if you lose your authenticator device.
+                  Each code can only be used once.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 p-4 bg-muted rounded-lg font-mono text-sm">
+                {backupCodes.map((code, index) => (
+                  <div key={index} className="text-center py-1">
+                    {code}
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => copyToClipboard(backupCodes.join('\n'), 'backup')}
+              >
+                {copiedBackup ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+                Copy All Codes
+              </Button>
+
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    setShow2FASetup(false);
+                    setQrCodeUrl("");
+                    setSecret("");
+                    setBackupCodes([]);
+                    setTwoFactorCode("");
+                  }}
+                  className="w-full"
+                >
+                  Done
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

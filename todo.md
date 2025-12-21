@@ -1,5 +1,31 @@
 # BitChange Pro - Project TODO
 
+## 🚀 NEW FEATURES IN PROGRESS - December 20, 2025
+
+### WebSocket Real-Time Notifications
+- [x] Install ws and @types/ws packages
+- [x] Create WebSocket server module (server/websocket.ts)
+- [x] Integrate WebSocket with Express server
+- [x] Create React hook for WebSocket connection (useWebSocket)
+- [x] Update NotificationBell component with real-time support
+- [x] Add WebSocket notifications to withdrawal approval
+- [ ] Add WebSocket notifications to deposit confirmations (deposit flow uses blockchain monitoring)
+- [ ] Test real-time notifications in production
+
+### Two-Factor Authentication (2FA)
+- [x] Install speakeasy and qrcode packages (already installed)
+- [x] Create 2FA module (server/twoFactor.ts) (already exists)
+- [x] Add twoFactorSecret and twoFactorEnabled fields to users table (already in schema)
+- [x] Create 2FA setup endpoint (generate secret + QR code) (already exists)
+- [x] Create 2FA verify endpoint (already exists)
+- [x] Create 2FA disable endpoint (already exists)
+- [x] Add 2FA setup UI in AccountSettings with QR code dialog
+- [x] Add backup codes display and copy functionality
+- [x] Add 2FA verification step to login flow
+- [ ] Test 2FA setup and login with Google Authenticator in production
+
+---
+
 ## 🔴 URGENT BUGS - December 20, 2025
 
 ### Regression Issues - ALL FIXED ✅ (Deployed to Production)
