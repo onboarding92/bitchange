@@ -31,13 +31,13 @@
 - [x] Fix dropdown menu not working in System Health page (added DashboardLayout)
 - [x] Fix dropdown menu not working in Referrals page (added DashboardLayout)
 - [x] Fix dropdown menu not working in History page (added DashboardLayout)
-- [ ] Verify System Health page functionality
-- [ ] Improve System Health page graphics
+- [x] Verify System Health page functionality
+- [x] Improve System Health page graphics (responsive layout, better charts, skeleton loaders, empty states)
 - [ ] Improve frontend graphics uniformity across all pages
 
 ### Documentation Updates - December 21, 2025
-- [ ] Update VPS_OPERATIONS_MANUAL.md with WebSocket features
-- [ ] Update FUNCTIONALITY_GUIDE.md with notification system and WebAuthn
+- [x] Update VPS_OPERATIONS_MANUAL.md with WebSocket features (v1.1.0)
+- [x] Update FUNCTIONALITY_GUIDE.md with notification system (v1.1.0)
 
 ---
 
