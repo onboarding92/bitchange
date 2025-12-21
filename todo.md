@@ -1698,3 +1698,11 @@ Last Updated: December 17, 2025
 - [ ] Verify color contrast for accessibility
 - [ ] Test animations performance
 - [ ] Cross-browser testing (Chrome, Firefox, Safari)
+
+
+## 🐛 CRITICAL BUGS FOUND IN PRODUCTION - December 21, 2025 (3:55 AM)
+- [ ] Fix AccountSettings: Notification Preferences section not rendering (component exists but doesn't show)
+- [ ] Fix App.tsx: Add /admin/websocket route (returns 404 error)
+- [ ] Verify WebSocketDashboard component exists and is properly exported
+- [ ] Test notification preferences backend endpoints with curl
+- [ ] Test admin broadcast functionality after fixing route
