@@ -1700,9 +1700,44 @@ Last Updated: December 17, 2025
 - [ ] Cross-browser testing (Chrome, Firefox, Safari)
 
 
-## 🐛 CRITICAL BUGS FOUND IN PRODUCTION - December 21, 2025 (3:55 AM)
-- [ ] Fix AccountSettings: Notification Preferences section not rendering (component exists but doesn't show)
-- [ ] Fix App.tsx: Add /admin/websocket route (returns 404 error)
-- [ ] Verify WebSocketDashboard component exists and is properly exported
-- [ ] Test notification preferences backend endpoints with curl
-- [ ] Test admin broadcast functionality after fixing route
+## 🐛 CRITICAL BUGS FOUND IN PRODUCTION - December 21, 2025
+- [ ] Fix AccountSettings: Notification Preferences section not rendering
+- [x] WebSocketDashboard component created and pushed to GitHub
+- [x] Fixed Dockerfile errors (removed invalid COPY, fixed CMD path)
+- [ ] WebSocketDashboard still returns 404 - component not included in Vite build
+- [ ] Need to verify lazy loading in App.tsx includes WebSocketDashboard
+- [ ] Create apiLogs table in database (non-critical error in logs)
+
+
+## 🎨 FRONTEND UNIFORMITY & INVESTMENT-FOCUSED DESIGN - December 21, 2025
+
+### Layout Consistency
+- [x] Added DashboardLayout to Portfolio page
+- [x] All user-facing pages have consistent navigation
+- [x] No duplicate headers/navbars
+
+### Investment-Focused Design Improvements
+- [ ] Trading page: Add prominent profit potential indicators, live market data, "Start Trading" CTA
+- [ ] Staking page: Highlight APY percentages, show earning calculations, "Start Earning" CTA
+- [x] Portfolio page: Enhanced with profit/loss color coding, improved charts, growth indicators, CTAs
+- [ ] Deposit page: Add trust signals (security badges, fast processing time), "Fund Account" CTA
+- [ ] Withdraw page: Show available balance prominently, instant withdrawal badges
+
+### Social Proof & Trust Elements
+- [ ] Add platform statistics (total volume, active traders, assets supported)
+- [ ] Add security badges (SSL, 2FA, cold storage)
+- [ ] Add testimonials or success metrics where appropriate
+- [ ] Consistent color scheme for profits (green) and losses (red)
+
+### Visual Enhancements
+- [ ] Larger, bolder numbers for balances and profits
+- [ ] Animated counters for impressive statistics
+- [ ] Progress bars for staking rewards
+- [ ] Charts with gradient fills for visual appeal
+
+
+### Critical Bugs - Deposits
+- [ ] Fix Solana deposits not working
+- [ ] Verify all cryptocurrency deposits are functional (BTC, ETH, USDT, BNB, SOL, TRX, etc.)
+- [ ] Test address generation for each coin type
+- [ ] Verify QR code generation works for all coins
