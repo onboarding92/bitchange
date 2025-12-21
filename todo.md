@@ -1,5 +1,25 @@
 # BitChange Pro - Project TODO
 
+## 🚀 NEW FEATURES IN PROGRESS - December 21, 2025 (Final Push)
+
+### Admin WebSocket Dashboard UI
+- [x] Create /admin/websocket page component
+- [x] Display real-time connection statistics (auto-refresh every 5s)
+- [x] Show active connections table with user details
+- [x] Add manual broadcast message form
+- [ ] Implement broadcast mutation in backend
+- [ ] Test dashboard functionality in production
+
+### Notification Settings
+- [x] Add notificationPreferences field to users table
+- [x] Create notification settings section in AccountSettings
+- [x] Add toggles for each notification type (trade, deposit, withdrawal, security)
+- [ ] Implement backend mutation to save preferences
+- [ ] Update notification sending logic to respect preferences
+- [ ] Test notification filtering in production
+
+---
+
 ## 🚀 NEW FEATURES IN PROGRESS - December 21, 2025
 
 ### Browser Push Notifications

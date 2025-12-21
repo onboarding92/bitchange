@@ -25,6 +25,7 @@ export const users = mysqlTable("users", {
   ipWhitelist: text("ipWhitelist"), // JSON array of whitelisted IPs (admin only)
   referralCode: varchar("referralCode", { length: 20 }).unique(), // Unique referral code for this user
   referredBy: int("referredBy"), // User ID who referred this user
+  notificationPreferences: text("notificationPreferences"), // JSON: {trade: true, deposit: true, withdrawal: true, security: true}
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

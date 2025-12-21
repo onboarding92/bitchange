@@ -266,6 +266,57 @@ export default function AccountSettings() {
           </CardContent>
         </Card>
 
+        {/* Notification Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Notification Preferences</CardTitle>
+            <CardDescription>
+              Choose which notifications you want to receive
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Trade Notifications</Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified when your trades are executed
+                </p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Deposit Notifications</Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified when deposits are confirmed
+                </p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Withdrawal Notifications</Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified about withdrawal status updates
+                </p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Security Alerts</Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified about login attempts and security events
+                </p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Session Management */}
         <Card>
           <CardHeader>

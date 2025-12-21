@@ -39,6 +39,7 @@ const KYCReview = lazy(() => import("./pages/admin/KYCReview"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
+const WebSocketDashboard = lazy(() => import("./pages/admin/WebSocketDashboard"));
 
 // Loading fallback component
 function PageLoader() {
@@ -87,6 +88,7 @@ function Router() {
         <Route path="/admin/users" component={UsersManagement} />
         <Route path="/admin/kyc-review" component={KYCReview} />
         <Route path="/admin/analytics" component={AdminAnalytics} />
+        <Route path="/admin/websocket" component={WebSocketDashboard} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
