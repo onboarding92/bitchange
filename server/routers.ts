@@ -2530,6 +2530,23 @@ export const appRouter = router({
       const { getRevenueMetrics } = await import("./businessMetrics");
       return await getRevenueMetrics();
     }),
+
+    // WebSocket Monitoring
+    websocketStats: adminProcedure.query(async () => {
+      const { getConnectionStats, getActiveConnections } = await import("./websocket");
+      const stats = getConnectionStats();
+      const activeConnections = getActiveConnections();
+      
+      return {
+        stats,
+        activeConnections: activeConnections.map(conn => ({
+          userId: conn.userId,
+          connectionId: conn.connectionId,
+          connectedAt: conn.connectedAt,
+          lastActivity: conn.lastActivity,
+        })),
+      };
+    }),
   }),
 });
 

@@ -73,6 +73,17 @@ export function useWebSocket(onNotification?: (notification: WebSocketNotificati
             console.log("[WebSocket] Received notification:", message.data);
             setLastNotification(message.data);
             onNotification?.(message.data);
+            
+            // Show browser push notification if permission granted and tab is not focused
+            if (Notification.permission === "granted" && document.hidden) {
+              new Notification(message.data.title, {
+                body: message.data.message,
+                icon: "/favicon.ico",
+                badge: "/favicon.ico",
+                tag: `notification-${message.data.id}`,
+                requireInteraction: false,
+              });
+            }
           } else if (message.type === "pong") {
             console.log("[WebSocket] Pong received");
           }

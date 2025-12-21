@@ -174,6 +174,34 @@ export function getConnectionStats() {
   return {
     totalUsers,
     totalConnections,
-    averageConnectionsPerUser: totalUsers > 0 ? (totalConnections / totalUsers).toFixed(2) : 0
+    averageConnectionsPerUser: totalUsers > 0 ? (totalConnections / totalConnections).toFixed(2) : 0
   };
+}
+
+/**
+ * Get active connections with details
+ */
+export function getActiveConnections() {
+  const activeConnections: Array<{
+    userId: number;
+    connectionId: string;
+    connectedAt: Date;
+    lastActivity: Date;
+  }> = [];
+
+  connections.forEach((userConnections, userId) => {
+    let connIndex = 0;
+    userConnections.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        activeConnections.push({
+          userId,
+          connectionId: `conn-${userId}-${connIndex++}`,
+          connectedAt: new Date(), // TODO: Track actual connection time
+          lastActivity: new Date(),
+        });
+      }
+    });
+  });
+
+  return activeConnections;
 }

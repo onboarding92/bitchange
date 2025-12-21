@@ -1,5 +1,33 @@
 # BitChange Pro - Project TODO
 
+## 🚀 NEW FEATURES IN PROGRESS - December 21, 2025
+
+### Browser Push Notifications
+- [x] Add Notification API permission request in NotificationBell
+- [x] Integrate push notifications with WebSocket messages
+- [ ] Add notification settings toggle in AccountSettings
+- [ ] Test notifications when tab is inactive in production
+
+### Admin WebSocket Dashboard
+- [x] Create WebSocket stats endpoint in routers
+- [x] Add getActiveConnections function to websocket.ts
+- [ ] Create admin WebSocket monitoring page UI
+- [ ] Display active connections, users online, connection history
+- [ ] Add manual broadcast message form
+- [ ] Add connection logs and statistics charts
+- [ ] Test admin dashboard functionality
+
+### WebAuthn/FIDO2 Biometric Authentication
+- [ ] Install @simplewebauthn/server and @simplewebauthn/browser packages
+- [ ] Add webAuthnCredentials table to schema
+- [ ] Create WebAuthn registration endpoint
+- [ ] Create WebAuthn verification endpoint
+- [ ] Add biometric setup UI in AccountSettings
+- [ ] Integrate WebAuthn as login option
+- [ ] Test with fingerprint and Face ID
+
+---
+
 ## 🚀 NEW FEATURES IN PROGRESS - December 20, 2025
 
 ### WebSocket Notifications Extension

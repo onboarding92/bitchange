@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,26 @@ export function NotificationBell() {
   const { data: notifications = [] } = trpc.notifications.list.useQuery();
   const { data: unreadCount = 0 } = trpc.notifications.unreadCount.useQuery();
   const utils = trpc.useUtils();
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+      
+      // Auto-request permission if not yet decided
+      if (Notification.permission === "default") {
+        Notification.requestPermission().then((permission) => {
+          setNotificationPermission(permission);
+          if (permission === "granted") {
+            toast.success("Browser notifications enabled", {
+              description: "You'll receive alerts even when the tab is inactive"
+            });
+          }
+        });
+      }
+    }
+  }, []);
 
   // WebSocket for real-time notifications
   const { isConnected } = useWebSocket((notification) => {
