@@ -111,14 +111,47 @@ export function initWebSocketServer(wss: WebSocketServer) {
 }
 
 /**
- * Send notification to specific user
+ * Send notification to specific user (respects user preferences)
  */
-export function sendNotificationToUser(userId: number, notification: WebSocketMessage["data"]) {
+export async function sendNotificationToUser(
+  userId: number,
+  notification: WebSocketMessage["data"],
+  checkPreferences: boolean = true
+) {
   const userConnections = connections.get(userId);
   
   if (!userConnections || userConnections.size === 0) {
     console.log(`[WebSocket] No active connections for user ${userId}`);
     return false;
+  }
+
+  // Check if user has enabled this notification type
+  if (checkPreferences) {
+    try {
+      const { isNotificationEnabled } = await import("./notificationPreferences");
+      const notificationType = notification.type as "trade" | "deposit" | "withdrawal" | "security";
+      
+      // Map notification types to preference keys
+      const typeMap: Record<string, "trade" | "deposit" | "withdrawal" | "security"> = {
+        trade: "trade",
+        deposit: "deposit",
+        withdrawal: "withdrawal",
+        security: "security",
+        login: "security",
+      };
+
+      const preferenceKey = typeMap[notificationType];
+      if (preferenceKey) {
+        const enabled = await isNotificationEnabled(userId, preferenceKey);
+        if (!enabled) {
+          console.log(`[WebSocket] User ${userId} has disabled ${preferenceKey} notifications`);
+          return false;
+        }
+      }
+    } catch (error) {
+      console.error("[WebSocket] Error checking notification preferences:", error);
+      // Continue sending notification if preference check fails
+    }
   }
 
   const message: WebSocketMessage = {

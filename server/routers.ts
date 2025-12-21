@@ -17,6 +17,7 @@ import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 import { generateWalletAddress } from "./walletGenerator";
+import { getUserPreferences, updateUserPreferences } from "./notificationPreferences";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -2547,6 +2548,42 @@ export const appRouter = router({
         })),
       };
     }),
+
+    // Broadcast message to all connected users
+    broadcast: adminProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        message: z.string().min(1),
+        type: z.enum(["info", "warning", "error", "success"]).default("info"),
+      }))
+      .mutation(async ({ input }) => {
+        const { broadcastNotification } = await import("./websocket");
+        const sentCount = broadcastNotification({
+          id: Date.now(),
+          type: input.type,
+          title: input.title,
+          message: input.message,
+          createdAt: new Date(),
+        });
+        return { success: true, sentCount };
+      }),
+  }),
+
+  // Notification Preferences
+  notificationPreferences: router({
+    get: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserPreferences(ctx.user.id);
+    }),
+    update: protectedProcedure
+      .input(z.object({
+        trade: z.boolean().optional(),
+        deposit: z.boolean().optional(),
+        withdrawal: z.boolean().optional(),
+        security: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await updateUserPreferences(ctx.user.id, input);
+      }),
   }),
 });
 

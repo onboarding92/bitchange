@@ -13,10 +13,26 @@ import { toast } from "sonner";
 export default function WebSocketDashboard() {
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [broadcastType, setBroadcastType] = useState<"info" | "warning" | "error" | "success">("info");
   
   // Fetch WebSocket stats with auto-refresh
-  const { data: wsStats, refetch } = trpc.admin.websocketStats.useQuery(undefined, {
+  const { data: wsStats, refetch } = trpc.businessMetrics.websocketStats.useQuery(undefined, {
     refetchInterval: 5000, // Refresh every 5 seconds
+  });
+
+  const broadcastMutation = trpc.businessMetrics.broadcast.useMutation({
+    onSuccess: (data) => {
+      toast.success("Broadcast sent successfully", {
+        description: `Sent to ${data.sentCount} connection(s)`,
+      });
+      setBroadcastTitle("");
+      setBroadcastMessage("");
+    },
+    onError: (error) => {
+      toast.error("Failed to send broadcast", {
+        description: error.message,
+      });
+    },
   });
 
   const handleBroadcast = () => {
@@ -25,13 +41,11 @@ export default function WebSocketDashboard() {
       return;
     }
 
-    // TODO: Implement broadcast mutation
-    toast.success("Broadcast sent", {
-      description: `Sent to ${wsStats?.stats.totalConnections || 0} connections`,
+    broadcastMutation.mutate({
+      title: broadcastTitle,
+      message: broadcastMessage,
+      type: broadcastType,
     });
-    
-    setBroadcastTitle("");
-    setBroadcastMessage("");
   };
 
   return (
@@ -100,6 +114,7 @@ export default function WebSocketDashboard() {
               placeholder="Notification title"
               value={broadcastTitle}
               onChange={(e) => setBroadcastTitle(e.target.value)}
+              disabled={broadcastMutation.isPending}
             />
           </div>
           <div className="space-y-2">
@@ -109,11 +124,30 @@ export default function WebSocketDashboard() {
               value={broadcastMessage}
               onChange={(e) => setBroadcastMessage(e.target.value)}
               rows={3}
+              disabled={broadcastMutation.isPending}
             />
           </div>
-          <Button onClick={handleBroadcast} className="w-full">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Type</label>
+            <select
+              className="w-full px-3 py-2 border rounded-md bg-background"
+              value={broadcastType}
+              onChange={(e) => setBroadcastType(e.target.value as typeof broadcastType)}
+              disabled={broadcastMutation.isPending}
+            >
+              <option value="info">Info</option>
+              <option value="success">Success</option>
+              <option value="warning">Warning</option>
+              <option value="error">Error</option>
+            </select>
+          </div>
+          <Button
+            onClick={handleBroadcast}
+            className="w-full"
+            disabled={broadcastMutation.isPending}
+          >
             <Send className="mr-2 h-4 w-4" />
-            Send Broadcast
+            {broadcastMutation.isPending ? "Sending..." : "Send Broadcast"}
           </Button>
         </CardContent>
       </Card>

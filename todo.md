@@ -7,16 +7,37 @@
 - [x] Display real-time connection statistics (auto-refresh every 5s)
 - [x] Show active connections table with user details
 - [x] Add manual broadcast message form
-- [ ] Implement broadcast mutation in backend
+- [x] Implement broadcast mutation in backend
 - [ ] Test dashboard functionality in production
 
 ### Notification Settings
 - [x] Add notificationPreferences field to users table
 - [x] Create notification settings section in AccountSettings
 - [x] Add toggles for each notification type (trade, deposit, withdrawal, security)
-- [ ] Implement backend mutation to save preferences
-- [ ] Update notification sending logic to respect preferences
+- [x] Implement backend mutation to save preferences
+- [x] Update notification sending logic to respect preferences
 - [ ] Test notification filtering in production
+
+### WebAuthn/FIDO2 Implementation
+- [ ] Install @simplewebauthn/server and @simplewebauthn/browser packages
+- [ ] Add webAuthnCredentials table to schema
+- [ ] Create WebAuthn registration endpoint
+- [ ] Create WebAuthn verification endpoint
+- [ ] Add biometric setup UI in AccountSettings
+- [ ] Integrate WebAuthn as login option
+- [ ] Test with fingerprint and Face ID
+
+### UI/UX Fixes - December 21, 2025
+- [x] Fix dropdown menu not working in System Health page (added DashboardLayout)
+- [x] Fix dropdown menu not working in Referrals page (added DashboardLayout)
+- [x] Fix dropdown menu not working in History page (added DashboardLayout)
+- [ ] Verify System Health page functionality
+- [ ] Improve System Health page graphics
+- [ ] Improve frontend graphics uniformity across all pages
+
+### Documentation Updates - December 21, 2025
+- [ ] Update VPS_OPERATIONS_MANUAL.md with WebSocket features
+- [ ] Update FUNCTIONALITY_GUIDE.md with notification system and WebAuthn
 
 ---
 

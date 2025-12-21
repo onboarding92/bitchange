@@ -32,6 +32,7 @@ export default function AccountSettings() {
   const [copiedBackup, setCopiedBackup] = useState(false);
 
   const { data: user } = trpc.auth.me.useQuery();
+  const { data: notificationPrefs, isLoading: prefsLoading } = trpc.notificationPreferences.get.useQuery();
   const utils = trpc.useUtils();
 
   const changePassword = trpc.user.changePassword.useMutation({
@@ -81,6 +82,16 @@ export default function AccountSettings() {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to disable 2FA");
+    },
+  });
+
+  const updateNotificationPrefs = trpc.notificationPreferences.update.useMutation({
+    onSuccess: () => {
+      toast.success("Notification preferences updated");
+      utils.notificationPreferences.get.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update preferences");
     },
   });
 
@@ -275,45 +286,69 @@ export default function AccountSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Trade Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get notified when your trades are executed
-                </p>
+            {prefsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
               </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Deposit Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get notified when deposits are confirmed
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Withdrawal Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get notified about withdrawal status updates
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Security Alerts</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get notified about login attempts and security events
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Trade Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when your trades are executed
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationPrefs?.trade ?? true}
+                    onCheckedChange={(checked) => updateNotificationPrefs.mutate({ trade: checked })}
+                    disabled={updateNotificationPrefs.isPending}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Deposit Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when deposits are confirmed
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationPrefs?.deposit ?? true}
+                    onCheckedChange={(checked) => updateNotificationPrefs.mutate({ deposit: checked })}
+                    disabled={updateNotificationPrefs.isPending}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Withdrawal Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified about withdrawal status updates
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationPrefs?.withdrawal ?? true}
+                    onCheckedChange={(checked) => updateNotificationPrefs.mutate({ withdrawal: checked })}
+                    disabled={updateNotificationPrefs.isPending}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Security Alerts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified about login attempts and security events
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationPrefs?.security ?? true}
+                    onCheckedChange={(checked) => updateNotificationPrefs.mutate({ security: checked })}
+                    disabled={updateNotificationPrefs.isPending}
+                  />
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
