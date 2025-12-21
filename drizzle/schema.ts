@@ -563,3 +563,21 @@ export const alerts = mysqlTable("alerts", {
 
 export type Alert = typeof alerts.$inferSelect;
 export type InsertAlert = typeof alerts.$inferInsert;
+
+// WebAuthn/FIDO2 Credentials for biometric authentication
+export const webAuthnCredentials = mysqlTable("webAuthnCredentials", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  credentialId: text("credentialId").notNull().unique(), // Base64URL encoded credential ID
+  publicKey: text("publicKey").notNull(), // Base64URL encoded public key
+  counter: int("counter").default(0).notNull(), // Signature counter for replay protection
+  deviceName: varchar("deviceName", { length: 100 }), // User-friendly name (e.g., "iPhone 15", "MacBook Pro")
+  deviceType: varchar("deviceType", { length: 50 }), // "platform" or "cross-platform"
+  transports: text("transports"), // JSON array of supported transports ["usb", "nfc", "ble", "internal"]
+  aaguid: varchar("aaguid", { length: 100 }), // Authenticator Attestation GUID
+  lastUsed: timestamp("lastUsed"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WebAuthnCredential = typeof webAuthnCredentials.$inferSelect;
+export type InsertWebAuthnCredential = typeof webAuthnCredentials.$inferInsert;
