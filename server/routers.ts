@@ -2567,6 +2567,119 @@ export const appRouter = router({
         });
         return { success: true, sentCount };
       }),
+
+    // Wallet Production System
+    coldWallets: adminProcedure.query(async () => {
+      const { getColdWallets } = await import("./coldWalletManager");
+      return await getColdWallets();
+    }),
+
+    addColdWallet: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        asset: z.string(),
+        address: z.string(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { addColdWallet } = await import("./coldWalletManager");
+        return await addColdWallet(input);
+      }),
+
+    verifyColdWalletBalance: adminProcedure
+      .input(z.object({ network: z.string() }))
+      .mutation(async ({ input }) => {
+        const { verifyColdWalletBalance } = await import("./coldWalletManager");
+        return await verifyColdWalletBalance(input.network);
+      }),
+
+    coldStorageValue: adminProcedure.query(async () => {
+      const { getTotalColdStorageValue } = await import("./coldWalletManager");
+      return await getTotalColdStorageValue();
+    }),
+
+    hotWalletStatus: adminProcedure.query(async () => {
+      const { getHotWalletStatus } = await import("./balanceMonitor");
+      return await getHotWalletStatus();
+    }),
+
+    sweepHistory: adminProcedure
+      .input(z.object({
+        type: z.enum(["deposit_to_hot", "hot_to_cold", "cold_to_hot"]).optional(),
+        status: z.enum(["pending", "completed", "failed"]).optional(),
+        limit: z.number().min(1).max(100).default(50),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        const { sweepTransactions } = await import("../drizzle/schema");
+        const { and, eq, desc } = await import("drizzle-orm");
+        
+        let query = db.select().from(sweepTransactions);
+        const conditions = [];
+        
+        if (input.type) conditions.push(eq(sweepTransactions.type, input.type));
+        if (input.status) conditions.push(eq(sweepTransactions.status, input.status));
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+        
+        return await query.orderBy(desc(sweepTransactions.createdAt)).limit(input.limit);
+      }),
+
+    sweepHotToCold: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        amount: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { sweepHotToCold } = await import("./sweepSystem");
+        return await sweepHotToCold(input.network, input.amount);
+      }),
+
+    refillHotWallet: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        amount: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { refillHotWallet } = await import("./sweepSystem");
+        return await refillHotWallet(input.network, input.amount);
+      }),
+
+    walletThresholds: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      const { walletThresholds } = await import("../drizzle/schema");
+      return await db.select().from(walletThresholds).orderBy(walletThresholds.network);
+    }),
+
+    updateWalletThreshold: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        minBalance: z.string(),
+        maxBalance: z.string(),
+        targetBalance: z.string(),
+        alertEmail: z.string().email().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { walletThresholds } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        
+        await db.update(walletThresholds)
+          .set({
+            minBalance: input.minBalance,
+            maxBalance: input.maxBalance,
+            targetBalance: input.targetBalance,
+            alertEmail: input.alertEmail,
+          })
+          .where(eq(walletThresholds.network, input.network));
+        
+        return { success: true };
+      }),
   }),
 
   // Notification Preferences
@@ -2583,6 +2696,105 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         return await updateUserPreferences(ctx.user.id, input);
+      }),
+  }),
+
+  // WebAuthn / Biometric Authentication
+  webauthn: router({
+    // List user's registered credentials
+    listCredentials: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const { webAuthnCredentials } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      return await db.select({
+        id: webAuthnCredentials.id,
+        deviceName: webAuthnCredentials.deviceName,
+        deviceType: webAuthnCredentials.deviceType,
+        lastUsed: webAuthnCredentials.lastUsed,
+        createdAt: webAuthnCredentials.createdAt,
+      })
+      .from(webAuthnCredentials)
+      .where(eq(webAuthnCredentials.userId, ctx.user.id));
+    }),
+
+    // Generate registration options
+    generateRegistrationOptions: protectedProcedure
+      .input(z.object({ deviceName: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        // TODO: Implement WebAuthn registration options generation
+        // This requires @simplewebauthn/server
+        // For now, return mock options
+        return {
+          challenge: Buffer.from("mock-challenge").toString("base64url"),
+          rp: {
+            name: "BitChange Pro",
+            id: "bitchangemoney.xyz",
+          },
+          user: {
+            id: Buffer.from(String(ctx.user.id)).toString("base64url"),
+            name: ctx.user.email,
+            displayName: ctx.user.name || ctx.user.email,
+          },
+          pubKeyCredParams: [
+            { alg: -7, type: "public-key" },
+            { alg: -257, type: "public-key" },
+          ],
+          timeout: 60000,
+          attestation: "none",
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            requireResidentKey: false,
+            userVerification: "required",
+          },
+        };
+      }),
+
+    // Verify registration
+    verifyRegistration: protectedProcedure
+      .input(z.object({
+        deviceName: z.string(),
+        credential: z.any(), // WebAuthn credential response
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { webAuthnCredentials } = await import("../drizzle/schema");
+        
+        // TODO: Implement proper WebAuthn verification
+        // For now, just store the credential
+        await db.insert(webAuthnCredentials).values({
+          userId: ctx.user.id,
+          credentialId: input.credential.id || "mock-credential-id",
+          publicKey: input.credential.publicKey || "mock-public-key",
+          counter: 0,
+          deviceName: input.deviceName,
+          deviceType: "platform",
+          transports: null,
+          aaguid: null,
+        });
+        
+        return { success: true };
+      }),
+
+    // Delete credential
+    deleteCredential: protectedProcedure
+      .input(z.object({ credentialId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { webAuthnCredentials } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        
+        // Ensure user can only delete their own credentials
+        await db.delete(webAuthnCredentials)
+          .where(and(
+            eq(webAuthnCredentials.id, input.credentialId),
+            eq(webAuthnCredentials.userId, ctx.user.id)
+          ));
+        
+        return { success: true };
       }),
   }),
 });

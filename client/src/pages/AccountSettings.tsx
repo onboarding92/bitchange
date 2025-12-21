@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { WebAuthnSetup } from "@/components/WebAuthnSetup";
 
 export default function AccountSettings() {
   const [, setLocation] = useLocation();
@@ -274,6 +275,19 @@ export default function AccountSettings() {
                 to your password when signing in.
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Biometric Authentication */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Biometric Authentication</CardTitle>
+            <CardDescription>
+              Use Face ID, Touch ID, or Windows Hello for secure passwordless login
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WebAuthnSetup />
           </CardContent>
         </Card>
 

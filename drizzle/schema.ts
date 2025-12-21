@@ -581,3 +581,54 @@ export const webAuthnCredentials = mysqlTable("webAuthnCredentials", {
 
 export type WebAuthnCredential = typeof webAuthnCredentials.$inferSelect;
 export type InsertWebAuthnCredential = typeof webAuthnCredentials.$inferInsert;
+
+// Wallet Production System Tables
+export const coldWallets = mysqlTable("coldWallets", {
+  id: int("id").autoincrement().primaryKey(),
+  network: varchar("network", { length: 50 }).notNull().unique(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  address: varchar("address", { length: 255 }).notNull(),
+  balance: decimal("balance", { precision: 20, scale: 8 }).default("0").notNull(),
+  lastVerifiedAt: timestamp("lastVerifiedAt"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ColdWallet = typeof coldWallets.$inferSelect;
+export type InsertColdWallet = typeof coldWallets.$inferInsert;
+
+export const sweepTransactions = mysqlTable("sweepTransactions", {
+  id: int("id").autoincrement().primaryKey(),
+  fromAddress: varchar("fromAddress", { length: 255 }).notNull(),
+  toAddress: varchar("toAddress", { length: 255 }).notNull(),
+  network: varchar("network", { length: 50 }).notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  txHash: varchar("txHash", { length: 255 }),
+  status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
+  type: mysqlEnum("type", ["deposit_to_hot", "hot_to_cold", "cold_to_hot"]).notNull(),
+  errorMessage: text("errorMessage"),
+  retryCount: int("retryCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type SweepTransaction = typeof sweepTransactions.$inferSelect;
+export type InsertSweepTransaction = typeof sweepTransactions.$inferInsert;
+
+export const walletThresholds = mysqlTable("walletThresholds", {
+  id: int("id").autoincrement().primaryKey(),
+  network: varchar("network", { length: 50 }).notNull().unique(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  minBalance: decimal("minBalance", { precision: 20, scale: 8 }).notNull(),
+  maxBalance: decimal("maxBalance", { precision: 20, scale: 8 }).notNull(),
+  targetBalance: decimal("targetBalance", { precision: 20, scale: 8 }).notNull(),
+  alertEmail: varchar("alertEmail", { length: 320 }),
+  lastAlertSent: timestamp("lastAlertSent"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WalletThreshold = typeof walletThresholds.$inferSelect;
+export type InsertWalletThreshold = typeof walletThresholds.$inferInsert;
