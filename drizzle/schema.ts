@@ -67,6 +67,8 @@ export const orders = mysqlTable("orders", {
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
   filled: decimal("filled", { precision: 20, scale: 8 }).default("0").notNull(),
   status: mysqlEnum("status", ["open", "partially_filled", "filled", "cancelled"]).default("open").notNull(),
+  stopLoss: decimal("stopLoss", { precision: 20, scale: 8 }), // Stop loss price
+  takeProfit: decimal("takeProfit", { precision: 20, scale: 8 }), // Take profit price
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -632,3 +634,41 @@ export const walletThresholds = mysqlTable("walletThresholds", {
 
 export type WalletThreshold = typeof walletThresholds.$inferSelect;
 export type InsertWalletThreshold = typeof walletThresholds.$inferInsert;
+
+// Trading Bot API Keys
+export const apiKeys = mysqlTable("apiKeys", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(), // User-friendly name for the key
+  key: varchar("key", { length: 64 }).notNull().unique(), // API key (public)
+  secret: varchar("secret", { length: 128 }).notNull(), // API secret (hashed)
+  permissions: text("permissions").notNull(), // JSON array: ["trading", "read", "withdraw"]
+  rateLimit: int("rateLimit").default(100).notNull(), // Requests per minute
+  ipWhitelist: text("ipWhitelist"), // JSON array of allowed IPs (optional)
+  enabled: boolean("enabled").default(true).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  expiresAt: timestamp("expiresAt"), // Optional expiration date
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+export const apiRequestLogs = mysqlTable("apiRequestLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  apiKeyId: int("apiKeyId").notNull(),
+  userId: int("userId").notNull(),
+  endpoint: varchar("endpoint", { length: 255 }).notNull(),
+  method: varchar("method", { length: 10 }).notNull(),
+  statusCode: int("statusCode").notNull(),
+  responseTime: int("responseTime").notNull(), // milliseconds
+  ip: varchar("ip", { length: 45 }).notNull(),
+  userAgent: text("userAgent"),
+  requestBody: text("requestBody"), // JSON (for debugging, optional)
+  error: text("error"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ApiRequestLog = typeof apiRequestLogs.$inferSelect;
+export type InsertApiRequestLog = typeof apiRequestLogs.$inferInsert;

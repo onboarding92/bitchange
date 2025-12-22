@@ -6,6 +6,7 @@
  */
 
 import { runMatchingEngine, getMatchingEngineStats } from "./matchingEngine";
+import { checkAdvancedOrders } from "./advancedMatchingEngine";
 
 let isRunning = false;
 let intervalId: NodeJS.Timeout | null = null;
@@ -59,7 +60,13 @@ export function stopMatchingEngine() {
 async function runMatchingCycle() {
   try {
     const startTime = Date.now();
+    
+    // Run normal matching engine
     const result = await runMatchingEngine();
+    
+    // Check Stop Loss and Take Profit orders
+    await checkAdvancedOrders();
+    
     const duration = Date.now() - startTime;
 
     if (result.processedOrders > 0 || result.totalTrades > 0) {

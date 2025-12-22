@@ -22,6 +22,8 @@ export default function OrderExecutionPanel({ selectedPair, currentPrice, onOrde
   const [orderType, setOrderType] = useState<"market" | "limit">("limit");
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
   const [useLiveExchange, setUseLiveExchange] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<any>(null);
@@ -53,6 +55,8 @@ export default function OrderExecutionPanel({ selectedPair, currentPrice, onOrde
   const resetForm = () => {
     setPrice("");
     setAmount("");
+    setStopLoss("");
+    setTakeProfit("");
     setConfirmDialogOpen(false);
     setPendingOrder(null);
   };
@@ -73,6 +77,8 @@ export default function OrderExecutionPanel({ selectedPair, currentPrice, onOrde
       type: orderType,
       price: orderType === "limit" ? price : currentPrice?.toString() || "",
       amount,
+      stopLoss: stopLoss || undefined,
+      takeProfit: takeProfit || undefined,
       total: orderType === "limit" 
         ? (parseFloat(price) * parseFloat(amount)).toFixed(2)
         : ((currentPrice || 0) * parseFloat(amount)).toFixed(2),
@@ -101,6 +107,8 @@ export default function OrderExecutionPanel({ selectedPair, currentPrice, onOrde
         side: orderSide,
         price: orderType === "limit" ? price : currentPrice?.toString() || "",
         amount,
+        stopLoss: stopLoss || undefined,
+        takeProfit: takeProfit || undefined,
       });
     }
   };
@@ -192,6 +200,37 @@ export default function OrderExecutionPanel({ selectedPair, currentPrice, onOrde
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
+          </div>
+
+          {/* Advanced Options - Stop Loss & Take Profit */}
+          <div className="border-t pt-4 space-y-4">
+            <Label className="text-sm font-semibold">Advanced Order Types</Label>
+            
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Stop Loss (USDT)</Label>
+              <Input
+                type="number"
+                placeholder="Optional"
+                value={stopLoss}
+                onChange={(e) => setStopLoss(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Auto-sell if price {orderSide === "buy" ? "drops to" : "rises to"} this level
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Take Profit (USDT)</Label>
+              <Input
+                type="number"
+                placeholder="Optional"
+                value={takeProfit}
+                onChange={(e) => setTakeProfit(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Auto-sell if price {orderSide === "buy" ? "rises to" : "drops to"} this level
+              </p>
+            </div>
           </div>
 
           {/* Total */}

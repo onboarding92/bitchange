@@ -18,6 +18,7 @@ import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 import { generateWalletAddress } from "./walletGenerator";
 import { getUserPreferences, updateUserPreferences } from "./notificationPreferences";
+import { apiKeyRouter } from "./apiKeyRouter";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -2169,124 +2170,6 @@ export const appRouter = router({
         return { csv, filename: `trades_${Date.now()}.csv` };
       }),
 
-    exportTradesPDF: protectedProcedure
-      .input(z.object({ pair: z.string().optional() }).optional())
-      .query(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
-        
-        // Get user's trades
-        const conditions = [eq(trades.buyerId, ctx.user.id)];
-        if (input?.pair) {
-          conditions.push(eq(trades.pair, input.pair));
-        }
-        const userTrades = await db.select()
-          .from(trades)
-          .where(and(...conditions))
-          .orderBy(desc(trades.createdAt));
-        
-        // Get user info
-        const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
-        
-        // Generate PDF content as HTML (will be converted to PDF on frontend)
-        const totalVolume = userTrades.reduce((sum: number, t: any) => 
-          sum + (parseFloat(t.price) * parseFloat(t.amount)), 0
-        );
-        const totalFees = userTrades.reduce((sum: number, t: any) => 
-          sum + parseFloat(t.fee || '0'), 0
-        );
-        
-        const html = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8">
-            <title>Trading History Report</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-              .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; }
-              .header h1 { color: #3b82f6; margin: 0; }
-              .info { margin-bottom: 20px; }
-              .info p { margin: 5px 0; }
-              .summary { background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-              .summary h3 { margin-top: 0; color: #3b82f6; }
-              .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-              th { background: #3b82f6; color: white; padding: 12px; text-align: left; }
-              td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
-              tr:hover { background: #f9fafb; }
-              .buy { color: #10b981; font-weight: bold; }
-              .sell { color: #ef4444; font-weight: bold; }
-              .footer { margin-top: 40px; text-align: center; color: #6b7280; font-size: 12px; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>BitChange Pro</h1>
-              <p>Trading History Report</p>
-            </div>
-            
-            <div class="info">
-              <p><strong>Account:</strong> ${user?.email || 'N/A'}</p>
-              <p><strong>Report Date:</strong> ${new Date().toLocaleDateString()}</p>
-              <p><strong>Total Trades:</strong> ${userTrades.length}</p>
-            </div>
-            
-            <div class="summary">
-              <h3>Summary</h3>
-              <div class="summary-grid">
-                <div>
-                  <p><strong>Total Volume:</strong> $${totalVolume.toFixed(2)}</p>
-                  <p><strong>Total Fees:</strong> $${totalFees.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p><strong>Period:</strong> ${userTrades.length > 0 ? 
-                    `${new Date(userTrades[userTrades.length - 1].createdAt).toLocaleDateString()} - ${new Date(userTrades[0].createdAt).toLocaleDateString()}` 
-                    : 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-            
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Pair</th>
-                  <th>Side</th>
-                  <th>Price</th>
-                  <th>Amount</th>
-                  <th>Total</th>
-                  <th>Fee</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${userTrades.map((trade: any) => `
-                  <tr>
-                    <td>${new Date(trade.createdAt).toLocaleString()}</td>
-                    <td>${trade.pair}</td>
-                    <td class="${trade.buyerId === ctx.user.id ? 'buy' : 'sell'}">
-                      ${trade.buyerId === ctx.user.id ? 'BUY' : 'SELL'}
-                    </td>
-                    <td>$${parseFloat(trade.price).toFixed(2)}</td>
-                    <td>${parseFloat(trade.amount).toFixed(8)}</td>
-                    <td>$${(parseFloat(trade.price) * parseFloat(trade.amount)).toFixed(2)}</td>
-                    <td>$${parseFloat(trade.fee || '0').toFixed(2)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-            
-            <div class="footer">
-              <p>This report was generated on ${new Date().toLocaleString()}</p>
-              <p>BitChange Pro - Professional Cryptocurrency Exchange</p>
-            </div>
-          </body>
-          </html>
-        `;
-        
-        return { html, filename: `trades_report_${Date.now()}.pdf` };
-      }),
-
     // Real Trading Engine - Live Exchange Integration
     livePrice: publicProcedure
       .input(z.object({ symbol: z.string() }))
@@ -3103,6 +2986,9 @@ export const appRouter = router({
       return await getMatchingEngineStatus();
     }),
   }),
+  
+  // API Key Management for Trading Bots
+  apiKey: apiKeyRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -502,13 +502,37 @@
 - [x] Document differences between crypto exchange and forex broker
 - [ ] Create final checkpoint with all enhancements
 
-### Trading Test & Export Features - December 22, 2025
-- [ ] Create automated trading test script (requires manual testing)
-- [x] Deploy updated matchingEngine.ts with notifications to VPS
-- [x] Restart production server to activate notifications
-- [x] Implement trading history export CSV (already existed)
-- [x] Implement trading history export PDF
-- [x] Add export buttons to trading history page
-- [ ] Test CSV export functionality (requires manual testing)
-- [ ] Test PDF export functionality (requires manual testing)
-- [ ] Create final checkpoint with all features
+## Advanced Order Types & Trading Bot API (v1.6.0)
+
+### Database Schema
+- [x] Add stopLoss and takeProfit fields to orders table
+- [x] Create apiKeys table (userId, key, secret, permissions, rateLimit, createdAt, lastUsedAt)
+- [x] Create apiRequestLogs table (keyId, endpoint, timestamp, ip, responseTime)
+
+### Backend - Advanced Order Types
+- [x] Update matching engine to check stop loss/take profit conditions
+- [x] Add automatic order creation when SL/TP triggered
+- [x] Add notification when SL/TP executed
+- [ ] Update order placement to accept stopLoss and takeProfit parameters
+
+### Backend - Trading Bot API
+- [x] Create REST API endpoints (/api/v1/trading/order, /api/v1/trading/balance, /api/v1/trading/orders, /api/v1/trading/trades)
+- [x] Implement API key authentication middleware
+- [x] Add rate limiting (100 requests/minute per API key)
+- [x] Add API request logging
+- [x] Create API key management endpoints (generate, list, revoke)
+
+### Frontend UI
+- [x] Add Stop Loss and Take Profit input fields in Trading page order form
+- [x] Create API Keys management page in Account Settings
+- [x] Add "Generate API Key" button with permissions selector
+- [x] Display API key list with usage statistics
+- [ ] Add API documentation page
+
+### Production Deployment
+- [ ] Run database migration for new tables and fields
+- [ ] Deploy updated backend to VPS
+- [ ] Deploy updated frontend to VPS
+- [ ] Test SL/TP with real orders
+- [ ] Test API endpoints with Postman/curl
+- [ ] Update documentation

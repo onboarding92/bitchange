@@ -58,6 +58,11 @@ async function startServer() {
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  
+  // Trading Bot REST API
+  const tradingBotAPI = (await import("../tradingBotAPI")).default;
+  app.use("/api/v1/trading", tradingBotAPI);
+  
   // tRPC API
   app.use(
     "/api/trpc",

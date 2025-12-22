@@ -11,6 +11,7 @@
 import { getDb } from "./db";
 import { orders, trades, wallets, notifications } from "../drizzle/schema";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
+import { updatePriceCache } from "./advancedMatchingEngine";
 
 export interface MatchResult {
   matched: boolean;
@@ -226,6 +227,9 @@ export async function matchOrder(orderId: number): Promise<MatchResult> {
     } catch (notifError) {
       console.error("Failed to send order match notifications:", notifError);
     }
+
+    // Update price cache for SL/TP monitoring
+    updatePriceCache(order.pair, tradePrice);
 
     remainingQuantity -= matchQuantity;
     result.matched = true;

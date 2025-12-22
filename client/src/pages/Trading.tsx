@@ -10,7 +10,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import OrderExecutionPanel from "@/components/OrderExecutionPanel";
-import { TrendingUp, TrendingDown, X, Download, FileText } from "lucide-react";
+import { TrendingUp, TrendingDown, X } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { TRADING_PAIRS } from "@shared/const";
 
@@ -343,59 +343,7 @@ export default function Trading() {
         {/* Trade History */}
         <Card className="glass">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>My Trades</CardTitle>
-              {myTrades && myTrades.length > 0 && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        const result = await trpc.trade.exportTrades.query();
-                        const blob = new Blob([result.csv], { type: 'text/csv' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = result.filename;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        toast.success('CSV exported successfully!');
-                      } catch (error: any) {
-                        toast.error(error.message || 'Export failed');
-                      }
-                    }}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export CSV
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        const result = await trpc.trade.exportTradesPDF.query();
-                        // Convert HTML to PDF using browser print
-                        const printWindow = window.open('', '_blank');
-                        if (printWindow) {
-                          printWindow.document.write(result.html);
-                          printWindow.document.close();
-                          setTimeout(() => {
-                            printWindow.print();
-                          }, 250);
-                        }
-                        toast.success('PDF generated successfully!');
-                      } catch (error: any) {
-                        toast.error(error.message || 'Export failed');
-                      }
-                    }}
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Export PDF
-                  </Button>
-                </div>
-              )}
-            </div>
+            <CardTitle>My Trades</CardTitle>
           </CardHeader>
           <CardContent>
             {!myTrades || myTrades.length === 0 ? (
