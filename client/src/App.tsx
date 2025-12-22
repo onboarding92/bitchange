@@ -43,6 +43,8 @@ const Portfolio = lazy(() => import("./pages/Portfolio"));
 const WebSocketDashboard = lazy(() => import("./pages/admin/WebSocketDashboard"));
 const APIKeys = lazy(() => import("./pages/APIKeys"));
 const CopyTrading = lazy(() => import("./pages/CopyTrading"));
+const MarginTrading = lazy(() => import("./pages/MarginTrading"));
+const FuturesTrading = lazy(() => import("./pages/FuturesTrading"));
 
 // Loading fallback component
 function PageLoader() {
@@ -81,6 +83,8 @@ function Router() {
         <Route path="/settings" component={AccountSettings} />
         <Route path="/api-keys" component={APIKeys} />
         <Route path="/copy-trading" component={CopyTrading} />
+        <Route path="/margin-trading" component={MarginTrading} />
+        <Route path="/futures" component={FuturesTrading} />
         <Route path="/transactions" component={TransactionHistory} />
         <Route path="/referrals" component={ReferralDashboard} />
         <Route path="/admin" component={Admin} />

@@ -736,3 +736,121 @@ export const copyTradingExecutions = mysqlTable("copyTradingExecutions", {
 
 export type CopyTradingExecution = typeof copyTradingExecutions.$inferSelect;
 export type InsertCopyTradingExecution = typeof copyTradingExecutions.$inferInsert;
+
+
+// ==================== Margin Trading & Futures ====================
+
+export const marginAccounts = mysqlTable("marginAccounts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  currency: varchar("currency", { length: 20 }).notNull(), // Base currency (e.g., USDT)
+  balance: decimal("balance", { precision: 20, scale: 8 }).default("0").notNull(),
+  available: decimal("available", { precision: 20, scale: 8 }).default("0").notNull(),
+  locked: decimal("locked", { precision: 20, scale: 8 }).default("0").notNull(),
+  leverage: int("leverage").default(1).notNull(), // 1x-100x
+  marginLevel: decimal("marginLevel", { precision: 10, scale: 4 }).default("0").notNull(), // Margin ratio percentage
+  totalDebt: decimal("totalDebt", { precision: 20, scale: 8 }).default("0").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MarginAccount = typeof marginAccounts.$inferSelect;
+export type InsertMarginAccount = typeof marginAccounts.$inferInsert;
+
+export const positions = mysqlTable("positions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(), // e.g., BTC/USDT
+  contractType: mysqlEnum("contractType", ["spot", "perpetual", "futures"]).default("spot").notNull(),
+  side: mysqlEnum("side", ["long", "short"]).notNull(),
+  size: decimal("size", { precision: 20, scale: 8 }).notNull(), // Position size in base currency
+  entryPrice: decimal("entryPrice", { precision: 20, scale: 8 }).notNull(),
+  markPrice: decimal("markPrice", { precision: 20, scale: 8 }).notNull(), // Current mark price
+  liquidationPrice: decimal("liquidationPrice", { precision: 20, scale: 8 }).notNull(),
+  leverage: int("leverage").notNull(), // 1x-100x
+  marginMode: mysqlEnum("marginMode", ["isolated", "cross"]).default("isolated").notNull(),
+  margin: decimal("margin", { precision: 20, scale: 8 }).notNull(), // Initial margin
+  unrealizedPnL: decimal("unrealizedPnL", { precision: 20, scale: 8 }).default("0").notNull(),
+  realizedPnL: decimal("realizedPnL", { precision: 20, scale: 8 }).default("0").notNull(),
+  fundingFee: decimal("fundingFee", { precision: 20, scale: 8 }).default("0").notNull(), // Accumulated funding fees
+  status: mysqlEnum("status", ["open", "closed", "liquidated"]).default("open").notNull(),
+  openedAt: timestamp("openedAt").defaultNow().notNull(),
+  closedAt: timestamp("closedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Position = typeof positions.$inferSelect;
+export type InsertPosition = typeof positions.$inferInsert;
+
+export const futuresContracts = mysqlTable("futuresContracts", {
+  id: int("id").autoincrement().primaryKey(),
+  symbol: varchar("symbol", { length: 20 }).notNull().unique(), // e.g., BTCUSDT
+  baseAsset: varchar("baseAsset", { length: 20 }).notNull(), // e.g., BTC
+  quoteAsset: varchar("quoteAsset", { length: 20 }).notNull(), // e.g., USDT
+  contractType: mysqlEnum("contractType", ["perpetual", "quarterly", "bi-quarterly"]).default("perpetual").notNull(),
+  fundingRate: decimal("fundingRate", { precision: 10, scale: 8 }).default("0").notNull(), // Current funding rate
+  fundingInterval: int("fundingInterval").default(28800).notNull(), // Funding interval in seconds (8 hours = 28800s)
+  nextFundingTime: timestamp("nextFundingTime").notNull(),
+  markPrice: decimal("markPrice", { precision: 20, scale: 8 }).notNull(),
+  indexPrice: decimal("indexPrice", { precision: 20, scale: 8 }).notNull(),
+  lastPrice: decimal("lastPrice", { precision: 20, scale: 8 }).notNull(),
+  volume24h: decimal("volume24h", { precision: 20, scale: 8 }).default("0").notNull(),
+  openInterest: decimal("openInterest", { precision: 20, scale: 8 }).default("0").notNull(), // Total open positions
+  maxLeverage: int("maxLeverage").default(100).notNull(),
+  maintenanceMarginRate: decimal("maintenanceMarginRate", { precision: 5, scale: 4 }).default("0.005").notNull(), // 0.5%
+  takerFeeRate: decimal("takerFeeRate", { precision: 5, scale: 4 }).default("0.0006").notNull(), // 0.06%
+  makerFeeRate: decimal("makerFeeRate", { precision: 5, scale: 4 }).default("0.0002").notNull(), // 0.02%
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FuturesContract = typeof futuresContracts.$inferSelect;
+export type InsertFuturesContract = typeof futuresContracts.$inferInsert;
+
+export const fundingHistory = mysqlTable("fundingHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  contractId: int("contractId").notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  fundingRate: decimal("fundingRate", { precision: 10, scale: 8 }).notNull(),
+  fundingTime: timestamp("fundingTime").notNull(),
+  totalFunding: decimal("totalFunding", { precision: 20, scale: 8 }).notNull(), // Total funding paid/received
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type FundingHistory = typeof fundingHistory.$inferSelect;
+export type InsertFundingHistory = typeof fundingHistory.$inferInsert;
+
+export const liquidationQueue = mysqlTable("liquidationQueue", {
+  id: int("id").autoincrement().primaryKey(),
+  positionId: int("positionId").notNull(),
+  userId: int("userId").notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  side: mysqlEnum("side", ["long", "short"]).notNull(),
+  size: decimal("size", { precision: 20, scale: 8 }).notNull(),
+  entryPrice: decimal("entryPrice", { precision: 20, scale: 8 }).notNull(),
+  liquidationPrice: decimal("liquidationPrice", { precision: 20, scale: 8 }).notNull(),
+  currentPrice: decimal("currentPrice", { precision: 20, scale: 8 }).notNull(),
+  leverage: int("leverage").notNull(),
+  status: mysqlEnum("status", ["queued", "processing", "completed", "failed"]).default("queued").notNull(),
+  queuedAt: timestamp("queuedAt").defaultNow().notNull(),
+  processedAt: timestamp("processedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LiquidationQueue = typeof liquidationQueue.$inferSelect;
+export type InsertLiquidationQueue = typeof liquidationQueue.$inferInsert;
+
+export const insuranceFund = mysqlTable("insuranceFund", {
+  id: int("id").autoincrement().primaryKey(),
+  currency: varchar("currency", { length: 20 }).notNull().unique(),
+  balance: decimal("balance", { precision: 20, scale: 8 }).default("0").notNull(),
+  totalContributions: decimal("totalContributions", { precision: 20, scale: 8 }).default("0").notNull(),
+  totalPayouts: decimal("totalPayouts", { precision: 20, scale: 8 }).default("0").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type InsuranceFund = typeof insuranceFund.$inferSelect;
+export type InsertInsuranceFund = typeof insuranceFund.$inferInsert;

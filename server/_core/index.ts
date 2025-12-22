@@ -108,6 +108,16 @@ async function startServer() {
     import("../priceFeedJob").then(({ startPriceFeedBroadcaster }) => {
       startPriceFeedBroadcaster();
     }).catch(console.error);
+    
+    // Start liquidation engine
+    import("../liquidationEngine").then(({ startLiquidationEngine }) => {
+      startLiquidationEngine();
+    }).catch(console.error);
+    
+    // Start funding rate job
+    import("../fundingRateJob").then(({ startFundingRateJob }) => {
+      startFundingRateJob();
+    }).catch(console.error);
   });
 }
 

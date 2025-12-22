@@ -584,3 +584,50 @@
 - [x] Validate risk management calculations
 - [x] Test API rate limiting
 - [x] Create checkpoint and deploy to production
+
+## Margin Trading & Futures/Perpetual Contracts
+
+### Database Schema
+- [x] Create marginAccounts table (userId, currency, balance, available, locked, leverage, marginLevel)
+- [x] Create positions table (userId, symbol, side, size, entryPrice, liquidationPrice, leverage, marginMode, unrealizedPnL, status)
+- [x] Create futuresContracts table (symbol, baseAsset, quoteAsset, contractType, fundingRate, fundingInterval, markPrice, indexPrice)
+- [x] Create fundingHistory table (contractId, fundingRate, fundingTime, totalFunding)
+- [x] Create liquidationQueue table (positionId, liquidationPrice, queuedAt, status)
+
+### Margin Trading Backend
+- [x] Implement leverage calculation engine (1x-100x)
+- [x] Create margin account management (deposit, withdraw, transfer)
+- [x] Build liquidation engine with automatic position closure
+- [x] Add margin call notification system
+- [x] Implement isolated and cross margin modes
+- [x] Create position management (open, close, modify)
+- [x] Add unrealized PnL calculation
+- [x] Build margin level monitoring system
+
+### Futures & Perpetual Contracts Backend
+- [x] Create perpetual contract management system
+- [x] Implement funding rate calculation (8-hour intervals)
+- [x] Build mark price calculation from index price
+- [x] Add auto-deleveraging (ADL) system for liquidations
+- [x] Implement insurance fund mechanism
+- [x] Create funding rate history tracking
+- [x] Add contract settlement system
+- [x] Build position risk calculator
+
+### Frontend UI
+- [x] Create Margin Trading page with leverage selector
+- [x] Add position management dashboard
+- [x] Implement margin account overview
+- [x] Create Futures Trading page
+- [x] Add funding rate display and countdown
+- [x] Implement position liquidation warnings
+- [x] Create margin call notifications UI
+- [x] Add isolated/cross margin mode selector
+
+### Production Deployment
+- [ ] Apply all database migrations to production
+- [ ] Deploy backend services to VPS
+- [ ] Test margin trading flow end-to-end
+- [ ] Test futures trading and funding rates
+- [ ] Verify liquidation engine works correctly
+- [ ] Create final checkpoint

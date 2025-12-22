@@ -20,6 +20,8 @@ import { generateWalletAddress } from "./walletGenerator";
 import { getUserPreferences, updateUserPreferences } from "./notificationPreferences";
 import { apiKeyRouter } from "./apiKeyRouter";
 import { copyTradingRouter } from "./copyTradingRouter";
+import { marginTradingRouter } from "./marginTradingRouter";
+import { futuresRouter } from "./futuresRouter";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -2993,6 +2995,12 @@ export const appRouter = router({
   
   // Copy Trading System
   copyTrading: copyTradingRouter,
+  
+  // Margin Trading System
+  marginTrading: marginTradingRouter,
+  
+  // Futures Trading System
+  futures: futuresRouter,
 });
 
 export type AppRouter = typeof appRouter;
