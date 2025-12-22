@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Lock, AlertCircle, Key } from "lucide-react";
+import { Loader2, Mail, Lock, AlertCircle, Key, Fingerprint } from "lucide-react";
+import { startAuthentication } from "@simplewebauthn/browser";
+import { toast } from "sonner";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -17,6 +19,63 @@ export default function Login() {
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
   const [backupCode, setBackupCode] = useState("");
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+
+  // Check if WebAuthn is available
+  useEffect(() => {
+    if (window.PublicKeyCredential) {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+        .then(available => setIsBiometricAvailable(available))
+        .catch(() => setIsBiometricAvailable(false));
+    }
+  }, []);
+
+  const generateAuthOptions = trpc.webauthn.generateAuthenticationOptions.useMutation();
+  const verifyAuth = trpc.webauthn.verifyAuthentication.useMutation({
+    onSuccess: (data) => {
+      // Set JWT token in cookie
+      document.cookie = `token=${data.token}; path=/; max-age=31536000; SameSite=Lax`;
+      toast.success("Login successful!");
+      setLocation("/dashboard");
+      window.location.reload();
+    },
+    onError: (err) => {
+      setError(err.message);
+      setIsBiometricLoading(false);
+    },
+  });
+
+  const handleBiometricLogin = async () => {
+    if (!email) {
+      setError("Please enter your email first");
+      return;
+    }
+
+    setIsBiometricLoading(true);
+    setError("");
+
+    try {
+      // Generate authentication options
+      const options = await generateAuthOptions.mutateAsync({ email });
+
+      // Start WebAuthn authentication
+      const credential = await startAuthentication(options as any);
+
+      // Verify authentication
+      await verifyAuth.mutateAsync({ email, credential });
+    } catch (err: any) {
+      console.error("Biometric login error:", err);
+      if (err.message?.includes("No biometric credentials")) {
+        setError("No biometric authentication set up. Please login with password and set it up in Account Settings.");
+      } else if (err.name === "NotAllowedError") {
+        setError("Biometric authentication was cancelled");
+      } else {
+        setError(err.message || "Biometric authentication failed");
+      }
+      setIsBiometricLoading(false);
+    }
+  };
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
@@ -200,7 +259,7 @@ export default function Login() {
             <Button
               type="submit"
               className="w-full"
-              disabled={loginMutation.isPending}
+              disabled={loginMutation.isPending || isBiometricLoading}
             >
               {loginMutation.isPending ? (
                 <>
@@ -211,6 +270,41 @@ export default function Login() {
                 "Sign In"
               )}
             </Button>
+
+            {isBiometricAvailable && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleBiometricLogin}
+                  disabled={loginMutation.isPending || isBiometricLoading || !email}
+                >
+                  {isBiometricLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Authenticating...
+                    </>
+                  ) : (
+                    <>
+                      <Fingerprint className="mr-2 h-4 w-4" />
+                      Use Face ID / Touch ID
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
 
             <div className="text-center text-sm text-muted-foreground">
               Don't have an account?{" "}

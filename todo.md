@@ -389,3 +389,29 @@
 - [ ] Document Trust Signals
 - [ ] Document WebAuthn authentication
 - [ ] Add screenshots of new features
+
+## URGENT: UI Bug Fixes - December 22, 2025
+
+### Missing Menu Button Fix
+- [ ] Fix missing menu button in Referrals page (ReferralDashboard.tsx)
+- [ ] Fix missing menu button in Portfolio page (Portfolio.tsx)
+- [ ] Fix missing menu button in System Health page (SystemHealth.tsx)
+- [ ] Fix missing menu button in History page (TransactionHistory.tsx)
+- [ ] Verify all pages use DashboardLayout correctly
+
+### WebAuthn Biometric Authentication Implementation
+- [x] Add webauthnCredentials table to database schema (drizzle/schema.ts)
+- [x] Create WebAuthn registration tRPC endpoint (server/routers.ts)
+- [x] Create WebAuthn authentication tRPC endpoint (server/routers.ts)
+- [x] Create WebAuthn credential list endpoint (server/routers.ts)
+- [x] Create WebAuthn credential delete endpoint (server/routers.ts)
+- [x] Add "Use Biometric" button on login page (client/src/pages/auth/Login.tsx)
+- [x] Implement Face ID/Touch ID/Fingerprint authentication flow
+- [x] Add credential management UI in Account Settings (WebAuthnSetup.tsx exists)
+- [ ] Test WebAuthn on iOS Safari (Face ID) - requires production HTTPS
+- [ ] Test WebAuthn on macOS Safari (Touch ID) - requires production HTTPS
+- [ ] Test WebAuthn on Chrome/Edge (Windows Hello) - requires production HTTPS
+- [ ] Test WebAuthn on Android Chrome (Fingerprint) - requires production HTTPS
+- [ ] Deploy WebAuthn to production VPS
+- [x] Update documentation with WebAuthn setup guide (Functionality Guide v1.2.0)
+

@@ -2723,32 +2723,48 @@ export const appRouter = router({
     generateRegistrationOptions: protectedProcedure
       .input(z.object({ deviceName: z.string() }))
       .mutation(async ({ ctx, input }) => {
-        // TODO: Implement WebAuthn registration options generation
-        // This requires @simplewebauthn/server
-        // For now, return mock options
-        return {
-          challenge: Buffer.from("mock-challenge").toString("base64url"),
-          rp: {
-            name: "BitChange Pro",
-            id: "bitchangemoney.xyz",
-          },
-          user: {
-            id: Buffer.from(String(ctx.user.id)).toString("base64url"),
-            name: ctx.user.email,
-            displayName: ctx.user.name || ctx.user.email,
-          },
-          pubKeyCredParams: [
-            { alg: -7, type: "public-key" },
-            { alg: -257, type: "public-key" },
-          ],
-          timeout: 60000,
-          attestation: "none",
+        const { generateRegistrationOptions } = await import("@simplewebauthn/server");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        
+        const { webAuthnCredentials } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        
+        // Get existing credentials to exclude them
+        const existingCredentials = await db.select()
+          .from(webAuthnCredentials)
+          .where(eq(webAuthnCredentials.userId, ctx.user.id));
+        
+        const rpName = "BitChange Pro";
+        const rpID = process.env.NODE_ENV === "production" ? "bitchangemoney.xyz" : "localhost";
+        const origin = process.env.NODE_ENV === "production" 
+          ? "https://bitchangemoney.xyz" 
+          : `http://localhost:${process.env.PORT || 3000}`;
+        
+        const options = await generateRegistrationOptions({
+          rpName,
+          rpID,
+          userName: ctx.user.email,
+          userDisplayName: ctx.user.name || ctx.user.email,
+          attestationType: "none",
+          excludeCredentials: existingCredentials.map(cred => ({
+            id: Buffer.from(cred.credentialId, "base64url"),
+            type: "public-key",
+            transports: cred.transports ? JSON.parse(cred.transports) : undefined,
+          })),
           authenticatorSelection: {
             authenticatorAttachment: "platform",
             requireResidentKey: false,
             userVerification: "required",
           },
-        };
+        });
+        
+        // Store challenge in session/database for verification
+        // For simplicity, we'll store it in memory (in production, use Redis or database)
+        (global as any).webauthnChallenges = (global as any).webauthnChallenges || new Map();
+        (global as any).webauthnChallenges.set(ctx.user.id, options.challenge);
+        
+        return options;
       }),
 
     // Verify registration
@@ -2758,24 +2774,190 @@ export const appRouter = router({
         credential: z.any(), // WebAuthn credential response
       }))
       .mutation(async ({ ctx, input }) => {
+        const { verifyRegistrationResponse } = await import("@simplewebauthn/server");
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         const { webAuthnCredentials } = await import("../drizzle/schema");
         
-        // TODO: Implement proper WebAuthn verification
-        // For now, just store the credential
-        await db.insert(webAuthnCredentials).values({
-          userId: ctx.user.id,
-          credentialId: input.credential.id || "mock-credential-id",
-          publicKey: input.credential.publicKey || "mock-public-key",
-          counter: 0,
-          deviceName: input.deviceName,
-          deviceType: "platform",
-          transports: null,
-          aaguid: null,
+        // Get stored challenge
+        const expectedChallenge = (global as any).webauthnChallenges?.get(ctx.user.id);
+        if (!expectedChallenge) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Challenge not found or expired" });
+        }
+        
+        const rpID = process.env.NODE_ENV === "production" ? "bitchangemoney.xyz" : "localhost";
+        const origin = process.env.NODE_ENV === "production" 
+          ? "https://bitchangemoney.xyz" 
+          : `http://localhost:${process.env.PORT || 3000}`;
+        
+        try {
+          const verification = await verifyRegistrationResponse({
+            response: input.credential,
+            expectedChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
+          });
+          
+          if (!verification.verified || !verification.registrationInfo) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Verification failed" });
+          }
+          
+          const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+          
+          // Store the credential
+          await db.insert(webAuthnCredentials).values({
+            userId: ctx.user.id,
+            credentialId: Buffer.from(credential.id).toString("base64url"),
+            publicKey: Buffer.from(credential.publicKey).toString("base64url"),
+            counter: credential.counter,
+            deviceName: input.deviceName,
+            deviceType: credentialDeviceType,
+            transports: JSON.stringify(credential.transports || []),
+            aaguid: Buffer.from(credential.aaguid || new Uint8Array()).toString("hex"),
+          });
+          
+          // Clear the challenge
+          (global as any).webauthnChallenges?.delete(ctx.user.id);
+          
+          return { success: true, verified: true };
+        } catch (error) {
+          console.error("WebAuthn verification error:", error);
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Verification failed" });
+        }
+      }),
+
+    // Generate authentication options (for login)
+    generateAuthenticationOptions: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const { generateAuthenticationOptions } = await import("@simplewebauthn/server");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        
+        const { users, webAuthnCredentials } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        
+        // Find user by email
+        const [user] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        if (!user) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+        }
+        
+        // Get user's credentials
+        const credentials = await db.select()
+          .from(webAuthnCredentials)
+          .where(eq(webAuthnCredentials.userId, user.id));
+        
+        if (credentials.length === 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No biometric credentials registered" });
+        }
+        
+        const rpID = process.env.NODE_ENV === "production" ? "bitchangemoney.xyz" : "localhost";
+        
+        const options = await generateAuthenticationOptions({
+          rpID,
+          allowCredentials: credentials.map(cred => ({
+            id: cred.credentialId,
+            transports: cred.transports ? JSON.parse(cred.transports) : undefined,
+          })),
+          userVerification: "required",
         });
         
-        return { success: true };
+        // Store challenge for verification
+        (global as any).webauthnAuthChallenges = (global as any).webauthnAuthChallenges || new Map();
+        (global as any).webauthnAuthChallenges.set(input.email, { challenge: options.challenge, userId: user.id });
+        
+        return options;
+      }),
+
+    // Verify authentication (complete login)
+    verifyAuthentication: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        credential: z.any(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { verifyAuthenticationResponse } = await import("@simplewebauthn/server");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        
+        const { users, webAuthnCredentials } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        
+        // Get stored challenge
+        const authData = (global as any).webauthnAuthChallenges?.get(input.email);
+        if (!authData) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Challenge not found or expired" });
+        }
+        
+        // Find the credential
+        const credentialId = input.credential.id;
+        const [credential] = await db.select()
+          .from(webAuthnCredentials)
+          .where(eq(webAuthnCredentials.credentialId, credentialId))
+          .limit(1);
+        
+        if (!credential || credential.userId !== authData.userId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid credential" });
+        }
+        
+        const rpID = process.env.NODE_ENV === "production" ? "bitchangemoney.xyz" : "localhost";
+        const origin = process.env.NODE_ENV === "production" 
+          ? "https://bitchangemoney.xyz" 
+          : `http://localhost:${process.env.PORT || 3000}`;
+        
+        try {
+          const verification = await verifyAuthenticationResponse({
+            response: input.credential,
+            expectedChallenge: authData.challenge,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
+            credential: {
+              id: Buffer.from(credential.credentialId, "base64url") as any,
+              publicKey: Buffer.from(credential.publicKey, "base64url"),
+              counter: credential.counter,
+            },
+          });
+          
+          if (!verification.verified) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Authentication failed" });
+          }
+          
+          // Update counter
+          await db.update(webAuthnCredentials)
+            .set({ 
+              counter: verification.authenticationInfo.newCounter,
+              lastUsed: new Date(),
+            })
+            .where(eq(webAuthnCredentials.id, credential.id));
+          
+          // Get user
+          const [user] = await db.select().from(users).where(eq(users.id, credential.userId)).limit(1);
+          if (!user) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+          }
+          
+          // Update last signed in
+          await db.update(users)
+            .set({ lastSignedIn: new Date() })
+            .where(eq(users.id, user.id));
+          
+          // Create JWT token
+          const jwt = await import("jsonwebtoken");
+          const token = jwt.sign(
+            { userId: user.id },
+            process.env.JWT_SECRET || "fallback-secret",
+            { expiresIn: "365d" }
+          );
+          
+          // Clear challenge
+          (global as any).webauthnAuthChallenges?.delete(input.email);
+          
+          return { success: true, token, user };
+        } catch (error) {
+          console.error("WebAuthn authentication error:", error);
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Authentication failed" });
+        }
       }),
 
     // Delete credential
