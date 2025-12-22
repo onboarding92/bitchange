@@ -438,3 +438,45 @@
 - [x] Fix CMD to use correct entry point (dist/index.js)
 - [ ] Deploy to VPS with fixed Dockerfile
 - [ ] Verify production site works correctly
+
+---
+
+## Frontend Fixes & Matching Engine - December 22, 2025
+
+### Frontend UI Fixes
+- [x] Add DashboardLayout to WalletManagement.tsx (menu hamburger)
+- [x] Make Analytics filters responsive for iPhone
+- [x] Verify Face ID/Touch ID button exists in Login.tsx
+- [x] Delete test users from database (benziluca92@gmail.com, l.benzi@abacogroup.eu)
+- [x] Update README.md with WebAuthn biometric authentication
+
+### VPS Production Deployment
+- [ ] SSH into VPS (46.224.87.94)
+- [ ] Pull latest changes from GitHub
+- [ ] Build production bundle (pnpm build)
+- [ ] Restart Docker containers (docker-compose up -d --build)
+- [ ] Verify deployment on https://bitchangemoney.xyz
+- [ ] Test responsive filters on iPhone
+- [ ] Test Face ID login on iPhone
+
+### Matching Engine Implementation
+- [ ] Design matching engine architecture
+- [ ] Create order matching algorithm (price-time priority)
+- [ ] Implement automatic order execution
+- [ ] Add trade execution logging
+- [ ] Create background job for continuous matching
+- [ ] Add matching engine status to admin dashboard
+- [ ] Test with real orders
+- [ ] Document matching engine behavior
+
+### Matching Engine Status - December 22, 2025
+- [x] Design matching engine architecture (price-time priority)
+- [x] Create order matching algorithm in matchingEngine.ts
+- [x] Implement automatic order execution with partial fills
+- [x] Add trade execution logging
+- [x] Create background job for continuous matching (every 2 seconds)
+- [x] Add matching engine status endpoint to admin router
+- [x] Integrate matching engine startup in server index
+- [ ] Add matching engine status to admin dashboard UI
+- [ ] Test with real orders
+- [ ] Document matching engine behavior

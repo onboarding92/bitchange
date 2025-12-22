@@ -93,6 +93,11 @@ async function startServer() {
     import("../alerting").then(({ startAlertingSystem }) => {
       startAlertingSystem();
     }).catch(console.error);
+    
+    // Start matching engine
+    import("../matchingEngineJob").then(({ startMatchingEngine }) => {
+      startMatchingEngine();
+    }).catch(console.error);
   });
 }
 

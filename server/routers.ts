@@ -2978,6 +2978,12 @@ export const appRouter = router({
         
         return { success: true };
       }),
+    
+    // Matching Engine Status
+    matchingEngineStatus: adminProcedure.query(async () => {
+      const { getMatchingEngineStatus } = await import("./matchingEngineJob");
+      return await getMatchingEngineStatus();
+    }),
   }),
 });
 
