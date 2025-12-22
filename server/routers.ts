@@ -13,7 +13,8 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
 import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications } from "../drizzle/schema";
-import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
+import { eq, and, desc, sql, gte, or, inArray } from "drizzle-orm";
+import { checkAndUnlockAchievements } from "./achievementSystem";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 import { generateWalletAddress } from "./walletGenerator";
@@ -491,6 +492,9 @@ export const appRouter = router({
           amount: input.amount,
           filled: "0",
         });
+
+        // Check and unlock achievements
+        checkAndUnlockAchievements(ctx.user.id).catch(console.error);
 
         return { ok: true };
       }),
