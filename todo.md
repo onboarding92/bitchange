@@ -311,3 +311,47 @@
 - [ ] Enable Dependabot alerts (Settings → Security & analysis)
 - [ ] Enable Dependabot security updates
 - [ ] Verify weekly update schedule working
+
+## Production Check & Manual Updates - December 22, 2025
+
+### Production Check
+- [ ] Test homepage and landing page
+- [ ] Test user authentication (login/register)
+- [ ] Test dashboard navigation
+- [ ] Test deposit functionality
+- [ ] Test withdrawal functionality
+- [ ] Test trading features
+- [ ] Test staking features
+- [ ] Test admin panel access
+- [ ] Test wallet management dashboard
+- [ ] Test trust signals display
+- [ ] Test WebAuthn setup (requires device)
+- [ ] Verify SSL certificate
+- [ ] Check PM2 status
+- [ ] Check application logs
+- [ ] Test responsive design (mobile/tablet)
+
+### Manual Updates
+- [ ] Update VPS Operations Manual with new deployment procedure
+- [ ] Add Node.js/pnpm installation steps
+- [ ] Add PM2 configuration
+- [ ] Add Nginx setup procedure
+- [ ] Update Functionality Guide with Wallet Production System
+- [ ] Add Trust Signals documentation
+- [ ] Add WebAuthn documentation
+- [ ] Add Admin Wallet Management documentation
+- [ ] Update screenshots with new features
+
+## URGENT: Login Issue Debug - December 22, 2025
+
+### Login Functionality Issue
+- [ ] User reports login not working on production
+- [ ] Test login with existing credentials
+- [ ] Check PM2 logs for authentication errors
+- [ ] Verify database connection
+- [ ] Check OAuth configuration
+- [ ] Test registration → login flow
+- [ ] Verify JWT secret configuration
+- [ ] Check CORS settings
+- [ ] Test API endpoints directly
+- [ ] Fix any issues found
