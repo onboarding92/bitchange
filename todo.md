@@ -501,3 +501,14 @@
 - [x] Create forex broker adaptation guide document
 - [x] Document differences between crypto exchange and forex broker
 - [ ] Create final checkpoint with all enhancements
+
+### Trading Test & Export Features - December 22, 2025
+- [ ] Create automated trading test script (requires manual testing)
+- [x] Deploy updated matchingEngine.ts with notifications to VPS
+- [x] Restart production server to activate notifications
+- [x] Implement trading history export CSV (already existed)
+- [x] Implement trading history export PDF
+- [x] Add export buttons to trading history page
+- [ ] Test CSV export functionality (requires manual testing)
+- [ ] Test PDF export functionality (requires manual testing)
+- [ ] Create final checkpoint with all features
