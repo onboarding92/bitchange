@@ -16,23 +16,38 @@ interface WebSocketNotification {
 }
 
 interface WebSocketMessage {
-  type: "connected" | "notification" | "pong";
+  type: "connected" | "notification" | "pong" | "price_update" | "orderbook_update" | "trade_executed" | "user_notification" | "subscribed" | "unsubscribed";
   message?: string;
-  data?: WebSocketNotification;
+  data?: any;
+  channels?: string[];
 }
 
 interface UseWebSocketReturn {
   isConnected: boolean;
   lastNotification: WebSocketNotification | null;
+  subscriptions: string[];
   sendPing: () => void;
+  subscribe: (channels: string | string[]) => void;
+  unsubscribe: (channels: string | string[]) => void;
+  send: (message: any) => void;
 }
 
-export function useWebSocket(onNotification?: (notification: WebSocketNotification) => void): UseWebSocketReturn {
+interface UseWebSocketOptions {
+  onNotification?: (notification: WebSocketNotification) => void;
+  onMessage?: (message: WebSocketMessage) => void;
+}
+
+export function useWebSocket(options?: UseWebSocketOptions | ((notification: WebSocketNotification) => void)): UseWebSocketReturn {
+  // Support both old and new API
+  const { onNotification, onMessage } = typeof options === 'function' 
+    ? { onNotification: options, onMessage: undefined }
+    : (options || {});
   const { user } = useAuth();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const [isConnected, setIsConnected] = useState(false);
   const [lastNotification, setLastNotification] = useState<WebSocketNotification | null>(null);
+  const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
 
@@ -67,6 +82,9 @@ export function useWebSocket(onNotification?: (notification: WebSocketNotificati
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
           
+          // Call generic message handler
+          onMessage?.(message);
+          
           if (message.type === "connected") {
             console.log("[WebSocket]", message.message);
           } else if (message.type === "notification" && message.data) {
@@ -86,6 +104,12 @@ export function useWebSocket(onNotification?: (notification: WebSocketNotificati
             }
           } else if (message.type === "pong") {
             console.log("[WebSocket] Pong received");
+          } else if (message.type === "subscribed" && message.channels) {
+            console.log("[WebSocket] Subscribed to:", message.channels);
+            setSubscriptions(prev => [...new Set([...prev, ...message.channels!])]);
+          } else if (message.type === "unsubscribed" && message.channels) {
+            console.log("[WebSocket] Unsubscribed from:", message.channels);
+            setSubscriptions(prev => prev.filter(s => !message.channels!.includes(s)));
           }
         } catch (error) {
           console.error("[WebSocket] Failed to parse message:", error);
@@ -125,6 +149,26 @@ export function useWebSocket(onNotification?: (notification: WebSocketNotificati
     }
   }, []);
 
+  const subscribe = useCallback((channels: string | string[]) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      const channelArray = Array.isArray(channels) ? channels : [channels];
+      wsRef.current.send(JSON.stringify({ type: "subscribe", channels: channelArray }));
+    }
+  }, []);
+
+  const unsubscribe = useCallback((channels: string | string[]) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      const channelArray = Array.isArray(channels) ? channels : [channels];
+      wsRef.current.send(JSON.stringify({ type: "unsubscribe", channels: channelArray }));
+    }
+  }, []);
+
+  const send = useCallback((message: any) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(typeof message === "string" ? message : JSON.stringify(message));
+    }
+  }, []);
+
   useEffect(() => {
     connect();
 
@@ -143,6 +187,10 @@ export function useWebSocket(onNotification?: (notification: WebSocketNotificati
   return {
     isConnected,
     lastNotification,
-    sendPing
+    subscriptions,
+    sendPing,
+    subscribe,
+    unsubscribe,
+    send,
   };
 }

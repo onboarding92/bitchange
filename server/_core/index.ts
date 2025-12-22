@@ -103,6 +103,11 @@ async function startServer() {
     import("../matchingEngineJob").then(({ startMatchingEngine }) => {
       startMatchingEngine();
     }).catch(console.error);
+    
+    // Start price feed broadcaster
+    import("../priceFeedJob").then(({ startPriceFeedBroadcaster }) => {
+      startPriceFeedBroadcaster();
+    }).catch(console.error);
   });
 }
 

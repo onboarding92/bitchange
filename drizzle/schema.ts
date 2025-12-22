@@ -672,3 +672,67 @@ export const apiRequestLogs = mysqlTable("apiRequestLogs", {
 
 export type ApiRequestLog = typeof apiRequestLogs.$inferSelect;
 export type InsertApiRequestLog = typeof apiRequestLogs.$inferInsert;
+
+// Copy Trading System
+export const traderProfiles = mysqlTable("traderProfiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  totalFollowers: int("totalFollowers").default(0).notNull(),
+  totalTrades: int("totalTrades").default(0).notNull(),
+  winningTrades: int("winningTrades").default(0).notNull(),
+  losingTrades: int("losingTrades").default(0).notNull(),
+  winRate: decimal("winRate", { precision: 5, scale: 2 }).default("0").notNull(), // Percentage
+  totalPnL: decimal("totalPnL", { precision: 20, scale: 8 }).default("0").notNull(), // Total profit/loss in USDT
+  avgRoi: decimal("avgRoi", { precision: 10, scale: 2 }).default("0").notNull(), // Average ROI percentage
+  maxDrawdown: decimal("maxDrawdown", { precision: 10, scale: 2 }).default("0").notNull(), // Max drawdown percentage
+  sharpeRatio: decimal("sharpeRatio", { precision: 10, scale: 4 }).default("0").notNull(), // Risk-adjusted return
+  riskScore: int("riskScore").default(5).notNull(), // 1-10 scale (1=conservative, 10=aggressive)
+  tradingVolume30d: decimal("tradingVolume30d", { precision: 20, scale: 2 }).default("0").notNull(), // 30-day volume in USDT
+  isPublic: boolean("isPublic").default(false).notNull(), // Allow others to follow
+  bio: text("bio"), // Trader description
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TraderProfile = typeof traderProfiles.$inferSelect;
+export type InsertTraderProfile = typeof traderProfiles.$inferInsert;
+
+export const copyTradingFollows = mysqlTable("copyTradingFollows", {
+  id: int("id").autoincrement().primaryKey(),
+  followerId: int("followerId").notNull(), // User who is following
+  traderId: int("traderId").notNull(), // User being followed
+  allocatedAmount: decimal("allocatedAmount", { precision: 20, scale: 8 }).notNull(), // Max amount to allocate
+  maxRiskPerTrade: decimal("maxRiskPerTrade", { precision: 5, scale: 2 }).default("2.00").notNull(), // Max risk % per trade
+  copyRatio: decimal("copyRatio", { precision: 5, scale: 2 }).default("100.00").notNull(), // Percentage of trader's position to copy
+  status: mysqlEnum("status", ["active", "paused", "stopped"]).default("active").notNull(),
+  totalCopiedTrades: int("totalCopiedTrades").default(0).notNull(),
+  totalPnL: decimal("totalPnL", { precision: 20, scale: 8 }).default("0").notNull(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  stoppedAt: timestamp("stoppedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CopyTradingFollow = typeof copyTradingFollows.$inferSelect;
+export type InsertCopyTradingFollow = typeof copyTradingFollows.$inferInsert;
+
+export const copyTradingExecutions = mysqlTable("copyTradingExecutions", {
+  id: int("id").autoincrement().primaryKey(),
+  followId: int("followId").notNull(), // Reference to copyTradingFollows
+  followerId: int("followerId").notNull(),
+  traderId: int("traderId").notNull(),
+  originalOrderId: int("originalOrderId").notNull(), // Trader's original order
+  copiedOrderId: int("copiedOrderId").notNull(), // Follower's copied order
+  pair: varchar("pair", { length: 20 }).notNull(),
+  side: mysqlEnum("side", ["buy", "sell"]).notNull(),
+  executionPrice: decimal("executionPrice", { precision: 20, scale: 8 }).notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  copyRatio: decimal("copyRatio", { precision: 5, scale: 2 }).notNull(), // Ratio used for this execution
+  status: mysqlEnum("status", ["pending", "executed", "failed", "cancelled"]).default("pending").notNull(),
+  pnl: decimal("pnl", { precision: 20, scale: 8 }).default("0").notNull(), // Profit/loss for this execution
+  executedAt: timestamp("executedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CopyTradingExecution = typeof copyTradingExecutions.$inferSelect;
+export type InsertCopyTradingExecution = typeof copyTradingExecutions.$inferInsert;

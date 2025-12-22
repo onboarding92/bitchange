@@ -19,6 +19,7 @@ import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices
 import { generateWalletAddress } from "./walletGenerator";
 import { getUserPreferences, updateUserPreferences } from "./notificationPreferences";
 import { apiKeyRouter } from "./apiKeyRouter";
+import { copyTradingRouter } from "./copyTradingRouter";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -2989,6 +2990,9 @@ export const appRouter = router({
   
   // API Key Management for Trading Bots
   apiKey: apiKeyRouter,
+  
+  // Copy Trading System
+  copyTrading: copyTradingRouter,
 });
 
 export type AppRouter = typeof appRouter;

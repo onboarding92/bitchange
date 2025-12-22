@@ -34,10 +34,14 @@ interface WebSocketMessage {
 // Store active connections by userId
 const connections = new Map<number, Set<AuthenticatedWebSocket>>();
 
+// Store WebSocket server instance
+let wssInstance: WebSocketServer | null = null;
+
 /**
  * Initialize WebSocket server
  */
 export function initWebSocketServer(wss: WebSocketServer) {
+  wssInstance = wss;
   wss.on("connection", (ws: AuthenticatedWebSocket, req: IncomingMessage) => {
     console.log("[WebSocket] New connection attempt");
 
@@ -70,12 +74,30 @@ export function initWebSocketServer(wss: WebSocketServer) {
         message: "WebSocket connection established"
       }));
 
-      // Handle incoming messages (ping/pong)
+      // Initialize subscriptions array
+      (ws as any).subscriptions = [];
+
+      // Handle incoming messages (ping/pong, subscriptions)
       ws.on("message", (data) => {
         try {
           const message = JSON.parse(data.toString());
+          
           if (message.type === "ping") {
             ws.send(JSON.stringify({ type: "pong" }));
+          } else if (message.type === "subscribe") {
+            // Subscribe to channels (e.g., "BTC/USDT", "orderbook:BTC/USDT", "trades:BTC/USDT")
+            const channels = Array.isArray(message.channels) ? message.channels : [message.channels];
+            const currentSubs = (ws as any).subscriptions || [];
+            const newSubs = new Set([...currentSubs, ...channels]);
+            (ws as any).subscriptions = Array.from(newSubs);
+            ws.send(JSON.stringify({ type: "subscribed", channels }));
+            console.log(`[WebSocket] User ${ws.userId} subscribed to:`, channels);
+          } else if (message.type === "unsubscribe") {
+            // Unsubscribe from channels
+            const channels = Array.isArray(message.channels) ? message.channels : [message.channels];
+            (ws as any).subscriptions = (ws as any).subscriptions.filter((s: string) => !channels.includes(s));
+            ws.send(JSON.stringify({ type: "unsubscribed", channels }));
+            console.log(`[WebSocket] User ${ws.userId} unsubscribed from:`, channels);
           }
         } catch (error) {
           console.error("[WebSocket] Invalid message format:", error);
@@ -237,4 +259,11 @@ export function getActiveConnections() {
   });
 
   return activeConnections;
+}
+
+/**
+ * Get WebSocket server instance
+ */
+export function getWebSocketServer(): WebSocketServer | null {
+  return wssInstance;
 }

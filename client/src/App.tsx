@@ -42,6 +42,7 @@ const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const WebSocketDashboard = lazy(() => import("./pages/admin/WebSocketDashboard"));
 const APIKeys = lazy(() => import("./pages/APIKeys"));
+const CopyTrading = lazy(() => import("./pages/CopyTrading"));
 
 // Loading fallback component
 function PageLoader() {
@@ -79,6 +80,7 @@ function Router() {
         <Route path="/portfolio" component={Portfolio} />
         <Route path="/settings" component={AccountSettings} />
         <Route path="/api-keys" component={APIKeys} />
+        <Route path="/copy-trading" component={CopyTrading} />
         <Route path="/transactions" component={TransactionHistory} />
         <Route path="/referrals" component={ReferralDashboard} />
         <Route path="/admin" component={Admin} />
