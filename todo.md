@@ -425,6 +425,16 @@
 - [x] Remove custom headers from ReferralDashboard page
 - [x] Remove custom headers from TransactionHistory page
 - [x] Ensure menu button visible on all pages (Referrals, Portfolio, System Health, History, etc.)
-- [ ] Test sidebar toggle on desktop viewport
-- [ ] Verify mobile header still works correctly
-- [ ] Save checkpoint after fix
+- [x] Test sidebar toggle on desktop viewport (works on dev server)
+- [x] Verify mobile header still works correctly (works on dev server)
+- [x] Save checkpoint after fix (d2f345db)
+- [ ] Deploy to VPS production (requires Dockerfile fix or manual deploy)
+
+## Dockerfile Fix - December 22, 2025
+
+### Fix Vite Build Path Mismatch
+- [x] Analyze current Dockerfile structure
+- [x] Fix COPY command to use correct Vite output paths (removed client/dist, kept dist/)
+- [x] Fix CMD to use correct entry point (dist/index.js)
+- [ ] Deploy to VPS with fixed Dockerfile
+- [ ] Verify production site works correctly
