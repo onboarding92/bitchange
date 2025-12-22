@@ -28,6 +28,9 @@ import { useLocation } from "wouter";
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { data: stats, isLoading, refetch } = trpc.admin.dashboardStats.useQuery({ timeRange: "30d" });
+  const { data: matchingEngineStatus } = trpc.admin.matchingEngineStatus.useQuery(undefined, {
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
 
   const StatCard = ({ title, value, icon: Icon, color, subtitle }: any) => (
     <Card className="bg-slate-800/90 border-slate-700 p-6">
@@ -125,6 +128,61 @@ export default function AdminDashboard() {
             subtitle="Last 30 days"
           />
         </div>
+
+        {/* Matching Engine Status */}
+        <Card className="bg-slate-800/90 border-slate-700 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-400" />
+              Matching Engine Status
+            </h3>
+            <div className="flex items-center gap-2">
+              {matchingEngineStatus?.isRunning ? (
+                <span className="flex items-center gap-2 text-green-400 text-sm">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  Running
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-red-400 text-sm">
+                  <div className="w-2 h-2 bg-red-400 rounded-full" />
+                  Stopped
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-slate-900/50 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                <Clock className="w-4 h-4" />
+                Pending Orders
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {matchingEngineStatus?.stats?.pendingOrders ?? 0}
+              </p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                <BarChart3 className="w-4 h-4" />
+                Total Trades
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {matchingEngineStatus?.stats?.totalTrades?.toLocaleString() ?? 0}
+              </p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                <TrendingUp className="w-4 h-4" />
+                Last 24h Trades
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {matchingEngineStatus?.stats?.last24hTrades?.toLocaleString() ?? 0}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 text-xs text-slate-500">
+            Matching interval: {matchingEngineStatus?.interval ? `${matchingEngineStatus.interval}ms` : 'N/A'}
+          </div>
+        </Card>
 
         {/* Alerts */}
         {(stats?.pendingWithdrawals ?? 0) > 0 || (stats?.pendingKyc ?? 0) > 0 ? (
