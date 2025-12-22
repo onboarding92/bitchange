@@ -9,7 +9,7 @@
  */
 
 import { getDb } from "./db";
-import { orders, trades, wallets } from "../drizzle/schema";
+import { orders, trades, wallets, notifications } from "../drizzle/schema";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
 
 export interface MatchResult {
@@ -204,6 +204,28 @@ export async function matchOrder(orderId: number): Promise<MatchResult> {
       quantity: matchQuantity,
       total: tradeTotal,
     });
+
+    // Send notifications to both users
+    try {
+      await db.insert(notifications).values([
+        {
+          userId: order.userId,
+          title: "Order Matched",
+          message: `Your ${order.type} order for ${matchQuantity} ${baseCurrency} at $${tradePrice} has been matched!`,
+          isRead: false,
+          createdAt: new Date(),
+        },
+        {
+          userId: matchingOrder.userId,
+          title: "Order Matched",
+          message: `Your ${matchingOrder.type} order for ${matchQuantity} ${baseCurrency} at $${tradePrice} has been matched!`,
+          isRead: false,
+          createdAt: new Date(),
+        },
+      ]);
+    } catch (notifError) {
+      console.error("Failed to send order match notifications:", notifError);
+    }
 
     remainingQuantity -= matchQuantity;
     result.matched = true;
