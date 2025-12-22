@@ -23,6 +23,7 @@ import { copyTradingRouter } from "./copyTradingRouter";
 import { marginTradingRouter } from "./marginTradingRouter";
 import { futuresRouter } from "./futuresRouter";
 
+
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx });
@@ -3001,6 +3002,8 @@ export const appRouter = router({
   
   // Futures Trading System
   futures: futuresRouter,
+  
+
 });
 
 export type AppRouter = typeof appRouter;

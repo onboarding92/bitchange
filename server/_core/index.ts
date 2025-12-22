@@ -118,6 +118,8 @@ async function startServer() {
     import("../fundingRateJob").then(({ startFundingRateJob }) => {
       startFundingRateJob();
     }).catch(console.error);
+    
+
   });
 }
 

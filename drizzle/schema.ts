@@ -854,3 +854,158 @@ export const insuranceFund = mysqlTable("insuranceFund", {
 
 export type InsuranceFund = typeof insuranceFund.$inferSelect;
 export type InsertInsuranceFund = typeof insuranceFund.$inferInsert;
+
+
+// ==================== Staking & Yield Farming ====================
+
+export const stakingPools = mysqlTable("stakingPools", {
+  id: int("id").autoincrement().primaryKey(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  type: mysqlEnum("type", ["flexible", "locked"]).notNull(),
+  apy: decimal("apy", { precision: 5, scale: 2 }).notNull(), // Annual Percentage Yield
+  minAmount: decimal("minAmount", { precision: 20, scale: 8 }).default("0").notNull(),
+  lockPeriod: int("lockPeriod").default(0).notNull(), // Lock period in days (0 for flexible)
+  totalStaked: decimal("totalStaked", { precision: 20, scale: 8 }).default("0").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type StakingPool = typeof stakingPools.$inferSelect;
+export type InsertStakingPool = typeof stakingPools.$inferInsert;
+
+export const userStakes = mysqlTable("userStakes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  poolId: int("poolId").notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  startDate: timestamp("startDate").defaultNow().notNull(),
+  endDate: timestamp("endDate"), // NULL for flexible, set for locked
+  status: mysqlEnum("status", ["active", "completed", "withdrawn"]).default("active").notNull(),
+  accumulatedRewards: decimal("accumulatedRewards", { precision: 20, scale: 8 }).default("0").notNull(),
+  lastRewardCalculation: timestamp("lastRewardCalculation").defaultNow().notNull(),
+  autoCompound: boolean("autoCompound").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserStake = typeof userStakes.$inferSelect;
+export type InsertUserStake = typeof userStakes.$inferInsert;
+
+export const stakingRewards = mysqlTable("stakingRewards", {
+  id: int("id").autoincrement().primaryKey(),
+  stakeId: int("stakeId").notNull(),
+  userId: int("userId").notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  type: mysqlEnum("type", ["daily", "compound", "withdrawal"]).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type StakingReward = typeof stakingRewards.$inferSelect;
+export type InsertStakingReward = typeof stakingRewards.$inferInsert;
+
+export const liquidityPools = mysqlTable("liquidityPools", {
+  id: int("id").autoincrement().primaryKey(),
+  pair: varchar("pair", { length: 20 }).notNull().unique(), // e.g., "BTC/USDT"
+  token0: varchar("token0", { length: 20 }).notNull(),
+  token1: varchar("token1", { length: 20 }).notNull(),
+  totalLiquidity: decimal("totalLiquidity", { precision: 20, scale: 8 }).default("0").notNull(),
+  token0Reserve: decimal("token0Reserve", { precision: 20, scale: 8 }).default("0").notNull(),
+  token1Reserve: decimal("token1Reserve", { precision: 20, scale: 8 }).default("0").notNull(),
+  apy: decimal("apy", { precision: 5, scale: 2 }).default("0").notNull(),
+  fees24h: decimal("fees24h", { precision: 20, scale: 8 }).default("0").notNull(),
+  volume24h: decimal("volume24h", { precision: 20, scale: 8 }).default("0").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LiquidityPool = typeof liquidityPools.$inferSelect;
+export type InsertLiquidityPool = typeof liquidityPools.$inferInsert;
+
+export const userLiquidityPositions = mysqlTable("userLiquidityPositions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  poolId: int("poolId").notNull(),
+  token0Amount: decimal("token0Amount", { precision: 20, scale: 8 }).notNull(),
+  token1Amount: decimal("token1Amount", { precision: 20, scale: 8 }).notNull(),
+  lpTokens: decimal("lpTokens", { precision: 20, scale: 8 }).notNull(), // Liquidity Provider tokens
+  rewards: decimal("rewards", { precision: 20, scale: 8 }).default("0").notNull(),
+  impermanentLoss: decimal("impermanentLoss", { precision: 20, scale: 8 }).default("0").notNull(),
+  status: mysqlEnum("status", ["active", "withdrawn"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserLiquidityPosition = typeof userLiquidityPositions.$inferSelect;
+export type InsertUserLiquidityPosition = typeof userLiquidityPositions.$inferInsert;
+
+// ==================== Social Trading & Leaderboard ====================
+
+export const leaderboard = mysqlTable("leaderboard", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  rank: int("rank").default(0).notNull(),
+  totalPnL: decimal("totalPnL", { precision: 20, scale: 8 }).default("0").notNull(),
+  winRate: decimal("winRate", { precision: 5, scale: 2 }).default("0").notNull(), // Percentage
+  totalTrades: int("totalTrades").default(0).notNull(),
+  followers: int("followers").default(0).notNull(),
+  points: int("points").default(0).notNull(), // Gamification points
+  streak: int("streak").default(0).notNull(), // Winning streak
+  tier: mysqlEnum("tier", ["bronze", "silver", "gold", "platinum", "diamond"]).default("bronze").notNull(),
+  verified: boolean("verified").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Leaderboard = typeof leaderboard.$inferSelect;
+export type InsertLeaderboard = typeof leaderboard.$inferInsert;
+
+export const achievements = mysqlTable("achievements", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  achievementType: varchar("achievementType", { length: 50 }).notNull(), // e.g., "first_trade", "100_trades", "10k_profit"
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 50 }), // Icon name or emoji
+  points: int("points").default(0).notNull(),
+  metadata: text("metadata"), // JSON metadata
+  earnedAt: timestamp("earnedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = typeof achievements.$inferInsert;
+
+export const socialFeed = mysqlTable("socialFeed", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["post", "trade_share", "achievement", "milestone"]).notNull(),
+  content: text("content").notNull(),
+  metadata: text("metadata"), // JSON metadata (trade details, achievement info, etc.)
+  likes: int("likes").default(0).notNull(),
+  comments: int("comments").default(0).notNull(),
+  shares: int("shares").default(0).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SocialFeed = typeof socialFeed.$inferSelect;
+export type InsertSocialFeed = typeof socialFeed.$inferInsert;
+
+export const profitSharing = mysqlTable("profitSharing", {
+  id: int("id").autoincrement().primaryKey(),
+  traderId: int("traderId").notNull(),
+  followerId: int("followerId").notNull(),
+  tradeId: int("tradeId").notNull(),
+  originalProfit: decimal("originalProfit", { precision: 20, scale: 8 }).notNull(),
+  sharedProfit: decimal("sharedProfit", { precision: 20, scale: 8 }).notNull(),
+  percentage: decimal("percentage", { precision: 5, scale: 2 }).default("10").notNull(), // Default 10% profit sharing
+  status: mysqlEnum("status", ["pending", "paid", "cancelled"]).default("pending").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProfitSharing = typeof profitSharing.$inferSelect;
+export type InsertProfitSharing = typeof profitSharing.$inferInsert;

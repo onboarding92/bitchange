@@ -631,3 +631,66 @@
 - [ ] Test futures trading and funding rates
 - [ ] Verify liquidation engine works correctly
 - [ ] Create final checkpoint
+
+
+## Staking & Yield Farming
+
+### Database Schema
+- [x] Create stakingPools table (asset, type, apy, minAmount, lockPeriod, totalStaked, isActive)
+- [x] Create userStakes table (userId, poolId, amount, startDate, endDate, status, accumulatedRewards)
+- [x] Create stakingRewards table (stakeId, amount, timestamp, type)
+- [x] Create liquidityPools table (pair, token0, token1, totalLiquidity, apy, fees24h)
+- [x] Create userLiquidityPositions table (userId, poolId, token0Amount, token1Amount, lpTokens, rewards)
+
+### Staking Backend
+- [x] Implement flexible staking (withdraw anytime)
+- [x] Implement locked staking (30/60/90/180 days)
+- [x] Create APY calculation engine
+- [x] Build rewards distribution system
+- [x] Add auto-compounding mechanism
+- [ ] Implement early withdrawal penalties
+- [x] Create staking statistics tracker
+
+### Yield Farming Backend
+- [ ] Create liquidity pool management
+- [ ] Implement LP token minting/burning
+- [ ] Build farming rewards calculator
+- [ ] Add impermanent loss calculator
+- [ ] Create auto-compound strategies
+- [ ] Implement pool rebalancing
+- [ ] Add farming statistics
+
+## Social Trading & Leaderboard
+
+### Database Schema
+- [x] Create leaderboard table (userId, rank, totalPnL, winRate, totalTrades, followers, points)
+- [x] Create achievements table (userId, achievementType, earnedAt, metadata)
+- [x] Create socialFeed table (userId, type, content, likes, comments, timestamp)
+- [x] Create profitSharing table (traderId, followerId, sharedProfit, percentage, timestamp)
+
+### Social Trading Backend
+- [x] Implement global leaderboard ranking system
+- [x] Create profit sharing mechanism
+- [x] Build achievement system (milestones, badges)
+- [x] Add social feed (posts, likes, comments)
+- [ ] Implement trader verification system
+- [x] Create ranking algorithm (PnL, win rate, consistency)
+- [x] Add notification system for achievements
+
+### Frontend UI
+- [ ] Create Staking page with pool list
+- [ ] Add stake/unstake interface
+- [ ] Implement rewards dashboard
+- [ ] Create Yield Farming page
+- [ ] Add liquidity pool interface
+- [ ] Implement Leaderboard page with rankings
+- [ ] Create Social Feed component
+- [ ] Add Achievement badges display
+- [ ] Implement profit sharing dashboard
+
+### Final Integration
+- [ ] Test all staking flows
+- [ ] Verify yield farming calculations
+- [ ] Test leaderboard ranking updates
+- [ ] Create final checkpoint
+- [ ] Deploy to production
