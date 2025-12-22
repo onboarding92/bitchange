@@ -85,20 +85,16 @@ export default function TransactionHistory() {
   return (
     <DashboardLayout>
     <div className="container max-w-7xl py-8">
-      <Button
-        variant="ghost"
-        onClick={() => setLocation("/dashboard")}
-        className="mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Dashboard
-      </Button>
-
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Transaction History</h1>
-        <p className="text-muted-foreground mt-2">
-          View and export your complete transaction history
-        </p>
+      <div className="flex justify-start mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLocation("/dashboard")}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
       </div>
 
       <Card className="mb-6">

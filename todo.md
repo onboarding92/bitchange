@@ -415,3 +415,16 @@
 - [ ] Deploy WebAuthn to production VPS
 - [x] Update documentation with WebAuthn setup guide (Functionality Guide v1.2.0)
 
+
+## URGENT: Desktop Menu Button Fix - December 22, 2025
+
+### Missing Sidebar Toggle on Desktop
+- [x] Add SidebarTrigger button to desktop header in DashboardLayout
+- [x] Remove custom headers from SystemHealth page
+- [x] Remove custom headers from Portfolio page
+- [x] Remove custom headers from ReferralDashboard page
+- [x] Remove custom headers from TransactionHistory page
+- [x] Ensure menu button visible on all pages (Referrals, Portfolio, System Health, History, etc.)
+- [ ] Test sidebar toggle on desktop viewport
+- [ ] Verify mobile header still works correctly
+- [ ] Save checkpoint after fix

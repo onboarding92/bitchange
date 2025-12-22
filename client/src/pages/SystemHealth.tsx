@@ -63,35 +63,28 @@ export default function SystemHealth() {
 
   return (
     <DashboardLayout>
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
-          <p className="text-muted-foreground mt-1">Real-time monitoring and performance metrics</p>
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <Select value={timeRange} onValueChange={(v: any) => setTimeRange(v)}>
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1h">Last Hour</SelectItem>
-              <SelectItem value="24h">Last 24 Hours</SelectItem>
-              <SelectItem value="7d">Last 7 Days</SelectItem>
-              <SelectItem value="30d">Last 30 Days</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button 
-            onClick={() => refetch()} 
-            variant="outline" 
-            size="icon"
-            disabled={isFetching}
-            className="shrink-0"
-          >
-            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Controls */}
+      <div className="flex justify-end gap-2">
+        <Select value={timeRange} onValueChange={(v: any) => setTimeRange(v)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1h">Last Hour</SelectItem>
+            <SelectItem value="24h">Last 24 Hours</SelectItem>
+            <SelectItem value="7d">Last 7 Days</SelectItem>
+            <SelectItem value="30d">Last 30 Days</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button 
+          onClick={() => refetch()} 
+          variant="outline" 
+          size="icon"
+          disabled={isFetching}
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       {/* Active Alerts Banner */}

@@ -44,16 +44,13 @@ export default function ReferralDashboard() {
 
   return (
     <DashboardLayout>
-    <div className="container max-w-6xl py-8">
-      {/* Header with Back Button */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => setLocation("/dashboard")}>
+    <div className="container max-w-6xl space-y-6">
+      {/* Back Button */}
+      <div className="flex justify-start">
+        <Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Referral Program</h1>
-          <p className="text-muted-foreground">Invite friends and earn rewards</p>
-        </div>
       </div>
 
       {/* Stats Cards */}

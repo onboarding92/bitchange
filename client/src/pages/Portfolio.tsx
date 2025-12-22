@@ -33,22 +33,16 @@ export default function Portfolio() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header with CTA */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Portfolio Overview</h1>
-            <p className="text-muted-foreground">Track your investments and maximize your returns</p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => setLocation("/deposit")} className="gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Add Funds
-            </Button>
-            <Button onClick={() => setLocation("/trading")} variant="outline" className="gap-2">
-              <ArrowUpRight className="h-4 w-4" />
-              Start Trading
-            </Button>
-          </div>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2">
+          <Button onClick={() => setLocation("/deposit")} className="gap-2">
+            <PlusCircle className="h-4 w-4" />
+            Add Funds
+          </Button>
+          <Button onClick={() => setLocation("/trading")} variant="outline" className="gap-2">
+            <ArrowUpRight className="h-4 w-4" />
+            Start Trading
+          </Button>
         </div>
 
         {/* Summary Cards with Enhanced Design */}
