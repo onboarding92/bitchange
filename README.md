@@ -11,7 +11,7 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 
 ### 🔐 User Features
 - **Multi-Currency Wallet**: Support for 15+ cryptocurrencies (BTC, ETH, USDT, BNB, ADA, SOL, XRP, DOT, DOGE, AVAX, SHIB, MATIC, LTC, LINK, XLM)
-- **Authentication System**: Email/password registration, email verification, password reset, 2FA with Google Authenticator, session management
+- **Authentication System**: Email/password registration, email verification, password reset, 2FA with Google Authenticator, WebAuthn biometric authentication (Face ID, Touch ID, Windows Hello), session management
 - **Email Notifications**: SendGrid integration for welcome emails, verification codes, password reset, login alerts, withdrawal notifications, and KYC status updates
 - **Trading System**: Limit orders, real-time order book, trade history, and order management
 - **TradingView Charts**: Professional real-time price charts with technical indicators (RSI, MA) and multiple timeframes (1m, 15m, 30m, 1h)

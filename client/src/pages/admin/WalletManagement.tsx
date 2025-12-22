@@ -29,6 +29,7 @@ import {
   XCircle
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function WalletManagement() {
   const [selectedNetwork, setSelectedNetwork] = useState("");
@@ -110,11 +111,12 @@ export default function WalletManagement() {
   };
   
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Wallet Management</h1>
-        <p className="text-gray-400">Manage cold storage and hot wallet system</p>
-      </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Wallet Management</h1>
+          <p className="text-gray-400">Manage cold storage and hot wallet system</p>
+        </div>
       
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
@@ -571,6 +573,7 @@ export default function WalletManagement() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
