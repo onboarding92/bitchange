@@ -22,6 +22,9 @@ import { apiKeyRouter } from "./apiKeyRouter";
 import { copyTradingRouter } from "./copyTradingRouter";
 import { marginTradingRouter } from "./marginTradingRouter";
 import { futuresRouter } from "./futuresRouter";
+import { stakingRouter } from "./routers/stakingRouter";
+import { leaderboardRouter } from "./routers/leaderboardRouter";
+import { analyticsRouter } from "./routers/analyticsRouter";
 
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -3003,6 +3006,11 @@ export const appRouter = router({
   // Futures Trading System
   futures: futuresRouter,
   
+  // Leaderboard & Social Trading
+  leaderboard: leaderboardRouter,
+  
+  // Advanced Analytics
+  analytics: analyticsRouter,
 
 });
 

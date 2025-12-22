@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { NotificationToast } from "@/components/NotificationToast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -46,6 +47,7 @@ const CopyTrading = lazy(() => import("./pages/CopyTrading"));
 const MarginTrading = lazy(() => import("./pages/MarginTrading"));
 const FuturesTrading = lazy(() => import("./pages/FuturesTrading"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
 
 // Loading fallback component
 function PageLoader() {
@@ -87,6 +89,7 @@ function Router() {
         <Route path="/margin-trading" component={MarginTrading} />
         <Route path="/futures" component={FuturesTrading} />
         <Route path="/leaderboard" component={Leaderboard} />
+        <Route path="/analytics" component={AdvancedAnalytics} />
         <Route path="/transactions" component={TransactionHistory} />
         <Route path="/referrals" component={ReferralDashboard} />
         <Route path="/admin" component={Admin} />
@@ -114,6 +117,7 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
+          <NotificationToast />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
