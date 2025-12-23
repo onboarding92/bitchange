@@ -694,3 +694,19 @@
 - [ ] Test leaderboard ranking updates
 - [ ] Create final checkpoint
 - [ ] Deploy to production
+
+## UI Navigation Fixes - December 23, 2025
+
+### Missing Sidebar/Navigation
+- [x] Fix Wallet Management (admin) - already has DashboardLayout wrapper
+- [x] Fix Leaderboard - add DashboardLayout wrapper
+
+### Button Formatting Issues
+- [ ] Review and fix button formatting across all pages
+- [ ] Ensure consistent button styles
+- [ ] Fix any misaligned or poorly formatted buttons
+
+## Capital Forex Issues (Separate Project)
+- [ ] Debug white page rendering issue (React not rendering at all)
+- [ ] Check for JavaScript errors preventing React mount
+- [ ] Verify build configuration

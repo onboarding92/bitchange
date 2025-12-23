@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Trophy, TrendingUp, Users, Award, Star, Heart, MessageCircle, Share2, Medal } from "lucide-react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Leaderboard() {
   const [sortBy, setSortBy] = useState<"rank" | "totalPnL" | "winRate" | "totalTrades" | "followers">("rank");
@@ -49,9 +50,9 @@ export default function Leaderboard() {
     if (rank === 3) return "🥉";
     return null;
   };
-
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <DashboardLayout>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Leaderboard & Social</h1>
@@ -336,5 +337,6 @@ export default function Leaderboard() {
         </TabsContent>
       </Tabs>
     </div>
+    </DashboardLayout>
   );
 }
