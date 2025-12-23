@@ -18,6 +18,8 @@ import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 import { generateWalletAddress } from "./walletGenerator";
 import { getUserPreferences, updateUserPreferences } from "./notificationPreferences";
+import { copyTradingRouter } from "./copyTradingRouter";
+import { leaderboardRouter } from "./leaderboardRouter";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -2797,6 +2799,8 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+  copyTrading: copyTradingRouter,
+  leaderboard: leaderboardRouter,
 });
 
 export type AppRouter = typeof appRouter;

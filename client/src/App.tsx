@@ -41,6 +41,8 @@ const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const WebSocketDashboard = lazy(() => import("./pages/admin/WebSocketDashboard"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const CopyTrading = lazy(() => import("./pages/CopyTrading"));
 
 // Loading fallback component
 function PageLoader() {
@@ -79,6 +81,8 @@ function Router() {
         <Route path="/settings" component={AccountSettings} />
         <Route path="/transactions" component={TransactionHistory} />
         <Route path="/referrals" component={ReferralDashboard} />
+        <Route path="/leaderboard" component={Leaderboard} />
+        <Route path="/copy-trading" component={CopyTrading} />
         <Route path="/admin" component={Admin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/panel" component={AdminPanel} />
