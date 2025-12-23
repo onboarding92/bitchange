@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
-import { getDb } from "../db";
-import { leaderboard, achievements, socialFeed, profitSharing } from "../../drizzle/schema";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { getDb } from "./db";
+import { leaderboard, achievements, socialFeed } from "../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 export const leaderboardRouter = router({
