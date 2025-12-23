@@ -52,11 +52,9 @@ export default function Leaderboard() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Leaderboard & Social</h1>
-          <p className="text-muted-foreground">Compete with top traders and share your success</p>
-        </div>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl md:text-3xl font-bold">Leaderboard & Social</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Compete with top traders and share your success</p>
       </div>
 
       {/* My Ranking Card */}
@@ -138,16 +136,17 @@ export default function Leaderboard() {
         <TabsContent value="leaderboard" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                   <Trophy className="h-5 w-5 text-yellow-500" />
                   Global Leaderboard
                 </CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant={sortBy === "rank" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSortBy("rank")}
+                    className="text-xs md:text-sm"
                   >
                     Rank
                   </Button>
@@ -155,6 +154,7 @@ export default function Leaderboard() {
                     variant={sortBy === "totalPnL" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSortBy("totalPnL")}
+                    className="text-xs md:text-sm"
                   >
                     PnL
                   </Button>
@@ -162,6 +162,7 @@ export default function Leaderboard() {
                     variant={sortBy === "winRate" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSortBy("winRate")}
+                    className="text-xs md:text-sm"
                   >
                     Win Rate
                   </Button>

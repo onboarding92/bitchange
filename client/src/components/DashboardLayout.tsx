@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart, Trophy, Copy } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -41,6 +41,8 @@ const menuItems = [
   { icon: History, label: "History", path: "/transactions" },
   { icon: PieChart, label: "Portfolio", path: "/portfolio" },
   { icon: Gift, label: "Referrals", path: "/referrals" },
+  { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
+  { icon: Copy, label: "Copy Trading", path: "/copy-trading" },
   { icon: Settings, label: "Admin Panel", path: "/admin/panel", adminOnly: true },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", adminOnly: true },
   { icon: Activity, label: "System Health", path: "/admin/system-health", adminOnly: true },

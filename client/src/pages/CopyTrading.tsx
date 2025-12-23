@@ -109,13 +109,11 @@ export default function CopyTrading() {
   return (
     <DashboardLayout>
       <div className="container max-w-7xl py-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Copy Trading</h1>
-            <p className="text-muted-foreground mt-2">
-              Follow experienced traders and automatically copy their trades
-            </p>
-          </div>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Copy Trading</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Follow experienced traders and automatically copy their trades
+          </p>
         </div>
 
         <Alert>
@@ -126,16 +124,16 @@ export default function CopyTrading() {
         </Alert>
 
         <Tabs defaultValue="discover" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="discover">Discover Traders</TabsTrigger>
-            <TabsTrigger value="following">My Followed Traders ({myFollows?.length || 0})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="discover" className="text-xs sm:text-sm">Discover Traders</TabsTrigger>
+            <TabsTrigger value="following" className="text-xs sm:text-sm">My Followed Traders ({myFollows?.length || 0})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="discover" className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Label>Sort by:</Label>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <Label className="text-sm">Sort by:</Label>
               <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,17 +149,17 @@ export default function CopyTrading() {
               {topTraders?.map((trader) => (
                 <Card key={trader.userId} className="glass">
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="space-y-1 flex-1">
+                        <CardTitle className="flex flex-wrap items-center gap-2 text-base md:text-lg">
                           {trader.username}
                           <Badge className={getRiskBadgeColor(trader.riskScore)}>
                             {getRiskLabel(trader.riskScore)}
                           </Badge>
                         </CardTitle>
-                        <CardDescription>{trader.bio || "No bio provided"}</CardDescription>
+                        <CardDescription className="text-xs sm:text-sm">{trader.bio || "No bio provided"}</CardDescription>
                       </div>
-                      <Button onClick={() => handleFollowClick(trader)}>
+                      <Button onClick={() => handleFollowClick(trader)} className="w-full sm:w-auto">
                         <Copy className="h-4 w-4 mr-2" />
                         Follow
                       </Button>
