@@ -632,3 +632,116 @@ export const walletThresholds = mysqlTable("walletThresholds", {
 
 export type WalletThreshold = typeof walletThresholds.$inferSelect;
 export type InsertWalletThreshold = typeof walletThresholds.$inferInsert;
+
+// ==================== Social Trading & Leaderboard ====================
+
+export const traderProfiles = mysqlTable("traderProfiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  totalFollowers: int("totalFollowers").default(0).notNull(),
+  totalTrades: int("totalTrades").default(0).notNull(),
+  winningTrades: int("winningTrades").default(0).notNull(),
+  losingTrades: int("losingTrades").default(0).notNull(),
+  winRate: decimal("winRate", { precision: 5, scale: 2 }).default("0").notNull(),
+  totalPnL: decimal("totalPnL", { precision: 20, scale: 8 }).default("0").notNull(),
+  avgRoi: decimal("avgRoi", { precision: 10, scale: 2 }).default("0").notNull(),
+  maxDrawdown: decimal("maxDrawdown", { precision: 10, scale: 2 }).default("0").notNull(),
+  sharpeRatio: decimal("sharpeRatio", { precision: 10, scale: 4 }).default("0").notNull(),
+  riskScore: int("riskScore").default(5).notNull(),
+  tradingVolume30d: decimal("tradingVolume30d", { precision: 20, scale: 2 }).default("0").notNull(),
+  isPublic: boolean("isPublic").default(false).notNull(),
+  bio: text("bio"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TraderProfile = typeof traderProfiles.$inferSelect;
+export type InsertTraderProfile = typeof traderProfiles.$inferInsert;
+
+export const copyTradingFollows = mysqlTable("copyTradingFollows", {
+  id: int("id").autoincrement().primaryKey(),
+  followerId: int("followerId").notNull(),
+  traderId: int("traderId").notNull(),
+  allocatedAmount: decimal("allocatedAmount", { precision: 20, scale: 8 }).notNull(),
+  maxRiskPercent: decimal("maxRiskPercent", { precision: 5, scale: 2 }).default("2").notNull(),
+  copyRatio: decimal("copyRatio", { precision: 5, scale: 2 }).default("100").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  stoppedAt: timestamp("stoppedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CopyTradingFollow = typeof copyTradingFollows.$inferSelect;
+export type InsertCopyTradingFollow = typeof copyTradingFollows.$inferInsert;
+
+export const copyTradingExecutions = mysqlTable("copyTradingExecutions", {
+  id: int("id").autoincrement().primaryKey(),
+  followId: int("followId").notNull(),
+  followerId: int("followerId").notNull(),
+  traderId: int("traderId").notNull(),
+  originalOrderId: int("originalOrderId").notNull(),
+  copiedOrderId: int("copiedOrderId").notNull(),
+  pair: varchar("pair", { length: 20 }).notNull(),
+  side: mysqlEnum("side", ["buy", "sell"]).notNull(),
+  executionPrice: decimal("executionPrice", { precision: 20, scale: 8 }).notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  copyRatio: decimal("copyRatio", { precision: 5, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["pending", "executed", "failed", "cancelled"]).default("pending").notNull(),
+  pnl: decimal("pnl", { precision: 20, scale: 8 }).default("0").notNull(),
+  executedAt: timestamp("executedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CopyTradingExecution = typeof copyTradingExecutions.$inferSelect;
+export type InsertCopyTradingExecution = typeof copyTradingExecutions.$inferInsert;
+
+export const leaderboard = mysqlTable("leaderboard", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  rank: int("rank").default(0).notNull(),
+  totalPnL: decimal("totalPnL", { precision: 20, scale: 8 }).default("0").notNull(),
+  winRate: decimal("winRate", { precision: 5, scale: 2 }).default("0").notNull(),
+  totalTrades: int("totalTrades").default(0).notNull(),
+  followers: int("followers").default(0).notNull(),
+  points: int("points").default(0).notNull(),
+  streak: int("streak").default(0).notNull(),
+  tier: mysqlEnum("tier", ["bronze", "silver", "gold", "platinum", "diamond"]).default("bronze").notNull(),
+  verified: boolean("verified").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Leaderboard = typeof leaderboard.$inferSelect;
+export type InsertLeaderboard = typeof leaderboard.$inferInsert;
+
+export const achievements = mysqlTable("achievements", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  achievementType: varchar("achievementType", { length: 50 }).notNull(),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 50 }),
+  points: int("points").default(0).notNull(),
+  metadata: text("metadata"),
+  earnedAt: timestamp("earnedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = typeof achievements.$inferInsert;
+
+export const socialFeed = mysqlTable("socialFeed", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["post", "trade_share", "achievement", "milestone"]).notNull(),
+  content: text("content").notNull(),
+  metadata: text("metadata"),
+  likes: int("likes").default(0).notNull(),
+  comments: int("comments").default(0).notNull(),
+  shares: int("shares").default(0).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SocialFeed = typeof socialFeed.$inferSelect;
+export type InsertSocialFeed = typeof socialFeed.$inferInsert;
