@@ -42,6 +42,7 @@ const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const WebSocketDashboard = lazy(() => import("./pages/admin/WebSocketDashboard"));
+const DepositManagement = lazy(() => import("./pages/admin/DepositManagement"));
 const APIKeys = lazy(() => import("./pages/APIKeys"));
 const CopyTrading = lazy(() => import("./pages/CopyTrading"));
 const MarginTrading = lazy(() => import("./pages/MarginTrading"));
@@ -104,6 +105,7 @@ function Router() {
         <Route path="/admin/kyc-review" component={KYCReview} />
         <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/admin/websocket" component={WebSocketDashboard} />
+        <Route path="/admin/deposits" component={DepositManagement} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

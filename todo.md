@@ -818,3 +818,18 @@
 - [x] Add payment gateway modal/redirect logic
 - [x] Test deposit flow end-to-end
 - [ ] Save checkpoint with frontend updates (in progress)
+
+
+### Admin Deposit Management Page - January 9, 2026
+- [x] Create DepositManagement.tsx admin page
+- [x] Display all deposits with filters (pending/completed/failed)
+- [x] Show Reference ID with copy button
+- [x] Add blockchain explorer links for each deposit
+- [x] Add "Credit Balance" button for pending deposits
+- [x] Create admin endpoint: deposit.adminList (all deposits)
+- [x] Create admin endpoint: deposit.creditBalance (manual credit)
+- [x] Add hot wallet balance display
+- [x] Add deposit statistics (total, pending, completed today)
+- [x] Add to admin navigation menu
+- [x] Test deposit credit flow
+- [x] Save checkpoint

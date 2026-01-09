@@ -1314,6 +1314,112 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Deposit Management
+    deposits: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+
+      const { deposits: depositsTable, users: usersTable } = await import("../drizzle/schema");
+
+      // Get all deposits with user information
+      const deposits = await db
+        .select({
+          id: depositsTable.id,
+          userId: depositsTable.userId,
+          asset: depositsTable.asset,
+          network: depositsTable.network,
+          amount: depositsTable.amount,
+          status: depositsTable.status,
+          method: depositsTable.method,
+          txHash: depositsTable.txHash,
+          address: depositsTable.address,
+          referenceId: depositsTable.referenceId,
+          gatewayName: depositsTable.gatewayName,
+          gatewayTransactionId: depositsTable.gatewayTransactionId,
+          createdAt: depositsTable.createdAt,
+          updatedAt: depositsTable.updatedAt,
+          userName: usersTable.name,
+          userEmail: usersTable.email,
+        })
+        .from(depositsTable)
+        .leftJoin(usersTable, eq(depositsTable.userId, usersTable.id))
+        .orderBy(desc(depositsTable.createdAt));
+
+      return deposits;
+    }),
+
+    updateDepositStatus: adminProcedure
+      .input(z.object({
+        depositId: z.number(),
+        status: z.enum(["pending", "completed", "failed"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { deposits: depositsTable } = await import("../drizzle/schema");
+
+        await db.update(depositsTable)
+          .set({ 
+            status: input.status,
+            updatedAt: new Date(),
+          })
+          .where(eq(depositsTable.id, input.depositId));
+
+        return { success: true };
+      }),
+
+    creditDepositBalance: adminProcedure
+      .input(z.object({
+        depositId: z.number(),
+        userId: z.number(),
+        amount: z.string(),
+        asset: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { wallets: walletsTable, deposits: depositsTable } = await import("../drizzle/schema");
+
+        // Get or create wallet
+        const [wallet] = await db.select()
+          .from(walletsTable)
+          .where(
+            sql`${walletsTable.userId} = ${input.userId} AND ${walletsTable.asset} = ${input.asset}`
+          )
+          .limit(1);
+
+        if (!wallet) {
+          // Create new wallet
+          await db.insert(walletsTable).values({
+            userId: input.userId,
+            asset: input.asset,
+            balance: input.amount,
+            locked: "0",
+          });
+        } else {
+          // Update existing wallet
+          const currentBalance = parseFloat(wallet.balance);
+          const creditAmount = parseFloat(input.amount);
+          const newBalance = currentBalance + creditAmount;
+
+          await db.update(walletsTable)
+            .set({ balance: newBalance.toString() })
+            .where(eq(walletsTable.id, wallet.id));
+        }
+
+        // Update deposit status to completed
+        await db.update(depositsTable)
+          .set({ 
+            status: "completed",
+            updatedAt: new Date(),
+          })
+          .where(eq(depositsTable.id, input.depositId));
+
+        return { success: true };
+      }),
+
     userActivity: adminProcedure
       .input(z.object({ userId: z.number() }))
       .query(async ({ input }) => {

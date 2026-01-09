@@ -51,6 +51,7 @@ const menuItems = [
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", adminOnly: true },
   { icon: Activity, label: "System Health", path: "/admin/system-health", adminOnly: true },
   { icon: Wallet, label: "Wallet Management", path: "/admin/wallet-management", adminOnly: true },
+  { icon: ArrowDownUp, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
