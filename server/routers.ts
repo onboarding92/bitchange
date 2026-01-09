@@ -1420,6 +1420,66 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Manual balance credit by admin
+    creditUserBalance: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        asset: z.string(),
+        amount: z.string(),
+        note: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { wallets: walletsTable, transactions: transactionsTable } = await import("../drizzle/schema");
+
+        // Validate amount is positive
+        const creditAmount = parseFloat(input.amount);
+        if (creditAmount <= 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Amount must be positive" });
+        }
+
+        // Get or create wallet
+        const [wallet] = await db.select()
+          .from(walletsTable)
+          .where(
+            sql`${walletsTable.userId} = ${input.userId} AND ${walletsTable.asset} = ${input.asset}`
+          )
+          .limit(1);
+
+        if (!wallet) {
+          // Create new wallet
+          await db.insert(walletsTable).values({
+            userId: input.userId,
+            asset: input.asset,
+            balance: input.amount,
+            locked: "0",
+          });
+        } else {
+          // Update existing wallet
+          const currentBalance = parseFloat(wallet.balance);
+          const newBalance = currentBalance + creditAmount;
+
+          await db.update(walletsTable)
+            .set({ balance: newBalance.toString() })
+            .where(eq(walletsTable.id, wallet.id));
+        }
+
+        // Log transaction
+        await db.insert(transactionsTable).values({
+          userId: input.userId,
+          type: "admin_credit",
+          asset: input.asset,
+          amount: input.amount,
+          status: "completed",
+          description: input.note || `Manual credit by admin (${ctx.user.email})`,
+          createdAt: new Date(),
+        });
+
+        return { success: true, message: `Successfully credited ${input.amount} ${input.asset}` };
+      }),
+
     userActivity: adminProcedure
       .input(z.object({ userId: z.number() }))
       .query(async ({ input }) => {

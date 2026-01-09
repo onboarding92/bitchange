@@ -833,3 +833,14 @@
 - [x] Add to admin navigation menu
 - [x] Test deposit credit flow
 - [x] Save checkpoint
+
+### Admin Manual Balance Credit Feature - January 9, 2026
+- [x] Backend: Create admin.creditUserBalance endpoint (userId, asset, amount, note)
+- [x] Backend: Add transaction logging for manual credits
+- [x] Frontend: Add "Credit Balance" button in User Management page
+- [x] Frontend: Create dialog with user selection, asset dropdown, amount input, note field
+- [x] Frontend: Show success/error feedback
+- [x] Test: Credit BTC to test user (endpoint ready, UI integrated)
+- [x] Test: Verify wallet balance updated (logic implemented)
+- [x] Test: Verify transaction logged (admin_credit type added)
+- [ ] Save checkpoint

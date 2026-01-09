@@ -42,10 +42,9 @@ export default function UsersManagement() {
   const [editKycStatus, setEditKycStatus] = useState<"pending" | "approved" | "rejected">("pending");
   const [editAccountStatus, setEditAccountStatus] = useState<"active" | "suspended">("active");
 
-  // Balance adjustment state
-  const [balanceAsset, setBalanceAsset] = useState("USDT");
+  // Balance credit state
+  const [balanceAsset, setBalanceAsset] = useState("BTC");
   const [balanceAmount, setBalanceAmount] = useState("");
-  const [balanceType, setBalanceType] = useState<"add" | "subtract">("add");
   const [balanceReason, setBalanceReason] = useState("");
 
   const { data, isLoading, refetch } = trpc.admin.users.useQuery({
@@ -72,9 +71,9 @@ export default function UsersManagement() {
     },
   });
 
-  const adjustBalance = trpc.admin.adjustBalance.useMutation({
-    onSuccess: () => {
-      toast.success("Balance adjusted successfully");
+  const creditBalance = trpc.admin.creditUserBalance.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message || "Balance credited successfully");
       setShowBalanceDialog(false);
       setBalanceAmount("");
       setBalanceReason("");
@@ -95,18 +94,23 @@ export default function UsersManagement() {
     });
   };
 
-  const handleAdjustBalance = () => {
-    if (!selectedUser || !balanceAmount || !balanceReason) {
-      toast.error("All fields are required");
+  const handleCreditBalance = () => {
+    if (!selectedUser || !balanceAmount) {
+      toast.error("Amount is required");
       return;
     }
 
-    adjustBalance.mutate({
+    const amount = parseFloat(balanceAmount);
+    if (amount <= 0) {
+      toast.error("Amount must be positive");
+      return;
+    }
+
+    creditBalance.mutate({
       userId: selectedUser.id,
       asset: balanceAsset,
       amount: balanceAmount,
-      type: balanceType,
-      reason: balanceReason,
+      note: balanceReason || undefined,
     });
   };
 
@@ -349,36 +353,35 @@ export default function UsersManagement() {
           </DialogContent>
         </Dialog>
 
-        {/* Adjust Balance Dialog */}
+        {/* Credit Balance Dialog */}
         <Dialog open={showBalanceDialog} onOpenChange={setShowBalanceDialog}>
           <DialogContent className="bg-slate-800 border-slate-700">
             <DialogHeader>
-              <DialogTitle className="text-white">Adjust Balance: {selectedUser?.email}</DialogTitle>
+              <DialogTitle className="text-white">Credit Balance: {selectedUser?.email}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              <div className="bg-blue-900/20 border border-blue-700 rounded p-3">
+                <p className="text-sm text-blue-300">
+                  Add cryptocurrency to user's wallet. This action will be logged in the transaction history.
+                </p>
+              </div>
               <div>
-                <Label className="text-slate-300">Asset</Label>
+                <Label className="text-slate-300">Cryptocurrency</Label>
                 <Select value={balanceAsset} onValueChange={setBalanceAsset}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="USDT">USDT</SelectItem>
-                    <SelectItem value="BTC">BTC</SelectItem>
-                    <SelectItem value="ETH">ETH</SelectItem>
-                    <SelectItem value="USDC">USDC</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-slate-300">Type</Label>
-                <Select value={balanceType} onValueChange={(v: any) => setBalanceType(v)}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="add">Add</SelectItem>
-                    <SelectItem value="subtract">Subtract</SelectItem>
+                    <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                    <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                    <SelectItem value="USDT">Tether (USDT)</SelectItem>
+                    <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
+                    <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
+                    <SelectItem value="LTC">Litecoin (LTC)</SelectItem>
+                    <SelectItem value="DOGE">Dogecoin (DOGE)</SelectItem>
+                    <SelectItem value="AVAX">Avalanche (AVAX)</SelectItem>
+                    <SelectItem value="MATIC">Polygon (MATIC)</SelectItem>
+                    <SelectItem value="LINK">Chainlink (LINK)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -392,22 +395,25 @@ export default function UsersManagement() {
                   placeholder="0.00"
                   className="bg-slate-700 border-slate-600 text-white"
                 />
+                <p className="text-xs text-slate-400 mt-1">
+                  Enter the amount to credit (must be positive)
+                </p>
               </div>
               <div>
-                <Label className="text-slate-300">Reason</Label>
+                <Label className="text-slate-300">Note (Optional)</Label>
                 <Input
                   value={balanceReason}
                   onChange={(e) => setBalanceReason(e.target.value)}
-                  placeholder="Manual adjustment reason..."
+                  placeholder="e.g., Promotional bonus, Compensation, etc."
                   className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
               <Button
-                onClick={handleAdjustBalance}
-                disabled={adjustBalance.isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                onClick={handleCreditBalance}
+                disabled={creditBalance.isPending}
+                className="w-full bg-green-600 hover:bg-green-700"
               >
-                {adjustBalance.isPending ? "Adjusting..." : "Adjust Balance"}
+                {creditBalance.isPending ? "Crediting..." : `Credit ${balanceAmount || "0"} ${balanceAsset}`}
               </Button>
             </div>
           </DialogContent>
