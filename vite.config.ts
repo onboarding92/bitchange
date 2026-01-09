@@ -9,8 +9,7 @@ import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 const plugins = [
   react({
-    jsxRuntime: 'automatic',
-    jsxImportSource: undefined,
+    jsxRuntime: 'classic',
   }),
   tailwindcss(),
   jsxLocPlugin(),
