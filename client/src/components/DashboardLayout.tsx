@@ -39,6 +39,7 @@ const menuItems = [
   { icon: Shield, label: "KYC", path: "/kyc" },
   { icon: MessageSquare, label: "Support", path: "/support" },
   { icon: Bell, label: "Notifications", path: "/notifications" },
+  { icon: Settings, label: "Notification Settings", path: "/settings/notifications" },
   { icon: History, label: "History", path: "/transactions" },
   { icon: PieChart, label: "Portfolio", path: "/portfolio" },
   { icon: Gift, label: "Referrals", path: "/referrals" },
@@ -54,6 +55,7 @@ const menuItems = [
   { icon: Wallet, label: "Wallet Management", path: "/admin/wallet-management", adminOnly: true },
   { icon: ArrowDownUp, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
   { icon: History, label: "Credit History", path: "/admin/credit-history", adminOnly: true },
+  { icon: Users, label: "Bulk Credit", path: "/admin/bulk-credit", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

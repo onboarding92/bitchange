@@ -44,6 +44,7 @@ const Portfolio = lazy(() => import("./pages/Portfolio"));
 const WebSocketDashboard = lazy(() => import("./pages/admin/WebSocketDashboard"));
 const DepositManagement = lazy(() => import("./pages/admin/DepositManagement"));
 const CreditHistory = lazy(() => import("./pages/admin/CreditHistory"));
+const BulkCredit = lazy(() => import("./pages/admin/BulkCredit"));
 const APIKeys = lazy(() => import("./pages/APIKeys"));
 const CopyTrading = lazy(() => import("./pages/CopyTrading"));
 const MarginTrading = lazy(() => import("./pages/MarginTrading"));
@@ -51,6 +52,7 @@ const FuturesTrading = lazy(() => import("./pages/FuturesTrading"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
 const NotificationCenter = lazy(() => import("./pages/NotificationCenter"));
+const NotificationPreferences = lazy(() => import("./pages/NotificationPreferences"));
 
 // Loading fallback component
 function PageLoader() {
@@ -81,6 +83,7 @@ function Router() {
         <Route path="/staking" component={Staking} />
         <Route path="/deposit" component={Deposit} />
         <Route path="/notifications" component={NotificationCenter} />
+        <Route path="/settings/notifications" component={NotificationPreferences} />
         <Route path="/withdrawal" component={Withdrawal} />
         <Route path="/kyc" component={KYC} />
         <Route path="/kyc/submit" component={KYCSubmission} />
@@ -110,6 +113,7 @@ function Router() {
         <Route path="/admin/websocket" component={WebSocketDashboard} />
         <Route path="/admin/deposits" component={DepositManagement} />
         <Route path="/admin/credit-history" component={CreditHistory} />
+        <Route path="/admin/bulk-credit" component={BulkCredit} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

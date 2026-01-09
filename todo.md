@@ -884,4 +884,54 @@
 - [x] Test: Bulk operations statistics display
 - [x] Verify: All features working correctly
 - [x] Update: todo.md with completion status
-- [ ] Save: Checkpoint with all features
+- [x] Save: Checkpoint with all features
+
+
+## Phase 8: Bulk Credit Tool & Notification Preferences - January 9, 2026
+
+### Bulk Credit Tool
+- [x] Backend: Create admin.bulkCreditUsers endpoint (accepts array of {userId, asset, amount})
+- [x] Backend: Generate unique bulkOperationId for each bulk operation
+- [x] Backend: Validate CSV format and data
+- [x] Frontend: Create BulkCredit admin page at /admin/bulk-credit
+- [x] Frontend: Add CSV upload component with template download
+- [x] Frontend: Add manual user selection UI (search + multi-select)
+- [x] Frontend: Preview table before execution
+- [x] Frontend: Execute bulk credit with progress indicator
+- [x] Frontend: Show success/error summary after execution
+- [x] Frontend: Add to admin sidebar navigation
+- [x] Frontend: Add route in App.tsx
+- [x] Test: Upload CSV with 5 test users
+- [x] Test: Manual selection of 3 users
+- [x] Test: Verify all balances credited correctly
+- [x] Test: Verify bulkOperationId in transactions
+
+### Notification Preferences
+- [x] Backend: Create notificationPreferences table (userId, emailEnabled, inAppEnabled, pushEnabled, types)
+- [x] Backend: Create notification.getPreferences endpoint
+- [x] Backend: Create notification.updatePreferences endpoint
+- [x] Frontend: Create NotificationPreferences page at /settings/notifications
+- [x] Frontend: Add toggle switches for email/in-app/push
+- [x] Frontend: Add checkboxes for notification types (deposit, withdrawal, trade, kyc, system)
+- [x] Frontend: Save preferences with toast feedback
+- [x] Frontend: Add link in Account Settings or sidebar
+- [x] Frontend: Add route in App.tsx
+- [x] Backend: Update notification sending logic to respect preferences
+- [x] Test: Disable email notifications and verify no emails sent
+- [x] Test: Enable only deposit notifications and verify filtering
+- [x] Test: Save preferences and reload page to verify persistence
+
+### GitHub Push & General Check
+- [ ] Run final tests
+- [ ] Save checkpoint with all features
+- [ ] Initialize git repository (if not already)
+- [ ] Add all files to git
+- [ ] Create commit with descriptive message
+- [ ] Add GitHub remote
+- [ ] Push to GitHub main branch
+- [ ] Verify code pushed successfully
+- [ ] Run general project health check
+- [ ] Verify all pages load correctly
+- [ ] Check for console errors
+- [ ] Verify database schema is up to date
+- [ ] Document new features in README

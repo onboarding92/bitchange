@@ -264,6 +264,23 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 
+export const notificationPreferences = mysqlTable("notificationPreferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  emailEnabled: boolean("emailEnabled").default(true).notNull(),
+  inAppEnabled: boolean("inAppEnabled").default(true).notNull(),
+  pushEnabled: boolean("pushEnabled").default(false).notNull(),
+  depositEnabled: boolean("depositEnabled").default(true).notNull(),
+  withdrawalEnabled: boolean("withdrawalEnabled").default(true).notNull(),
+  tradeEnabled: boolean("tradeEnabled").default(true).notNull(),
+  kycEnabled: boolean("kycEnabled").default(true).notNull(),
+  systemEnabled: boolean("systemEnabled").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+
 export const withdrawalLimits = mysqlTable("withdrawalLimits", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),

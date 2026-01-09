@@ -1502,6 +1502,87 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Bulk credit multiple users
+    bulkCreditUsers: adminProcedure
+      .input(z.object({
+        credits: z.array(z.object({
+          userId: z.number(),
+          asset: z.string(),
+          amount: z.string(),
+        })),
+        note: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { wallets: walletsTable, transactions: transactionsTable } = await import("../drizzle/schema");
+
+        // Generate unique bulk operation ID
+        const bulkOperationId = `bulk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        const results = {
+          success: [] as any[],
+          failed: [] as any[],
+        };
+
+        // Process each credit
+        for (const credit of input.credits) {
+          try {
+            const creditAmount = parseFloat(credit.amount);
+            if (creditAmount <= 0) {
+              results.failed.push({ ...credit, error: "Amount must be positive" });
+              continue;
+            }
+
+            // Find user's wallet
+            const [wallet] = await db.select()
+              .from(walletsTable)
+              .where(and(
+                eq(walletsTable.userId, credit.userId),
+                eq(walletsTable.asset, credit.asset)
+              ))
+              .limit(1);
+
+            if (!wallet) {
+              results.failed.push({ ...credit, error: "Wallet not found" });
+              continue;
+            }
+
+            // Update balance
+            const currentBalance = parseFloat(wallet.balance);
+            const newBalance = currentBalance + creditAmount;
+
+            await db.update(walletsTable)
+              .set({ balance: newBalance.toString() })
+              .where(eq(walletsTable.id, wallet.id));
+
+            // Log transaction
+            await db.insert(transactionsTable).values({
+              userId: credit.userId,
+              type: "admin_credit",
+              asset: credit.asset,
+              amount: credit.amount,
+              status: "completed",
+              description: input.note || `Bulk credit by admin (${ctx.user.email})`,
+              bulkOperationId,
+              createdAt: new Date(),
+            });
+
+            results.success.push(credit);
+          } catch (error: any) {
+            results.failed.push({ ...credit, error: error.message });
+          }
+        }
+
+        return {
+          bulkOperationId,
+          successCount: results.success.length,
+          failedCount: results.failed.length,
+          results,
+        };
+      }),
+
     // Manual balance credit by admin
     creditUserBalance: adminProcedure
       .input(z.object({
@@ -3682,7 +3763,7 @@ export const appRouter = router({
     unreadCount: protectedProcedure
       .query(async ({ ctx }) => {
         const db = await getDb();
-        if (!db) return 0;
+        if (!db) return { count: 0 };
 
         const result = await db
           .select({ count: sql<number>`count(*)` })
@@ -3692,7 +3773,87 @@ export const appRouter = router({
             eq(notifications.isRead, false)
           ));
 
-        return Number(result[0]?.count || 0);
+        return { count: Number(result[0]?.count || 0) };
+      }),
+
+    // Get notification preferences
+    getPreferences: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { notificationPreferences: prefsTable } = await import("../drizzle/schema");
+
+        const [prefs] = await db.select()
+          .from(prefsTable)
+          .where(eq(prefsTable.userId, ctx.user.id))
+          .limit(1);
+
+        // Return default preferences if not set
+        if (!prefs) {
+          return {
+            emailEnabled: true,
+            inAppEnabled: true,
+            pushEnabled: false,
+            depositEnabled: true,
+            withdrawalEnabled: true,
+            tradeEnabled: true,
+            kycEnabled: true,
+            systemEnabled: true,
+          };
+        }
+
+        return prefs;
+      }),
+
+    // Update notification preferences
+    updatePreferences: protectedProcedure
+      .input(z.object({
+        emailEnabled: z.boolean().optional(),
+        inAppEnabled: z.boolean().optional(),
+        pushEnabled: z.boolean().optional(),
+        depositEnabled: z.boolean().optional(),
+        withdrawalEnabled: z.boolean().optional(),
+        tradeEnabled: z.boolean().optional(),
+        kycEnabled: z.boolean().optional(),
+        systemEnabled: z.boolean().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { notificationPreferences: prefsTable } = await import("../drizzle/schema");
+
+        // Check if preferences exist
+        const [existing] = await db.select()
+          .from(prefsTable)
+          .where(eq(prefsTable.userId, ctx.user.id))
+          .limit(1);
+
+        if (existing) {
+          // Update existing
+          await db.update(prefsTable)
+            .set({
+              ...input,
+              updatedAt: new Date(),
+            })
+            .where(eq(prefsTable.userId, ctx.user.id));
+        } else {
+          // Create new
+          await db.insert(prefsTable).values({
+            userId: ctx.user.id,
+            emailEnabled: input.emailEnabled ?? true,
+            inAppEnabled: input.inAppEnabled ?? true,
+            pushEnabled: input.pushEnabled ?? false,
+            depositEnabled: input.depositEnabled ?? true,
+            withdrawalEnabled: input.withdrawalEnabled ?? true,
+            tradeEnabled: input.tradeEnabled ?? true,
+            kycEnabled: input.kycEnabled ?? true,
+            systemEnabled: input.systemEnabled ?? true,
+          });
+        }
+
+        return { success: true, message: "Preferences updated successfully" };
       }),
   }),
 
