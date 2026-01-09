@@ -263,6 +263,21 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 
+export const withdrawalLimits = mysqlTable("withdrawalLimits", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  dailyLimit: decimal("dailyLimit", { precision: 20, scale: 8 }).default("10000").notNull(),
+  monthlyLimit: decimal("monthlyLimit", { precision: 20, scale: 8 }).default("100000").notNull(),
+  dailyUsed: decimal("dailyUsed", { precision: 20, scale: 8 }).default("0").notNull(),
+  monthlyUsed: decimal("monthlyUsed", { precision: 20, scale: 8 }).default("0").notNull(),
+  lastDailyReset: timestamp("lastDailyReset").defaultNow().notNull(),
+  lastMonthlyReset: timestamp("lastMonthlyReset").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WithdrawalLimit = typeof withdrawalLimits.$inferSelect;
+
 export const networks = mysqlTable("networks", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),

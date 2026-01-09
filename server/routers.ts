@@ -722,6 +722,32 @@ export const appRouter = router({
           status: "pending",
         });
 
+        // Notify admin about new deposit
+        try {
+          const { notifyOwner } = await import("./_core/notification");
+          await notifyOwner({
+            title: `New Deposit: ${input.amount} ${input.asset}`,
+            content: `User: ${ctx.user.email}\nAmount: ${input.amount} ${input.asset}\nNetwork: ${input.network}\nMethod: ${input.method}\nReference: ${referenceId}\nStatus: Pending`,
+          });
+
+          // Also create in-app notification for admin
+          const { notifications: notificationsTable, users: usersTable } = await import("../drizzle/schema");
+          const admins = await db.select().from(usersTable).where(eq(usersTable.role, "admin"));
+          
+          for (const admin of admins) {
+            await db.insert(notificationsTable).values({
+              userId: admin.id,
+              type: "deposit",
+              title: `New Deposit: ${input.amount} ${input.asset}`,
+              message: `${ctx.user.email} deposited ${input.amount} ${input.asset} via ${input.method}`,
+              isRead: false,
+              relatedId: null,
+            });
+          }
+        } catch (error) {
+          console.error("[Deposit Notification] Failed to notify admin:", error);
+        }
+
         return { ok: true, referenceId };
       }),
 
@@ -839,6 +865,62 @@ export const appRouter = router({
 
         if (!wallet || available < totalRequired) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance (including fees)" });
+        }
+
+        // Check withdrawal limits
+        const { withdrawalLimits: limitsTable } = await import("../drizzle/schema");
+        const [limits] = await db.select().from(limitsTable)
+          .where(eq(limitsTable.userId, ctx.user.id))
+          .limit(1);
+
+        if (limits) {
+          const now = new Date();
+          const lastDaily = new Date(limits.lastDailyReset);
+          const lastMonthly = new Date(limits.lastMonthlyReset);
+          
+          // Reset daily limit if 24h passed
+          let dailyUsed = parseFloat(limits.dailyUsed);
+          if (now.getTime() - lastDaily.getTime() > 24 * 60 * 60 * 1000) {
+            dailyUsed = 0;
+            await db.update(limitsTable)
+              .set({ dailyUsed: "0", lastDailyReset: now })
+              .where(eq(limitsTable.userId, ctx.user.id));
+          }
+          
+          // Reset monthly limit if 30 days passed
+          let monthlyUsed = parseFloat(limits.monthlyUsed);
+          if (now.getTime() - lastMonthly.getTime() > 30 * 24 * 60 * 60 * 1000) {
+            monthlyUsed = 0;
+            await db.update(limitsTable)
+              .set({ monthlyUsed: "0", lastMonthlyReset: now })
+              .where(eq(limitsTable.userId, ctx.user.id));
+          }
+          
+          const dailyLimit = parseFloat(limits.dailyLimit);
+          const monthlyLimit = parseFloat(limits.monthlyLimit);
+          
+          // Check if withdrawal exceeds limits (assuming USDT equivalent)
+          if (dailyUsed + amount > dailyLimit) {
+            throw new TRPCError({ 
+              code: "BAD_REQUEST", 
+              message: `Daily withdrawal limit exceeded. Used: ${dailyUsed.toFixed(2)}, Limit: ${dailyLimit.toFixed(2)} USDT` 
+            });
+          }
+          
+          if (monthlyUsed + amount > monthlyLimit) {
+            throw new TRPCError({ 
+              code: "BAD_REQUEST", 
+              message: `Monthly withdrawal limit exceeded. Used: ${monthlyUsed.toFixed(2)}, Limit: ${monthlyLimit.toFixed(2)} USDT` 
+            });
+          }
+          
+          // Update used amounts
+          await db.update(limitsTable)
+            .set({ 
+              dailyUsed: (dailyUsed + amount).toString(),
+              monthlyUsed: (monthlyUsed + amount).toString()
+            })
+            .where(eq(limitsTable.userId, ctx.user.id));
         }
 
         await db.update(wallets)
@@ -1695,6 +1777,62 @@ export const appRouter = router({
           .where(eq(withdrawals.id, input.id));
 
         return { ok: true };
+      }),
+
+    // Set withdrawal limits for user
+    setWithdrawalLimit: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        dailyLimit: z.string(),
+        monthlyLimit: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { withdrawalLimits: limitsTable } = await import("../drizzle/schema");
+
+        // Check if limit exists
+        const [existing] = await db.select().from(limitsTable)
+          .where(eq(limitsTable.userId, input.userId))
+          .limit(1);
+
+        if (existing) {
+          // Update existing
+          await db.update(limitsTable)
+            .set({
+              dailyLimit: input.dailyLimit,
+              monthlyLimit: input.monthlyLimit,
+              updatedAt: new Date(),
+            })
+            .where(eq(limitsTable.userId, input.userId));
+        } else {
+          // Create new
+          await db.insert(limitsTable).values({
+            userId: input.userId,
+            dailyLimit: input.dailyLimit,
+            monthlyLimit: input.monthlyLimit,
+            dailyUsed: "0",
+            monthlyUsed: "0",
+          });
+        }
+
+        return { success: true, message: "Withdrawal limits updated successfully" };
+      }),
+
+    // Get withdrawal limits for user
+    getWithdrawalLimit: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+
+        const { withdrawalLimits: limitsTable } = await import("../drizzle/schema");
+        const [limits] = await db.select().from(limitsTable)
+          .where(eq(limitsTable.userId, input.userId))
+          .limit(1);
+
+        return limits || null;
       }),
 
     kycList: adminProcedure.query(async () => {
