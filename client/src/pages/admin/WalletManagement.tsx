@@ -26,7 +26,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
-  XCircle
+  XCircle,
+  ArrowLeft
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -35,6 +36,10 @@ export default function WalletManagement() {
   const [selectedNetwork, setSelectedNetwork] = useState("");
   const [sweepAmount, setSweepAmount] = useState("");
   const [refillAmount, setRefillAmount] = useState("");
+  
+  const handleBack = () => {
+    window.history.back();
+  };
   
   // Queries
   const { data: coldWallets, isLoading: loadingCold, refetch: refetchCold } = trpc.admin.coldWallets.useQuery();
@@ -113,9 +118,19 @@ export default function WalletManagement() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Wallet Management</h1>
-          <p className="text-gray-400">Manage cold storage and hot wallet system</p>
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            size="icon"
+            className="border-slate-600 hover:bg-slate-700"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Wallet Management</h1>
+            <p className="text-gray-400">Manage cold storage and hot wallet system</p>
+          </div>
         </div>
       
       <Tabs defaultValue="overview" className="space-y-6">
