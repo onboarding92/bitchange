@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Users as UsersIcon, Search, Edit, DollarSign, Activity, Download } from "lucide-react";
+import { Users as UsersIcon, Search, Edit, DollarSign, Activity, Download, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UsersManagement() {
@@ -36,6 +36,7 @@ export default function UsersManagement() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showBalanceDialog, setShowBalanceDialog] = useState(false);
   const [showActivityDialog, setShowActivityDialog] = useState(false);
+  const [showLimitsDialog, setShowLimitsDialog] = useState(false);
 
   // Edit user state
   const [editRole, setEditRole] = useState<"admin" | "user">("user");
@@ -46,6 +47,10 @@ export default function UsersManagement() {
   const [balanceAsset, setBalanceAsset] = useState("BTC");
   const [balanceAmount, setBalanceAmount] = useState("");
   const [balanceReason, setBalanceReason] = useState("");
+
+  // Withdrawal limits state
+  const [dailyLimit, setDailyLimit] = useState("");
+  const [monthlyLimit, setMonthlyLimit] = useState("");
 
   const { data, isLoading, refetch } = trpc.admin.users.useQuery({
     search,
@@ -58,6 +63,11 @@ export default function UsersManagement() {
   const { data: activity } = trpc.admin.userActivity.useQuery(
     { userId: selectedUser?.id },
     { enabled: !!selectedUser && showActivityDialog }
+  );
+
+  const { data: limitsData } = trpc.admin.getWithdrawalLimit.useQuery(
+    { userId: selectedUser?.id || 0 },
+    { enabled: !!selectedUser && showLimitsDialog }
   );
 
   const updateUser = trpc.admin.updateUser.useMutation({
@@ -78,6 +88,18 @@ export default function UsersManagement() {
       setBalanceAmount("");
       setBalanceReason("");
       refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const setWithdrawalLimit = trpc.admin.setWithdrawalLimit.useMutation({
+    onSuccess: () => {
+      toast.success("Withdrawal limits updated successfully");
+      setShowLimitsDialog(false);
+      setDailyLimit("");
+      setMonthlyLimit("");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -113,6 +135,42 @@ export default function UsersManagement() {
       note: balanceReason || undefined,
     });
   };
+
+  const handleSetLimits = () => {
+    if (!selectedUser) return;
+
+    const daily = parseFloat(dailyLimit);
+    const monthly = parseFloat(monthlyLimit);
+
+    if (isNaN(daily) || daily <= 0) {
+      toast.error("Daily limit must be a positive number");
+      return;
+    }
+
+    if (isNaN(monthly) || monthly <= 0) {
+      toast.error("Monthly limit must be a positive number");
+      return;
+    }
+
+    if (daily > monthly) {
+      toast.error("Daily limit cannot exceed monthly limit");
+      return;
+    }
+
+    setWithdrawalLimit.mutate({
+      userId: selectedUser.id,
+      dailyLimit: dailyLimit,
+      monthlyLimit: monthlyLimit,
+    });
+  };
+
+  // Load current limits when dialog opens
+  React.useEffect(() => {
+    if (limitsData) {
+      setDailyLimit(limitsData.dailyLimit?.toString() || "10000");
+      setMonthlyLimit(limitsData.monthlyLimit?.toString() || "100000");
+    }
+  }, [limitsData]);
 
   const exportToCSV = () => {
     if (!data?.users || data.users.length === 0) return;
@@ -287,6 +345,18 @@ export default function UsersManagement() {
                             className="border-slate-600 hover:bg-slate-700"
                           >
                             <Activity className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowLimitsDialog(true);
+                            }}
+                            className="border-slate-600 hover:bg-slate-700"
+                            title="Set Withdrawal Limits"
+                          >
+                            <ShieldAlert className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -484,6 +554,69 @@ export default function UsersManagement() {
                   </div>
                 </div>
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Set Withdrawal Limits Dialog */}
+        <Dialog open={showLimitsDialog} onOpenChange={setShowLimitsDialog}>
+          <DialogContent className="bg-slate-800 border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-yellow-400" />
+                Set Withdrawal Limits: {selectedUser?.email}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 text-sm text-blue-200">
+                <p className="font-semibold mb-1">Current Limits:</p>
+                <p>Daily: ${limitsData?.dailyLimit?.toLocaleString() || "10,000"} USDT</p>
+                <p>Monthly: ${limitsData?.monthlyLimit?.toLocaleString() || "100,000"} USDT</p>
+                <p className="text-xs text-blue-300 mt-2">Used Today: ${limitsData?.dailyUsed?.toLocaleString() || "0"}</p>
+                <p className="text-xs text-blue-300">Used This Month: ${limitsData?.monthlyUsed?.toLocaleString() || "0"}</p>
+              </div>
+
+              <div>
+                <Label className="text-slate-300">Daily Limit (USDT)</Label>
+                <Input
+                  type="number"
+                  placeholder="10000"
+                  value={dailyLimit}
+                  onChange={(e) => setDailyLimit(e.target.value)}
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+                <p className="text-xs text-slate-400 mt-1">Maximum amount user can withdraw per day</p>
+              </div>
+
+              <div>
+                <Label className="text-slate-300">Monthly Limit (USDT)</Label>
+                <Input
+                  type="number"
+                  placeholder="100000"
+                  value={monthlyLimit}
+                  onChange={(e) => setMonthlyLimit(e.target.value)}
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+                <p className="text-xs text-slate-400 mt-1">Maximum amount user can withdraw per month</p>
+              </div>
+
+              <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 text-sm text-yellow-200">
+                <p className="font-semibold mb-1">⚠️ Important:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>Daily limit cannot exceed monthly limit</li>
+                  <li>Limits are enforced in USDT equivalent</li>
+                  <li>Limits reset automatically (daily: 24h, monthly: 30d)</li>
+                  <li>User will see error if limit exceeded</li>
+                </ul>
+              </div>
+
+              <Button
+                onClick={handleSetLimits}
+                disabled={setWithdrawalLimit.isPending}
+                className="w-full bg-yellow-600 hover:bg-yellow-700"
+              >
+                {setWithdrawalLimit.isPending ? "Updating..." : "Set Limits"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

@@ -844,3 +844,44 @@
 - [x] Test: Verify wallet balance updated (logic implemented)
 - [x] Test: Verify transaction logged (admin_credit type added)
 - [x] Save checkpoint
+
+
+## Phase 7: Withdrawal Limits UI, Notification Center, Bulk Operations History - January 9, 2026
+
+### Withdrawal Limits UI
+- [x] Backend: Verify admin.setWithdrawalLimit and admin.getWithdrawalLimit endpoints exist
+- [x] Frontend: Add "Set Limits" button to User Management page
+- [x] Frontend: Create dialog with daily/monthly limit inputs
+- [x] Frontend: Show current limits in dialog
+- [x] Frontend: Success/error feedback with toast
+- [x] Test: Set limits for test user and verify validation on withdrawal
+
+### Notification Center
+- [x] Backend: Create notification.list endpoint with filters (type, read/unread, date range)
+- [x] Backend: Create notification.markAsRead endpoint (single notification)
+- [x] Backend: Create notification.markAllAsRead endpoint
+- [x] Backend: Create notification.delete endpoint
+- [x] Frontend: Create NotificationCenter page at /notifications
+- [x] Frontend: Add filters (All, Unread, Deposits, Trades, Security, System)
+- [x] Frontend: Display notifications with timestamp, type icon, read/unread badge
+- [x] Frontend: Mark as read on click
+- [x] Frontend: "Mark all as read" button
+- [x] Frontend: Delete notification button
+- [x] Frontend: Add to sidebar navigation
+- [x] Frontend: Add route in App.tsx
+
+### Bulk Operations History
+- [x] Backend: Extend admin.creditHistory to include bulk operation flag
+- [x] Backend: Add admin.bulkOperationsStats endpoint (total operations, users affected, amounts by asset)
+- [x] Frontend: Add statistics cards to Credit History page
+- [x] Frontend: Add "Bulk Operations" filter/tab
+- [x] Frontend: Show bulk operation indicator in table
+- [x] Frontend: Display statistics: total bulk ops, total users credited, total amounts per asset
+
+### Testing & Deployment
+- [x] Test: Withdrawal limits UI flow
+- [x] Test: Notification Center filters and mark as read
+- [x] Test: Bulk operations statistics display
+- [x] Verify: All features working correctly
+- [x] Update: todo.md with completion status
+- [ ] Save: Checkpoint with all features

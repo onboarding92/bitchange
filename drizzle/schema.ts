@@ -55,6 +55,7 @@ export const transactions = mysqlTable("transactions", {
   status: mysqlEnum("status", ["pending", "completed", "failed", "cancelled"]).default("pending").notNull(),
   reference: text("reference"),
   description: text("description"),
+  bulkOperationId: varchar("bulkOperationId", { length: 50 }), // Track bulk operations
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

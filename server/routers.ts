@@ -1509,6 +1509,7 @@ export const appRouter = router({
         asset: z.string(),
         amount: z.string(),
         note: z.string().optional(),
+        bulkOperationId: z.string().optional(), // For bulk operations
       }))
       .mutation(async ({ input, ctx }) => {
         const db = await getDb();
@@ -1548,6 +1549,9 @@ export const appRouter = router({
             .where(eq(walletsTable.id, wallet.id));
         }
 
+        // Generate bulk operation ID if not provided (for single operations, use timestamp)
+        const bulkOpId = input.bulkOperationId || `single_${Date.now()}`;
+
         // Log transaction
         await db.insert(transactionsTable).values({
           userId: input.userId,
@@ -1556,6 +1560,7 @@ export const appRouter = router({
           amount: input.amount,
           status: "completed",
           description: input.note || `Manual credit by admin (${ctx.user.email})`,
+          bulkOperationId: bulkOpId,
           createdAt: new Date(),
         });
 
@@ -1833,6 +1838,125 @@ export const appRouter = router({
           .limit(1);
 
         return limits || null;
+      }),
+
+    // Get credit history with bulk operation info
+    creditHistory: adminProcedure
+      .input(z.object({
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+        bulkOnly: z.boolean().optional(),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const conditions = [eq(transactionsTable.type, "admin_credit")];
+        
+        if (input.bulkOnly) {
+          conditions.push(sql`${transactionsTable.bulkOperationId} NOT LIKE 'single_%'`);
+        }
+
+        const results = await db
+          .select({
+            id: transactionsTable.id,
+            userId: transactionsTable.userId,
+            asset: transactionsTable.asset,
+            amount: transactionsTable.amount,
+            description: transactionsTable.description,
+            bulkOperationId: transactionsTable.bulkOperationId,
+            createdAt: transactionsTable.createdAt,
+          })
+          .from(transactionsTable)
+          .where(and(...conditions))
+          .orderBy(desc(transactionsTable.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
+
+        const total = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(transactionsTable)
+          .where(and(...conditions));
+
+        return {
+          transactions: results,
+          total: Number(total[0]?.count || 0),
+        };
+      }),
+
+    // Get bulk operations statistics
+    bulkOperationsStats: adminProcedure
+      .query(async () => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Get all bulk operations (exclude single operations)
+        const bulkOps = await db
+          .select({
+            bulkOperationId: transactionsTable.bulkOperationId,
+            asset: transactionsTable.asset,
+            amount: transactionsTable.amount,
+            userId: transactionsTable.userId,
+            createdAt: transactionsTable.createdAt,
+          })
+          .from(transactionsTable)
+          .where(and(
+            eq(transactionsTable.type, "admin_credit"),
+            sql`${transactionsTable.bulkOperationId} NOT LIKE 'single_%'`
+          ));
+
+        // Group by bulk operation ID
+        const bulkOpsMap = new Map<string, {
+          users: Set<number>;
+          amounts: Map<string, number>;
+          createdAt: Date;
+        }>();
+
+        bulkOps.forEach(op => {
+          if (!op.bulkOperationId) return;
+          
+          if (!bulkOpsMap.has(op.bulkOperationId)) {
+            bulkOpsMap.set(op.bulkOperationId, {
+              users: new Set(),
+              amounts: new Map(),
+              createdAt: op.createdAt,
+            });
+          }
+
+          const data = bulkOpsMap.get(op.bulkOperationId)!;
+          data.users.add(op.userId);
+          
+          const currentAmount = data.amounts.get(op.asset) || 0;
+          data.amounts.set(op.asset, currentAmount + parseFloat(op.amount));
+        });
+
+        // Calculate totals
+        const totalBulkOps = bulkOpsMap.size;
+        let totalUsersAffected = 0;
+        const totalAmountsByAsset = new Map<string, number>();
+
+        bulkOpsMap.forEach(data => {
+          totalUsersAffected += data.users.size;
+          data.amounts.forEach((amount, asset) => {
+            const current = totalAmountsByAsset.get(asset) || 0;
+            totalAmountsByAsset.set(asset, current + amount);
+          });
+        });
+
+        return {
+          totalBulkOperations: totalBulkOps,
+          totalUsersAffected,
+          totalAmountsByAsset: Object.fromEntries(totalAmountsByAsset),
+          recentBulkOps: Array.from(bulkOpsMap.entries())
+            .map(([id, data]) => ({
+              bulkOperationId: id,
+              usersCount: data.users.size,
+              amounts: Object.fromEntries(data.amounts),
+              createdAt: data.createdAt,
+            }))
+            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+            .slice(0, 10),
+        };
       }),
 
     kycList: adminProcedure.query(async () => {
@@ -3436,6 +3560,141 @@ export const appRouter = router({
   
   // Advanced Analytics
   analytics: analyticsRouter,
+
+  // Notification Management
+  notification: router({
+    // List notifications with filters
+    list: protectedProcedure
+      .input(z.object({
+        type: z.enum(["deposit", "withdrawal", "kyc", "trade", "system", "all"]).optional(),
+        isRead: z.boolean().optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      }))
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        const conditions = [eq(notifications.userId, ctx.user.id)];
+        
+        if (input.type && input.type !== "all") {
+          conditions.push(eq(notifications.type, input.type));
+        }
+        
+        if (input.isRead !== undefined) {
+          conditions.push(eq(notifications.isRead, input.isRead));
+        }
+
+        const results = await db
+          .select()
+          .from(notifications)
+          .where(and(...conditions))
+          .orderBy(desc(notifications.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
+
+        const total = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(notifications)
+          .where(and(...conditions));
+
+        return {
+          notifications: results,
+          total: Number(total[0]?.count || 0),
+        };
+      }),
+
+    // Mark single notification as read
+    markAsRead: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        // Verify notification belongs to user
+        const notification = await db
+          .select()
+          .from(notifications)
+          .where(and(
+            eq(notifications.id, input.notificationId),
+            eq(notifications.userId, ctx.user.id)
+          ))
+          .limit(1);
+
+        if (notification.length === 0) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Notification not found" });
+        }
+
+        await db
+          .update(notifications)
+          .set({ isRead: true })
+          .where(eq(notifications.id, input.notificationId));
+
+        return { success: true };
+      }),
+
+    // Mark all notifications as read
+    markAllAsRead: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        await db
+          .update(notifications)
+          .set({ isRead: true })
+          .where(and(
+            eq(notifications.userId, ctx.user.id),
+            eq(notifications.isRead, false)
+          ));
+
+        return { success: true };
+      }),
+
+    // Delete notification
+    delete: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        // Verify notification belongs to user
+        const notification = await db
+          .select()
+          .from(notifications)
+          .where(and(
+            eq(notifications.id, input.notificationId),
+            eq(notifications.userId, ctx.user.id)
+          ))
+          .limit(1);
+
+        if (notification.length === 0) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Notification not found" });
+        }
+
+        await db
+          .delete(notifications)
+          .where(eq(notifications.id, input.notificationId));
+
+        return { success: true };
+      }),
+
+    // Get unread count
+    unreadCount: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) return 0;
+
+        const result = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(notifications)
+          .where(and(
+            eq(notifications.userId, ctx.user.id),
+            eq(notifications.isRead, false)
+          ));
+
+        return Number(result[0]?.count || 0);
+      }),
+  }),
 
 });
 
