@@ -781,3 +781,27 @@
 - [ ] Update deposit UI to use new endpoints
 - [ ] Create admin UI for payment gateway management
 - [ ] Deliver CSV file with private keys to user (CONFIDENTIAL!)
+
+
+### Blockchain Monitoring & Auto-Credit System
+- [ ] Create blockchainMonitor.ts module
+- [ ] Implement Bitcoin monitoring (Blockchair API)
+- [ ] Implement Ethereum monitoring (Infura/Alchemy API)
+- [ ] Implement BSC monitoring (BSCScan API)
+- [ ] Parse Reference ID from transaction memo/tag
+- [ ] Auto-credit user wallet on deposit detection
+- [ ] Create monitor-deposits-cron.mjs script
+- [ ] Setup cron job (every 5 minutes)
+- [ ] Add email notifications for deposits
+- [ ] Create admin panel for deposit monitoring
+- [ ] Update admin manual with new system
+- [ ] Update user manual with deposit instructions
+
+
+### Hide Unimplemented Wallets
+- [x] Mark ADA, SOL, XRP, DOT, XLM wallets as inactive in database
+- [ ] Update frontend to filter out inactive wallets
+- [ ] Update deposit page to show only active wallets
+- [ ] Verify only 11 wallets are shown (BTC, ETH, USDT-ERC20, USDT-BEP20, USDC, BNB, LTC, DOGE, AVAX, MATIC, LINK)
+- [ ] Save checkpoint with all changes
+- [ ] Deliver final manuals + CSV
