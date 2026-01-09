@@ -803,5 +803,18 @@
 - [ ] Update frontend to filter out inactive wallets
 - [ ] Update deposit page to show only active wallets
 - [ ] Verify only 11 wallets are shown (BTC, ETH, USDT-ERC20, USDT-BEP20, USDC, BNB, LTC, DOGE, AVAX, MATIC, LINK)
-- [ ] Save checkpoint with all changes
+- [x] Save checkpoint with all changes
 - [ ] Deliver final manuals + CSV
+
+
+### Frontend Deposit Page Update - January 9, 2026
+- [x] Read current Deposit.tsx implementation
+- [x] Replace getDepositAddress with getHotWalletAddress endpoint
+- [x] Filter crypto list to show only active wallets (11 wallets)
+- [x] Display centralized wallet address with QR code
+- [x] Display Reference ID prominently with copy button
+- [x] Add instructions for users about Reference ID
+- [x] Integrate payment gateway buttons (8 gateways)
+- [x] Add payment gateway modal/redirect logic
+- [x] Test deposit flow end-to-end
+- [ ] Save checkpoint with frontend updates (in progress)

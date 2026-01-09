@@ -8,87 +8,87 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
-import { ArrowDownRight, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ArrowDownRight, CheckCircle2, Clock, XCircle, Copy, ExternalLink, AlertCircle } from "lucide-react";
 import { TrustSignals, TrustBanner } from "@/components/TrustSignals";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const PAYMENT_GATEWAYS = [
-  { id: "changenow", name: "ChangeNOW", description: "Fast crypto exchange" },
-  { id: "simplex", name: "Simplex", description: "Buy crypto with card" },
-  { id: "moonpay", name: "MoonPay", description: "Popular payment gateway" },
-  { id: "transak", name: "Transak", description: "Global fiat-to-crypto" },
-  { id: "mercuryo", name: "Mercuryo", description: "Instant crypto purchases" },
-  { id: "coingate", name: "CoinGate", description: "Multiple payment methods" },
-  { id: "changelly", name: "Changelly", description: "Crypto exchange platform" },
-  { id: "banxa", name: "Banxa", description: "Regulated payment gateway" },
+// Active wallets only (11 wallets - unimplemented ones hidden)
+const ACTIVE_CRYPTO_ASSETS = [
+  { symbol: "BTC", name: "Bitcoin", network: "Bitcoin" },
+  { symbol: "ETH", name: "Ethereum", network: "Ethereum" },
+  { symbol: "USDT", name: "Tether", network: "Ethereum (ERC-20)" },
+  { symbol: "USDT", name: "Tether", network: "BNB Chain (BEP-20)" },
+  { symbol: "USDC", name: "USD Coin", network: "Ethereum (ERC-20)" },
+  { symbol: "BNB", name: "Binance Coin", network: "BNB Chain" },
+  { symbol: "LTC", name: "Litecoin", network: "Litecoin" },
+  { symbol: "DOGE", name: "Dogecoin", network: "Dogecoin" },
+  { symbol: "AVAX", name: "Avalanche", network: "Avalanche C-Chain" },
+  { symbol: "MATIC", name: "Polygon", network: "Polygon" },
+  { symbol: "LINK", name: "Chainlink", network: "Ethereum (ERC-20)" },
 ];
 
 export default function Deposit() {
-  const [selectedGateway, setSelectedGateway] = useState<string>("");
-  const [asset, setAsset] = useState("USDT");
-  const [network, setNetwork] = useState("");
-  const [amount, setAmount] = useState("");
-  const [txHash, setTxHash] = useState("");
+  const [selectedAsset, setSelectedAsset] = useState("BTC");
+  const [selectedNetwork, setSelectedNetwork] = useState("Bitcoin");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [amount, setAmount] = useState("");
 
-  const { data: networks } = trpc.wallet.listNetworks.useQuery(
-    { asset },
-    { enabled: !!asset }
+  // Get hot wallet address for selected asset/network
+  const { data: walletInfo, isLoading: loadingWallet } = trpc.deposit.getHotWalletAddress.useQuery(
+    { asset: selectedAsset, network: selectedNetwork },
+    { enabled: !!selectedAsset && !!selectedNetwork }
   );
 
-  // Auto-select first network when networks load
-  useEffect(() => {
-    if (networks && networks.length > 0 && !network) {
-      setNetwork(networks[0].symbol);
-    }
-  }, [networks, network]);
+  // Get payment gateways
+  const { data: paymentGateways } = trpc.deposit.getPaymentGateways.useQuery();
 
-  const { data: depositAddress, isLoading: loadingAddress } = trpc.wallet.getDepositAddress.useQuery(
-    { asset, network },
-    { enabled: !!asset && !!network }
-  );
-
-  useEffect(() => {
-    if (depositAddress?.address) {
-      QRCode.toDataURL(depositAddress.address, { width: 256 }).then(setQrCodeUrl);
-    }
-  }, [depositAddress]);
-
-  const copyAddress = () => {
-    if (depositAddress?.address) {
-      navigator.clipboard.writeText(depositAddress.address);
-      toast.success("Address copied to clipboard");
-    }
-  };
-
+  // Get deposit history
   const { data: deposits, refetch } = trpc.deposit.list.useQuery();
 
-  const createDeposit = trpc.deposit.create.useMutation({
-    onSuccess: () => {
-      toast.success("Deposit request created!");
-      setAmount("");
-      setTxHash("");
-      refetch();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const handleDeposit = () => {
-    if (!selectedGateway || !amount || !network) {
-      toast.error("Please select gateway, network and enter amount");
-      return;
+  // Generate QR code when wallet address changes
+  useEffect(() => {
+    if (walletInfo?.address) {
+      QRCode.toDataURL(walletInfo.address, { width: 256, margin: 2 }).then(setQrCodeUrl);
     }
-    createDeposit.mutate({
-      asset,
-      amount,
-      network,
-      method: selectedGateway as any,
-      txHash: txHash || undefined,
-    });
+  }, [walletInfo]);
+
+  // Auto-update network when asset changes
+  useEffect(() => {
+    const defaultNetwork = ACTIVE_CRYPTO_ASSETS.find(a => a.symbol === selectedAsset)?.network;
+    if (defaultNetwork) {
+      setSelectedNetwork(defaultNetwork);
+    }
+  }, [selectedAsset]);
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard!`);
   };
 
-  const selectedNetworkData = networks?.find(n => n.symbol === network);
+  const handlePaymentGateway = async (gatewayName: string) => {
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    try {
+      const linkData = await trpc.deposit.getPaymentLink.query({
+        gateway: gatewayName,
+        asset: selectedAsset,
+        amount,
+        walletAddress: walletInfo?.address || "",
+      });
+
+      if (linkData?.url) {
+        window.open(linkData.url, "_blank");
+        toast.success(`Redirecting to ${gatewayName}...`);
+      } else {
+        toast.error("Payment gateway not configured");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate payment link");
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -99,264 +99,327 @@ export default function Deposit() {
       case "failed":
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
-        return null;
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "text-green-600 bg-green-50";
+      case "pending":
+        return "text-yellow-600 bg-yellow-50";
+      case "failed":
+        return "text-red-600 bg-red-50";
+      default:
+        return "text-gray-600 bg-gray-50";
+    }
+  };
+
+  // Get unique assets for dropdown
+  const uniqueAssets = Array.from(
+    new Map(ACTIVE_CRYPTO_ASSETS.map(item => [item.symbol, item])).values()
+  );
+
+  // Get networks for selected asset
+  const availableNetworks = ACTIVE_CRYPTO_ASSETS.filter(a => a.symbol === selectedAsset);
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Deposit</h1>
-          <p className="text-muted-foreground">Add funds to your account</p>
-        </div>
-
+      <div className="space-y-6">
         {/* Trust Banner */}
         <TrustBanner />
 
-        {/* Crypto Deposit Address */}
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle>Deposit via Crypto Transfer</CardTitle>
-            <CardDescription>
-              Send {asset} directly to your personal wallet address
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6 space-y-6">
-              <div>
-                <Label className="text-base font-semibold mb-3 block">Select Cryptocurrency</Label>
-                <Select value={asset} onValueChange={(val) => { setAsset(val); setNetwork(""); }}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-                    <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                    <SelectItem value="USDT">Tether (USDT)</SelectItem>
-                    <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
-                    <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
-                    <SelectItem value="SOL">Solana (SOL)</SelectItem>
-                    <SelectItem value="TRX">Tron (TRX)</SelectItem>
-                    <SelectItem value="MATIC">Polygon (MATIC)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-base font-semibold mb-3 block">Select Network</Label>
-                <Select value={network} onValueChange={setNetwork}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose network" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {networks && networks.length > 0 ? (
-                      networks.map((net) => (
-                        <SelectItem key={net.id} value={net.symbol}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{net.name}</span>
-                            <span className="text-xs text-muted-foreground ml-4">
-                              Fee: {net.depositFee} {asset} | Min: {net.minDeposit} {asset}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="none" disabled>
-                        No networks available
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                {selectedNetworkData && (
-                  <div className="mt-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
-                      ℹ️ <strong>{selectedNetworkData.name}</strong> - 
-                      Deposit Fee: {selectedNetworkData.depositFee} {asset} | 
-                      Min Deposit: {selectedNetworkData.minDeposit} {asset} | 
-                      Confirmations: {selectedNetworkData.confirmations}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-            {loadingAddress ? (
-              <div className="text-center py-8 text-muted-foreground">Generating wallet address...</div>
-            ) : depositAddress ? (
-              <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-muted/50 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Network</span>
-                    <span className="text-sm text-muted-foreground">{depositAddress.network}</span>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium">Deposit Address</span>
-                    <div className="flex items-center gap-2">
-                      <Input value={depositAddress.address} readOnly className="font-mono text-xs" />
-                      <Button size="icon" variant="outline" onClick={copyAddress}>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-                  {qrCodeUrl && (
-                    <div className="flex justify-center pt-4">
-                      <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 rounded-lg" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
-                  <p className="text-sm text-red-600 dark:text-red-400 font-semibold">
-                    ⚠️ <strong>CRITICAL WARNING:</strong> Only send {asset} to this address using the <strong>{depositAddress.network}</strong> network. 
-                    Sending via a different network or sending different assets will result in <strong>PERMANENT LOSS</strong> of your funds!
-                  </p>
-                  <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-2">
-                    Double-check the network before sending. We cannot recover funds sent to the wrong network.
-                  </p>
-                </div>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        {/* Payment Gateways */}
+        {/* Page Header */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Select Payment Method</h2>
-          <div className="grid gap-4 md:grid-cols-4">
-            {PAYMENT_GATEWAYS.map((gateway) => (
-              <Card
-                key={gateway.id}
-                className={`glass cursor-pointer transition-all ${
-                  selectedGateway === gateway.id
-                    ? "border-primary ring-2 ring-primary"
-                    : "border-border/50 hover:border-primary/50"
-                }`}
-                onClick={() => setSelectedGateway(gateway.id)}
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">{gateway.name}</CardTitle>
-                  <CardDescription className="text-xs">{gateway.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Deposit Funds</h1>
+          <p className="text-muted-foreground mt-2">
+            Deposit cryptocurrency to your BitChange account using our secure hot wallet system
+          </p>
         </div>
 
-        {/* Deposit Form */}
-        {selectedGateway && (
-          <Card className="glass">
-            <CardHeader>
-              <CardTitle>Deposit Details</CardTitle>
-              <CardDescription>
-                Complete your deposit using {PAYMENT_GATEWAYS.find(g => g.id === selectedGateway)?.name}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label>Asset</Label>
-                  <Select value={asset} onValueChange={setAsset}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-                      <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                      <SelectItem value="USDT">Tether (USDT)</SelectItem>
-                      <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
-                      <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
-                    </SelectContent>
-                  </Select>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Deposit Card */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowDownRight className="h-5 w-5" />
+                  Crypto Deposit
+                </CardTitle>
+                <CardDescription>
+                  Select cryptocurrency and network to get your deposit address
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Asset Selection */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label className="text-base font-semibold mb-3 block">Select Cryptocurrency</Label>
+                    <Select value={selectedAsset} onValueChange={setSelectedAsset}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueAssets.map((asset) => (
+                          <SelectItem key={asset.symbol} value={asset.symbol}>
+                            {asset.name} ({asset.symbol})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-base font-semibold mb-3 block">Select Network</Label>
+                    <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableNetworks.map((item, idx) => (
+                          <SelectItem key={`${item.symbol}-${item.network}-${idx}`} value={item.network}>
+                            {item.network}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label>Amount</Label>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                </div>
-              </div>
 
-              <div>
-                <Label>Transaction Hash (Optional)</Label>
-                <Input
-                  placeholder="0x..."
-                  value={txHash}
-                  onChange={(e) => setTxHash(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  If you've already sent the transaction, paste the hash here
-                </p>
-              </div>
+                {/* Wallet Address Display */}
+                {loadingWallet ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : walletInfo ? (
+                  <div className="space-y-4">
+                    {/* Reference ID Alert */}
+                    <Alert className="border-blue-200 bg-blue-50">
+                      <AlertCircle className="h-4 w-4 text-blue-600" />
+                      <AlertDescription className="text-blue-900">
+                        <strong>Important:</strong> Save your Reference ID below. Include it when contacting support about this deposit.
+                      </AlertDescription>
+                    </Alert>
 
-              <Button
-                className="w-full gradient-primary"
-                onClick={handleDeposit}
-                disabled={createDeposit.isPending}
-              >
-                <ArrowDownRight className="mr-2 h-4 w-4" />
-                {createDeposit.isPending ? "Processing..." : "Create Deposit Request"}
-              </Button>
+                    {/* Reference ID */}
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
+                      <Label className="text-sm font-semibold text-blue-900 mb-2 block">
+                        🔑 Your Reference ID
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 px-3 py-2 bg-white rounded border font-mono text-sm">
+                          {walletInfo.referenceId}
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(walletInfo.referenceId, "Reference ID")}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-2">
+                        This unique ID identifies your deposit. Save it for tracking purposes.
+                      </p>
+                    </div>
 
-              <div className="bg-accent/20 border border-accent/30 rounded-lg p-4 text-sm">
-                <p className="font-medium mb-2">Next Steps:</p>
-                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                  <li>Click "Create Deposit Request" to generate your deposit</li>
-                  <li>You'll be redirected to {PAYMENT_GATEWAYS.find(g => g.id === selectedGateway)?.name}</li>
-                  <li>Complete the payment process</li>
-                  <li>Funds will be credited after confirmation</li>
-                </ol>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    {/* Wallet Address */}
+                    <div>
+                      <Label className="text-base font-semibold mb-3 block">Deposit Address</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={walletInfo.address}
+                          readOnly
+                          className="font-mono text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => copyToClipboard(walletInfo.address, "Address")}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
 
-        {/* Deposit History */}
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle>Deposit History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!deposits || deposits.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">No deposits yet</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-3 px-4">Asset</th>
-                      <th className="text-right py-3 px-4">Amount</th>
-                      <th className="text-left py-3 px-4">Method</th>
-                      <th className="text-left py-3 px-4">Status</th>
-                      <th className="text-right py-3 px-4">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {deposits.map((deposit) => (
-                      <tr key={deposit.id} className="border-b border-border/50">
-                        <td className="py-3 px-4">{deposit.asset}</td>
-                        <td className="text-right py-3 px-4">{parseFloat(deposit.amount).toFixed(8)}</td>
-                        <td className="py-3 px-4 capitalize">{deposit.provider || "-"}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(deposit.status)}
-                            <span className="capitalize">{deposit.status}</span>
-                          </div>
-                        </td>
-                        <td className="text-right py-3 px-4 text-sm text-muted-foreground">
-                          {new Date(deposit.createdAt).toLocaleDateString()}
-                        </td>
-                      </tr>
+                    {/* QR Code */}
+                    {qrCodeUrl && (
+                      <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-lg border">
+                        <img src={qrCodeUrl} alt="Deposit QR Code" className="w-64 h-64" />
+                        <p className="text-sm text-muted-foreground text-center">
+                          Scan this QR code with your wallet app
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Instructions */}
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Instructions:</strong>
+                        <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
+                          <li>Copy the deposit address or scan the QR code</li>
+                          <li>Send {selectedAsset} from your external wallet</li>
+                          <li>Make sure you're using the correct network: <strong>{selectedNetwork}</strong></li>
+                          <li>Save your Reference ID for tracking</li>
+                          <li>Wait for blockchain confirmations (10-60 minutes)</li>
+                        </ol>
+                      </AlertDescription>
+                    </Alert>
+
+                    {/* Blockchain Explorer Links */}
+                    <div className="flex flex-wrap gap-2">
+                      {selectedNetwork.includes("Bitcoin") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`https://blockchair.com/bitcoin/address/${walletInfo.address}`, "_blank")}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View on Blockchair
+                        </Button>
+                      )}
+                      {selectedNetwork.includes("Ethereum") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`https://etherscan.io/address/${walletInfo.address}`, "_blank")}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View on Etherscan
+                        </Button>
+                      )}
+                      {selectedNetwork.includes("BNB") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`https://bscscan.com/address/${walletInfo.address}`, "_blank")}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View on BSCScan
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Failed to load wallet address. Please try again or contact support.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Payment Gateways */}
+            {paymentGateways && paymentGateways.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Buy Crypto with Card</CardTitle>
+                  <CardDescription>
+                    Purchase cryptocurrency directly using credit/debit card or other payment methods
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Amount (USD)</Label>
+                    <Input
+                      type="number"
+                      placeholder="100.00"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {paymentGateways.map((gateway: any) => (
+                      <Button
+                        key={gateway.id}
+                        variant="outline"
+                        className="h-auto py-4 flex flex-col items-center gap-2"
+                        onClick={() => handlePaymentGateway(gateway.name)}
+                      >
+                        <span className="font-semibold capitalize">{gateway.name}</span>
+                        <span className="text-xs text-muted-foreground">Buy Now</span>
+                      </Button>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Payment gateways charge their own fees (typically 3-5%). You'll be redirected to complete the purchase.
+                  </p>
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Trust Signals */}
+            <TrustSignals />
+
+            {/* Recent Deposits */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Deposits</CardTitle>
+                <CardDescription>Your latest deposit transactions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {deposits && deposits.length > 0 ? (
+                  <div className="space-y-3">
+                    {deposits.slice(0, 5).map((deposit: any) => (
+                      <div
+                        key={deposit.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                      >
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(deposit.status)}
+                          <div>
+                            <p className="font-medium text-sm">
+                              {deposit.amount} {deposit.asset}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(deposit.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(deposit.status)}`}>
+                          {deposit.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    No deposits yet
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Help Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  If your deposit doesn't arrive within 2 hours:
+                </p>
+                <ol className="list-decimal list-inside text-sm space-y-2">
+                  <li>Check the blockchain explorer</li>
+                  <li>Verify you used the correct network</li>
+                  <li>Contact support with your Reference ID</li>
+                </ol>
+                <Button variant="outline" className="w-full" onClick={() => window.location.href = "/support"}>
+                  Contact Support
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
