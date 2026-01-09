@@ -7,7 +7,12 @@ import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+const plugins = [
+  react({ jsxImportSource: 'react' }),
+  tailwindcss(),
+  jsxLocPlugin(),
+  vitePluginManusRuntime()
+];
 
 export default defineConfig({
   plugins,
