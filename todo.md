@@ -710,3 +710,74 @@
 - [ ] Debug white page rendering issue (React not rendering at all)
 - [ ] Check for JavaScript errors preventing React mount
 - [ ] Verify build configuration
+
+---
+
+## URGENT: Hot Wallet System & Payment Gateway Integration - January 9, 2026
+
+### Centralized Hot Wallet System
+- [ ] Generate one wallet per crypto/network (15 cryptos × networks)
+- [ ] Export CSV with addresses and private keys (SECURE!)
+- [ ] Store wallet configuration in database (hotWallets table)
+- [ ] Update deposit router to use centralized wallets
+- [ ] Add reference ID system for deposit tracking
+- [ ] Update deposit page UI with reference instructions
+- [ ] Remove random wallet generation code
+- [ ] Test deposit flow with centralized wallets
+
+### Payment Gateway Integration
+- [ ] Add payment gateway configuration table (paymentGateways)
+- [ ] Create admin panel for API key management
+- [ ] Integrate ChangeNOW API
+- [ ] Integrate Simplex API
+- [ ] Integrate MoonPay API
+- [ ] Integrate Transak API
+- [ ] Integrate Mercuryo API
+- [ ] Integrate CoinGate API
+- [ ] Integrate Changelly API
+- [ ] Integrate Banxa API
+- [ ] Test each gateway with sandbox/test keys
+- [ ] Add gateway status monitoring
+
+### Security & Documentation
+- [ ] Encrypt private keys in database (AES-256)
+- [ ] Create secure CSV delivery method
+- [ ] Document hot wallet management procedures
+- [ ] Create payment gateway setup guide
+- [ ] Add backup procedures for wallet keys
+- [ ] Test key rotation procedures
+
+
+---
+
+## URGENT: Hot Wallet System & Payment Gateway - January 9, 2026
+
+### Hot Wallet Centralized System ✅
+- [x] Generate centralized hot wallets (one per crypto/network)
+- [x] Export CSV with wallet addresses + private keys
+- [x] Encrypt private keys in database (AES-256)
+- [x] Update deposit.getDepositAddress to use centralized wallets
+- [x] Implement reference ID system for tracking deposits
+- [x] Create hotWallets table in database
+- [x] Create hotWalletManager.ts module
+- [x] Add deposit.getHotWalletAddress tRPC endpoint
+
+### Payment Gateway Integration ✅
+- [x] Create payment gateway configuration table
+- [x] Implement API key encryption for gateways
+- [x] Add admin endpoints for gateway management
+- [x] Generate payment links for each gateway
+- [x] Create paymentGatewayManager.ts module
+- [x] Support 8 gateways (ChangeNOW, Simplex, MoonPay, Transak, Mercuryo, CoinGate, Changelly, Banxa)
+- [x] Add deposit.getPaymentGateways endpoint
+- [x] Add deposit.getPaymentLink endpoint
+
+### Deployment & Testing
+- [ ] Push database schema changes to production
+- [ ] Import hot wallets into production database
+- [ ] Test deposit flow with centralized wallets
+- [ ] Configure payment gateway API keys
+- [ ] Test payment gateway links generation
+- [ ] Update deposit UI to use new endpoints
+- [ ] Create admin UI for payment gateway management
+- [ ] Deliver CSV file with private keys to user (CONFIDENTIAL!)

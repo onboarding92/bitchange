@@ -1009,3 +1009,42 @@ export const profitSharing = mysqlTable("profitSharing", {
 
 export type ProfitSharing = typeof profitSharing.$inferSelect;
 export type InsertProfitSharing = typeof profitSharing.$inferInsert;
+
+// Hot Wallet System
+export const hotWallets = mysqlTable("hotWallets", {
+  id: int("id").autoincrement().primaryKey(),
+  symbol: varchar("symbol", { length: 10 }).notNull(), // Cryptocurrency symbol (BTC, ETH, etc.)
+  name: varchar("name", { length: 50 }).notNull(), // Full cryptocurrency name
+  network: varchar("network", { length: 50 }).notNull(), // Blockchain network
+  type: varchar("type", { length: 20 }).notNull(), // Wallet type (bitcoin, ethereum, etc.)
+  address: varchar("address", { length: 255 }).notNull(), // Hot wallet address
+  privateKeyEncrypted: text("privateKeyEncrypted").notNull(), // Encrypted private key (AES-256)
+  mnemonic: text("mnemonic"), // Encrypted mnemonic phrase (if applicable)
+  publicKey: text("publicKey"), // Public key (for Bitcoin-based coins)
+  isActive: boolean("isActive").default(true).notNull(), // Whether this wallet is currently active
+  balance: decimal("balance", { precision: 20, scale: 8 }).default("0").notNull(), // Current balance (updated periodically)
+  lastBalanceCheck: timestamp("lastBalanceCheck"), // Last time balance was checked
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type HotWallet = typeof hotWallets.$inferSelect;
+export type InsertHotWallet = typeof hotWallets.$inferInsert;
+
+// Payment Gateway Configuration
+export const paymentGateways = mysqlTable("paymentGateways", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 50 }).notNull().unique(), // Gateway name (ChangeNOW, Simplex, etc.)
+  apiKeyEncrypted: text("apiKeyEncrypted"), // Encrypted API key
+  apiSecretEncrypted: text("apiSecretEncrypted"), // Encrypted API secret
+  webhookSecret: text("webhookSecret"), // Webhook secret for verification
+  isActive: boolean("isActive").default(false).notNull(), // Whether this gateway is enabled
+  isSandbox: boolean("isSandbox").default(true).notNull(), // Whether using sandbox/test mode
+  supportedCurrencies: text("supportedCurrencies"), // JSON array of supported currencies
+  config: text("config"), // JSON: Additional configuration (endpoints, limits, etc.)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PaymentGateway = typeof paymentGateways.$inferSelect;
+export type InsertPaymentGateway = typeof paymentGateways.$inferInsert;

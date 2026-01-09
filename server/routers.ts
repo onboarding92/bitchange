@@ -18,6 +18,8 @@ import { checkAndUnlockAchievements } from "./achievementSystem";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 import { generateWalletAddress } from "./walletGenerator";
+import { getHotWalletAddress, generateReferenceId, getAllHotWallets } from "./hotWalletManager";
+import { getAllPaymentGateways, getActivePaymentGateways, updatePaymentGatewayKeys, togglePaymentGateway, togglePaymentGatewaySandbox, getPaymentGatewayLink } from "./paymentGatewayManager";
 import { getUserPreferences, updateUserPreferences } from "./notificationPreferences";
 import { apiKeyRouter } from "./apiKeyRouter";
 import { copyTradingRouter } from "./copyTradingRouter";
@@ -699,10 +701,14 @@ export const appRouter = router({
         network: z.string(),
         method: z.enum(["changenow", "simplex", "moonpay", "transak", "mercuryo", "coingate", "changelly", "banxa"]),
         txHash: z.string().optional(),
+        referenceId: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Generate reference ID if not provided
+        const referenceId = input.referenceId || generateReferenceId(ctx.user.id, input.asset);
 
         await db.insert(deposits).values({
           userId: ctx.user.id,
@@ -711,10 +717,12 @@ export const appRouter = router({
           network: input.network,
           provider: input.method,
           externalId: input.txHash || null,
+          referenceId,
+          gatewayName: input.method,
           status: "pending",
         });
 
-        return { ok: true };
+        return { ok: true, referenceId };
       }),
 
     list: protectedProcedure.query(async ({ ctx }) => {
@@ -725,6 +733,63 @@ export const appRouter = router({
         .orderBy(desc(deposits.createdAt))
         .limit(50);
     }),
+
+    getHotWalletAddress: protectedProcedure
+      .input(z.object({
+        asset: z.string(),
+        network: z.string(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const wallet = await getHotWalletAddress(input.asset, input.network);
+        if (!wallet) {
+          throw new TRPCError({ 
+            code: "NOT_FOUND", 
+            message: `No hot wallet configured for ${input.asset} on ${input.network}` 
+          });
+        }
+
+        // Generate unique reference ID for this user's deposit
+        const referenceId = generateReferenceId(ctx.user.id, input.asset);
+
+        return {
+          ...wallet,
+          referenceId,
+          instructions: `Send ${input.asset} to the address above and include this reference ID: ${referenceId}`,
+        };
+      }),
+
+    listHotWallets: adminProcedure.query(async () => {
+      return await getAllHotWallets();
+    }),
+
+    getPaymentGateways: protectedProcedure.query(async () => {
+      return await getActivePaymentGateways();
+    }),
+
+    getPaymentLink: protectedProcedure
+      .input(z.object({
+        gateway: z.string(),
+        asset: z.string(),
+        amount: z.string(),
+        walletAddress: z.string(),
+      }))
+      .query(async ({ input }) => {
+        const link = await getPaymentGatewayLink(
+          input.gateway,
+          input.asset,
+          input.amount,
+          input.walletAddress
+        );
+        
+        if (!link) {
+          throw new TRPCError({ 
+            code: "NOT_FOUND", 
+            message: `Payment gateway ${input.gateway} not available` 
+          });
+        }
+        
+        return link;
+      }),
   }),
 
   withdrawal: router({
@@ -2673,15 +2738,16 @@ export const appRouter = router({
         minBalance: z.string(),
         maxBalance: z.string(),
         targetBalance: z.string(),
-        alertEmail: z.string().email().optional(),
+        alertEmail: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-        const { walletThresholds } = await import("../drizzle/schema");
-        const { eq } = await import("drizzle-orm");
         
-        await db.update(walletThresholds)
+        const { walletThresholds } = await import("../drizzle/schema");
+        
+        await db
+          .update(walletThresholds)
           .set({
             minBalance: input.minBalance,
             maxBalance: input.maxBalance,
@@ -2690,6 +2756,57 @@ export const appRouter = router({
           })
           .where(eq(walletThresholds.network, input.network));
         
+        return { success: true };
+      }),
+
+    // Payment Gateway Management
+    paymentGateways: adminProcedure.query(async () => {
+      return await getAllPaymentGateways();
+    }),
+
+    updatePaymentGatewayKeys: adminProcedure
+      .input(z.object({
+        gatewayId: z.number(),
+        apiKey: z.string(),
+        apiSecret: z.string().optional(),
+        webhookSecret: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const success = await updatePaymentGatewayKeys(
+          input.gatewayId,
+          input.apiKey,
+          input.apiSecret,
+          input.webhookSecret
+        );
+        if (!success) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to update gateway keys" });
+        }
+        return { success: true };
+      }),
+
+    togglePaymentGateway: adminProcedure
+      .input(z.object({
+        gatewayId: z.number(),
+        isActive: z.boolean(),
+      }))
+      .mutation(async ({ input }) => {
+        const success = await togglePaymentGateway(input.gatewayId, input.isActive);
+        if (!success) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to toggle gateway" });
+        }
+        return { success: true };
+      }),
+
+    togglePaymentGatewaySandbox: adminProcedure
+      .input(z.object({
+        gatewayId: z.number(),
+        isSandbox: z.boolean(),
+      }))
+      .mutation(async ({ input }) => {
+        const success = await togglePaymentGatewaySandbox(input.gatewayId, input.isSandbox);
+        if (!success) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to toggle sandbox mode" });
+        }
         return { success: true };
       }),
   }),
