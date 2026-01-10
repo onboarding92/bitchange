@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +10,47 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { trpc } from "@/lib/trpc";
-import { Bell, Check, CheckCheck } from "lucide-react";
+import { Bell, Check, CheckCheck, Wifi } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { toast } from "sonner";
 
 export function NotificationBell() {
   const { data: notifications = [] } = trpc.notifications.list.useQuery();
   const { data: unreadCount = 0 } = trpc.notifications.unreadCount.useQuery();
   const utils = trpc.useUtils();
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+      
+      // Auto-request permission if not yet decided
+      if (Notification.permission === "default") {
+        Notification.requestPermission().then((permission) => {
+          setNotificationPermission(permission);
+          if (permission === "granted") {
+            toast.success("Browser notifications enabled", {
+              description: "You'll receive alerts even when the tab is inactive"
+            });
+          }
+        });
+      }
+    }
+  }, []);
+
+  // WebSocket for real-time notifications
+  const { isConnected } = useWebSocket((notification) => {
+    // Show toast for new notification
+    toast.info(notification.title, {
+      description: notification.message,
+    });
+    
+    // Refresh notification list
+    utils.notifications.list.invalidate();
+    utils.notifications.unreadCount.invalidate();
+  });
 
   const markAsRead = trpc.notifications.markAsRead.useMutation({
     onSuccess: () => {
@@ -62,7 +97,15 @@ export function NotificationBell() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
-          <span>Notifications</span>
+          <div className="flex items-center gap-2">
+            <span>Notifications</span>
+            {isConnected && (
+              <span className="flex items-center gap-1 text-xs text-green-500">
+                <Wifi className="h-3 w-3" />
+                Live
+              </span>
+            )}
+          </div>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
