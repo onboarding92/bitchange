@@ -27,6 +27,7 @@ const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const Setup2FA = lazy(() => import("./pages/Setup2FA"));
 const HotWallets = lazy(() => import("./pages/admin/HotWallets"));
 const TransactionLogs = lazy(() => import("./pages/admin/TransactionLogs"));
+const WalletManagement = lazy(() => import("./pages/admin/WalletManagement"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const UsersManagement = lazy(() => import("./pages/admin/Users"));
 const Trade = lazy(() => import("./pages/Trade"));
@@ -39,6 +40,7 @@ const KYCReview = lazy(() => import("./pages/admin/KYCReview"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
+const WebSocketDashboard = lazy(() => import("./pages/admin/WebSocketDashboard"));
 
 // Loading fallback component
 function PageLoader() {
@@ -83,10 +85,12 @@ function Router() {
         <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/admin/system-health" component={SystemHealth} />
         <Route path="/admin/hot-wallets" component={HotWallets} />
+        <Route path="/admin/wallet-management" component={WalletManagement} />
         <Route path="/admin/logs" component={TransactionLogs} />
         <Route path="/admin/users" component={UsersManagement} />
         <Route path="/admin/kyc-review" component={KYCReview} />
         <Route path="/admin/analytics" component={AdminAnalytics} />
+        <Route path="/admin/websocket" component={WebSocketDashboard} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

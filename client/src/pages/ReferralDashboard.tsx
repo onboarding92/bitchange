@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Copy, Users, DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 
 export default function ReferralDashboard() {
@@ -33,19 +34,16 @@ export default function ReferralDashboard() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-6xl py-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/dashboard")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-3xl font-bold">Referral Program</h1>
+      <DashboardLayout>
+        <div className="container max-w-6xl py-8">
+          <div className="text-center py-12">Loading...</div>
         </div>
-        <div className="text-center py-12">Loading...</div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
+    <DashboardLayout>
     <div className="container max-w-6xl py-8">
       {/* Header with Back Button */}
       <div className="flex items-center gap-4 mb-6">
@@ -165,5 +163,6 @@ export default function ReferralDashboard() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }
