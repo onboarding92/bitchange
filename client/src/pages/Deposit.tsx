@@ -115,7 +115,7 @@ export default function Deposit() {
           <CardHeader>
             <CardTitle>Deposit via Crypto Transfer</CardTitle>
             <CardDescription>
-              Send {asset} directly to your personal wallet address
+              Send {asset} directly to our centralized wallet address (like Binance/Coinbase)
             </CardDescription>
           </CardHeader>
           <CardContent>

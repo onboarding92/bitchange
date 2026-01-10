@@ -362,6 +362,12 @@ function PromoCodesManager() {
 }
 
 function UsersManager() {
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [creditAsset, setCreditAsset] = useState("USDT");
+  const [creditAmount, setCreditAmount] = useState("");
+  const [creditNote, setCreditNote] = useState("");
+
   const { data: users, refetch } = trpc.admin.listUsers.useQuery();
 
   const updateRole = trpc.admin.updateUserRole.useMutation({
@@ -372,62 +378,160 @@ function UsersManager() {
     onError: (error) => toast.error(error.message),
   });
 
+  const creditBalance = trpc.admin.creditBalance.useMutation({
+    onSuccess: () => {
+      toast.success("Balance credited successfully!");
+      setCreditDialogOpen(false);
+      setCreditAmount("");
+      setCreditNote("");
+      setSelectedUserId(null);
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const handleCreditBalance = () => {
+    if (!selectedUserId || !creditAmount || parseFloat(creditAmount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+    creditBalance.mutate({
+      userId: selectedUserId,
+      asset: creditAsset,
+      amount: creditAmount,
+      note: creditNote || undefined,
+    });
+  };
+
+  const selectedUser = users?.find(u => u.id === selectedUserId);
+
   return (
-    <Card className="glass">
-      <CardHeader>
-        <CardTitle>Users Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-4">ID</th>
-                <th className="text-left py-3 px-4">Email</th>
-                <th className="text-left py-3 px-4">Name</th>
-                <th className="text-left py-3 px-4">Role</th>
-                <th className="text-left py-3 px-4">KYC Status</th>
-                <th className="text-right py-3 px-4">Registered</th>
-                <th className="text-right py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users?.map((user) => (
-                <tr key={user.id} className="border-b border-border/50">
-                  <td className="py-3 px-4">{user.id}</td>
-                  <td className="py-3 px-4">{user.email || "N/A"}</td>
-                  <td className="py-3 px-4">{user.name || "N/A"}</td>
-                  <td className="py-3 px-4">
-                    <Select
-                      value={user.role}
-                      onValueChange={(role: "user" | "admin") => {
-                        updateRole.mutate({ userId: user.id, role });
-                      }}
-                    >
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </td>
-                  <td className="py-3 px-4 capitalize">{user.kycStatus}</td>
-                  <td className="text-right py-3 px-4 text-sm text-muted-foreground">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="text-right py-3 px-4">
-                    <Button size="sm" variant="ghost">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </td>
+    <>
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle>Users Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-4">ID</th>
+                  <th className="text-left py-3 px-4">Email</th>
+                  <th className="text-left py-3 px-4">Name</th>
+                  <th className="text-left py-3 px-4">Role</th>
+                  <th className="text-left py-3 px-4">KYC Status</th>
+                  <th className="text-right py-3 px-4">Registered</th>
+                  <th className="text-right py-3 px-4">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+              </thead>
+              <tbody>
+                {users?.map((user) => (
+                  <tr key={user.id} className="border-b border-border/50">
+                    <td className="py-3 px-4">{user.id}</td>
+                    <td className="py-3 px-4">{user.email || "N/A"}</td>
+                    <td className="py-3 px-4">{user.name || "N/A"}</td>
+                    <td className="py-3 px-4">
+                      <Select
+                        value={user.role}
+                        onValueChange={(role: "user" | "admin") => {
+                          updateRole.mutate({ userId: user.id, role });
+                        }}
+                      >
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="py-3 px-4 capitalize">{user.kycStatus}</td>
+                    <td className="text-right py-3 px-4 text-sm text-muted-foreground">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="text-right py-3 px-4">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedUserId(user.id);
+                          setCreditDialogOpen(true);
+                        }}
+                      >
+                        💰 Credit
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={creditDialogOpen} onOpenChange={setCreditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Credit User Balance</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-sm font-medium">User: {selectedUser?.email}</p>
+              <p className="text-xs text-muted-foreground">ID: {selectedUserId}</p>
+            </div>
+            
+            <div>
+              <Label>Asset</Label>
+              <Select value={creditAsset} onValueChange={setCreditAsset}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_ASSETS.map(a => (
+                    <SelectItem key={a} value={a}>{a}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Amount</Label>
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                value={creditAmount} 
+                onChange={(e) => setCreditAmount(e.target.value)}
+                min="0"
+                step="0.00000001"
+              />
+            </div>
+
+            <div>
+              <Label>Note (Optional)</Label>
+              <Input 
+                placeholder="e.g., Manual deposit credit" 
+                value={creditNote} 
+                onChange={(e) => setCreditNote(e.target.value)}
+              />
+            </div>
+
+            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                ⚠️ This will immediately add {creditAmount || "0"} {creditAsset} to the user's balance.
+              </p>
+            </div>
+
+            <Button 
+              className="w-full" 
+              onClick={handleCreditBalance}
+              disabled={creditBalance.isPending}
+            >
+              {creditBalance.isPending ? "Processing..." : "Credit Balance"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

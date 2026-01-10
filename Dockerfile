@@ -36,7 +36,6 @@ RUN pnpm install --prod --frozen-lockfile
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
 
 # Copy necessary files
 COPY drizzle ./drizzle
@@ -53,4 +52,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the application
-CMD ["node", "dist/server/_core/index.js"]
+CMD ["node", "dist/index.js"]

@@ -638,6 +638,29 @@ export const appRouter = router({
           status: "pending",
         });
 
+        // Send notification to admin
+        try {
+          // Get user info
+          const userList = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+          const user = userList.length > 0 ? userList[0] : null;
+          
+          // Create notification for all admins
+          const adminUsers = await db.select().from(users).where(eq(users.role, "admin"));
+          
+          for (const admin of adminUsers) {
+            await db.insert(notifications).values({
+              userId: admin.id,
+              type: "deposit",
+              title: "New Deposit Request",
+              message: `User ${user?.email || ctx.user.email} deposited ${input.amount} ${input.asset} via ${input.method}`,
+              isRead: false,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to send deposit notification:", error);
+          // Don't fail the deposit if notification fails
+        }
+
         return { ok: true };
       }),
 
@@ -1113,6 +1136,70 @@ export const appRouter = router({
         await db.update(users)
           .set(updates)
           .where(eq(users.id, input.userId));
+
+        return { success: true };
+      }),
+
+    // Credit user balance (manual credit by admin)
+    creditBalance: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        asset: z.string(),
+        amount: z.string(), // Positive amount to credit
+        note: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const amount = parseFloat(input.amount);
+        if (amount <= 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Amount must be positive" });
+        }
+
+        // Get or create wallet
+        const [existingWallet] = await db.select()
+          .from(wallets)
+          .where(
+            and(
+              eq(wallets.userId, input.userId),
+              eq(wallets.asset, input.asset)
+            )
+          )
+          .limit(1);
+
+        if (existingWallet) {
+          // Update existing wallet
+          await db.update(wallets)
+            .set({ 
+              balance: sql`${wallets.balance} + ${input.amount}`,
+              updatedAt: new Date()
+            })
+            .where(
+              and(
+                eq(wallets.userId, input.userId),
+                eq(wallets.asset, input.asset)
+              )
+            );
+        } else {
+          // Create new wallet
+          await db.insert(wallets).values({
+            userId: input.userId,
+            asset: input.asset,
+            balance: input.amount,
+            locked: "0",
+          });
+        }
+
+        // Log transaction
+        await db.insert(transactions).values({
+          userId: input.userId,
+          type: "deposit", // Use deposit type for manual credits
+          asset: input.asset,
+          amount: input.amount,
+          status: "completed",
+          reference: input.note || `Manual credit by admin (${ctx.user.email})`,
+        });
 
         return { success: true };
       }),
