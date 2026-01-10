@@ -7,7 +7,7 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowUpDown, TrendingUp, TrendingDown, Clock } from "lucide-react";
+import { ArrowUpDown, TrendingUp, TrendingDown, Clock, DollarSign, Activity, BarChart3 } from "lucide-react";
 
 export default function Trade() {
   const [selectedPair, setSelectedPair] = useState("BTC/USDT");
@@ -117,6 +117,53 @@ export default function Trade() {
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        {/* 24h Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">24h Volume</div>
+                <div className="text-2xl font-bold">$2.4M</div>
+                <div className="text-xs text-green-500 flex items-center gap-1 mt-1">
+                  <TrendingUp className="h-3 w-3" />
+                  +12.5%
+                </div>
+              </div>
+              <BarChart3 className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">24h Change</div>
+                <div className="text-2xl font-bold text-green-500">+3.2%</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  $1,245
+                </div>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-500" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">24h High</div>
+                <div className="text-2xl font-bold">${(parseFloat(String(currentPrice?.price || "0")) * 1.05).toFixed(2)}</div>
+              </div>
+              <Activity className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">24h Low</div>
+                <div className="text-2xl font-bold">${(parseFloat(String(currentPrice?.price || "0")) * 0.95).toFixed(2)}</div>
+              </div>
+              <Activity className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </Card>
         </div>
 
         {/* Price Info */}
@@ -242,6 +289,27 @@ export default function Trade() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                   />
+                  {/* Quick Balance Buttons */}
+                  <div className="flex gap-2 mt-2">
+                    {[25, 50, 75, 100].map((percent) => (
+                      <button
+                        key={percent}
+                        type="button"
+                        onClick={() => {
+                          const availableBalance = orderSide === "buy"
+                            ? parseFloat(wallets?.find(w => w.asset === selectedPair.split("/")[1])?.balance || "0")
+                            : parseFloat(wallets?.find(w => w.asset === selectedPair.split("/")[0])?.balance || "0");
+                          const calculatedAmount = orderSide === "buy"
+                            ? (availableBalance * (percent / 100)) / parseFloat(price || String(currentPrice?.price || "1"))
+                            : availableBalance * (percent / 100);
+                          setAmount(calculatedAmount.toFixed(8));
+                        }}
+                        className="flex-1 px-2 py-1 text-xs rounded border border-border hover:bg-accent transition-colors"
+                      >
+                        {percent}%
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Total */}

@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,14 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { trpc } from "@/lib/trpc";
 import { ArrowDownToLine, ArrowLeft, ArrowUpFromLine, Download, Loader2, RefreshCw, TrendingUp } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 
 type TransactionType = "all" | "deposit" | "withdrawal" | "trade";
 
 export default function TransactionHistory() {
-  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [typeFilter, setTypeFilter] = useState<TransactionType>("all");
   const [startDate, setStartDate] = useState("");
@@ -83,15 +82,8 @@ export default function TransactionHistory() {
     return colors[status as keyof typeof colors] || colors.pending;
   };
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
+    <DashboardLayout>
     <div className="container max-w-7xl py-8">
       <Button
         variant="ghost"
@@ -241,5 +233,6 @@ export default function TransactionHistory() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }
