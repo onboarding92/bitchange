@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ArrowUpRight, CheckCircle2, Clock, XCircle, AlertTriangle } from "lucide-react";
+import { TrustSignals, TrustBanner } from "@/components/TrustSignals";
 
 export default function Withdrawal() {
   const [asset, setAsset] = useState("BTC");
@@ -82,6 +83,9 @@ export default function Withdrawal() {
           <h1 className="text-3xl font-bold mb-2">Withdrawal</h1>
           <p className="text-muted-foreground">Withdraw funds from your account</p>
         </div>
+
+        {/* Trust Banner */}
+        <TrustBanner />
 
         {/* Withdrawal Form */}
         <Card className="glass">

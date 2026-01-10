@@ -17,6 +17,7 @@ import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
 import { generateWalletAddress } from "./walletGenerator";
+import { getUserPreferences, updateUserPreferences } from "./notificationPreferences";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -77,7 +78,12 @@ export const appRouter = router({
       }),
 
     login: publicProcedure
-      .input(z.object({ email: z.string().email(), password: z.string() }))
+      .input(z.object({ 
+        email: z.string().email(), 
+        password: z.string(),
+        twoFactorCode: z.string().optional(),
+        backupCode: z.string().optional()
+      }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
@@ -130,6 +136,54 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
         }
 
+        // Check if 2FA is enabled
+        if (user.twoFactorEnabled && user.twoFactorSecret) {
+          if (!input.twoFactorCode && !input.backupCode) {
+            throw new TRPCError({ 
+              code: "UNAUTHORIZED", 
+              message: "2FA code required. Please provide your authenticator code or backup code." 
+            });
+          }
+
+          // Verify 2FA code or backup code
+          const { verify2FAToken, hashBackupCode } = await import("./twoFactor");
+          let valid = false;
+
+          if (input.backupCode) {
+            // Verify backup code
+            const hashedBackupCode = hashBackupCode(input.backupCode);
+            const backupCodes = user.twoFactorBackupCodes ? JSON.parse(user.twoFactorBackupCodes) : [];
+            
+            if (backupCodes.includes(hashedBackupCode)) {
+              valid = true;
+              
+              // Mark backup code as used by removing it
+              const updatedBackupCodes = backupCodes.filter((code: string) => code !== hashedBackupCode);
+              await db.update(users)
+                .set({ twoFactorBackupCodes: JSON.stringify(updatedBackupCodes) })
+                .where(eq(users.id, user.id));
+              
+              console.log(`[2FA] Backup code used for user ${user.id}, ${updatedBackupCodes.length} codes remaining`);
+            }
+          } else if (input.twoFactorCode) {
+            // Verify TOTP code
+            valid = verify2FAToken(user.twoFactorSecret, input.twoFactorCode);
+          }
+
+          if (!valid) {
+            await recordLoginAttempt({
+              userId: user.id,
+              email: input.email,
+              ipAddress: ip,
+              userAgent,
+              method: "2fa",
+              success: false,
+            });
+            recordLoginResult({ ip, email: input.email, success: false });
+            throw new TRPCError({ code: "UNAUTHORIZED", message: input.backupCode ? "Invalid backup code" : "Invalid 2FA code" });
+          }
+        }
+
         // Create session
         const token = await createSession(
           { userId: user.id, email: user.email!, role: user.role },
@@ -158,6 +212,16 @@ export const appRouter = router({
           ip,
           userAgent,
           timestamp: new Date().toLocaleString(),
+        });
+
+        // Send WebSocket security alert for new login
+        const { sendNotificationToUser } = await import("./websocket");
+        sendNotificationToUser(user.id, {
+          id: Date.now(),
+          type: "security_alert",
+          title: "New Login Detected",
+          message: `Login from ${ip} using ${userAgent.substring(0, 50)}...`,
+          createdAt: new Date(),
         });
 
         return { success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
@@ -1432,6 +1496,20 @@ export const appRouter = router({
           .set({ status: "completed", processedAt: new Date() })
           .where(eq(withdrawals.id, input.id));
 
+        // Send real-time notification to user
+        try {
+          const { sendNotificationToUser } = await import("./websocket");
+          sendNotificationToUser(withdrawal.userId, {
+            id: Date.now(),
+            type: "withdrawal",
+            title: "Withdrawal Approved",
+            message: `Your withdrawal of ${withdrawal.amount} ${withdrawal.asset} has been approved and processed.`,
+            createdAt: new Date()
+          });
+        } catch (error) {
+          console.error("[WebSocket] Failed to send notification:", error);
+        }
+
         return { ok: true };
       }),
 
@@ -2088,6 +2166,19 @@ export const appRouter = router({
           ...input,
         });
         console.log("[ROUTER] placeOrder result:", result);
+        
+        // Send WebSocket notification for trade execution
+        if (result.success) {
+          const { sendNotificationToUser } = await import("./websocket");
+          sendNotificationToUser(ctx.user.id, {
+            id: Date.now(),
+            type: "trade_executed",
+            title: "Trade Executed",
+            message: `Your ${input.side} order for ${input.amount} ${input.pair.split("/")[0]} has been executed at ${input.price || 'market price'}`,
+            createdAt: new Date(),
+          });
+        }
+        
         return result;
       }),
 
@@ -2527,6 +2618,271 @@ export const appRouter = router({
       const { getRevenueMetrics } = await import("./businessMetrics");
       return await getRevenueMetrics();
     }),
+
+    // WebSocket Monitoring
+    websocketStats: adminProcedure.query(async () => {
+      const { getConnectionStats, getActiveConnections } = await import("./websocket");
+      const stats = getConnectionStats();
+      const activeConnections = getActiveConnections();
+      
+      return {
+        stats,
+        activeConnections: activeConnections.map(conn => ({
+          userId: conn.userId,
+          connectionId: conn.connectionId,
+          connectedAt: conn.connectedAt,
+          lastActivity: conn.lastActivity,
+        })),
+      };
+    }),
+
+    // Broadcast message to all connected users
+    broadcast: adminProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        message: z.string().min(1),
+        type: z.enum(["info", "warning", "error", "success"]).default("info"),
+      }))
+      .mutation(async ({ input }) => {
+        const { broadcastNotification } = await import("./websocket");
+        const sentCount = broadcastNotification({
+          id: Date.now(),
+          type: input.type,
+          title: input.title,
+          message: input.message,
+          createdAt: new Date(),
+        });
+        return { success: true, sentCount };
+      }),
+
+    // Wallet Production System
+    coldWallets: adminProcedure.query(async () => {
+      const { getColdWallets } = await import("./coldWalletManager");
+      return await getColdWallets();
+    }),
+
+    addColdWallet: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        asset: z.string(),
+        address: z.string(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { addColdWallet } = await import("./coldWalletManager");
+        return await addColdWallet(input);
+      }),
+
+    verifyColdWalletBalance: adminProcedure
+      .input(z.object({ network: z.string() }))
+      .mutation(async ({ input }) => {
+        const { verifyColdWalletBalance } = await import("./coldWalletManager");
+        return await verifyColdWalletBalance(input.network);
+      }),
+
+    coldStorageValue: adminProcedure.query(async () => {
+      const { getTotalColdStorageValue } = await import("./coldWalletManager");
+      return await getTotalColdStorageValue();
+    }),
+
+    hotWalletStatus: adminProcedure.query(async () => {
+      const { getHotWalletStatus } = await import("./balanceMonitor");
+      return await getHotWalletStatus();
+    }),
+
+    sweepHistory: adminProcedure
+      .input(z.object({
+        type: z.enum(["deposit_to_hot", "hot_to_cold", "cold_to_hot"]).optional(),
+        status: z.enum(["pending", "completed", "failed"]).optional(),
+        limit: z.number().min(1).max(100).default(50),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        const { sweepTransactions } = await import("../drizzle/schema");
+        const { and, eq, desc } = await import("drizzle-orm");
+        
+        let query = db.select().from(sweepTransactions);
+        const conditions = [];
+        
+        if (input.type) conditions.push(eq(sweepTransactions.type, input.type));
+        if (input.status) conditions.push(eq(sweepTransactions.status, input.status));
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+        
+        return await query.orderBy(desc(sweepTransactions.createdAt)).limit(input.limit);
+      }),
+
+    sweepHotToCold: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        amount: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { sweepHotToCold } = await import("./sweepSystem");
+        return await sweepHotToCold(input.network, input.amount);
+      }),
+
+    refillHotWallet: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        amount: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { refillHotWallet } = await import("./sweepSystem");
+        return await refillHotWallet(input.network, input.amount);
+      }),
+
+    walletThresholds: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      const { walletThresholds } = await import("../drizzle/schema");
+      return await db.select().from(walletThresholds).orderBy(walletThresholds.network);
+    }),
+
+    updateWalletThreshold: adminProcedure
+      .input(z.object({
+        network: z.string(),
+        minBalance: z.string(),
+        maxBalance: z.string(),
+        targetBalance: z.string(),
+        alertEmail: z.string().email().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { walletThresholds } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        
+        await db.update(walletThresholds)
+          .set({
+            minBalance: input.minBalance,
+            maxBalance: input.maxBalance,
+            targetBalance: input.targetBalance,
+            alertEmail: input.alertEmail,
+          })
+          .where(eq(walletThresholds.network, input.network));
+        
+        return { success: true };
+      }),
+  }),
+
+  // Notification Preferences
+  notificationPreferences: router({
+    get: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserPreferences(ctx.user.id);
+    }),
+    update: protectedProcedure
+      .input(z.object({
+        trade: z.boolean().optional(),
+        deposit: z.boolean().optional(),
+        withdrawal: z.boolean().optional(),
+        security: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await updateUserPreferences(ctx.user.id, input);
+      }),
+  }),
+
+  // WebAuthn / Biometric Authentication
+  webauthn: router({
+    // List user's registered credentials
+    listCredentials: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const { webAuthnCredentials } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      return await db.select({
+        id: webAuthnCredentials.id,
+        deviceName: webAuthnCredentials.deviceName,
+        deviceType: webAuthnCredentials.deviceType,
+        lastUsed: webAuthnCredentials.lastUsed,
+        createdAt: webAuthnCredentials.createdAt,
+      })
+      .from(webAuthnCredentials)
+      .where(eq(webAuthnCredentials.userId, ctx.user.id));
+    }),
+
+    // Generate registration options
+    generateRegistrationOptions: protectedProcedure
+      .input(z.object({ deviceName: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        // TODO: Implement WebAuthn registration options generation
+        // This requires @simplewebauthn/server
+        // For now, return mock options
+        return {
+          challenge: Buffer.from("mock-challenge").toString("base64url"),
+          rp: {
+            name: "BitChange Pro",
+            id: "bitchangemoney.xyz",
+          },
+          user: {
+            id: Buffer.from(String(ctx.user.id)).toString("base64url"),
+            name: ctx.user.email,
+            displayName: ctx.user.name || ctx.user.email,
+          },
+          pubKeyCredParams: [
+            { alg: -7, type: "public-key" },
+            { alg: -257, type: "public-key" },
+          ],
+          timeout: 60000,
+          attestation: "none",
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            requireResidentKey: false,
+            userVerification: "required",
+          },
+        };
+      }),
+
+    // Verify registration
+    verifyRegistration: protectedProcedure
+      .input(z.object({
+        deviceName: z.string(),
+        credential: z.any(), // WebAuthn credential response
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { webAuthnCredentials } = await import("../drizzle/schema");
+        
+        // TODO: Implement proper WebAuthn verification
+        // For now, just store the credential
+        await db.insert(webAuthnCredentials).values({
+          userId: ctx.user.id,
+          credentialId: input.credential.id || "mock-credential-id",
+          publicKey: input.credential.publicKey || "mock-public-key",
+          counter: 0,
+          deviceName: input.deviceName,
+          deviceType: "platform",
+          transports: null,
+          aaguid: null,
+        });
+        
+        return { success: true };
+      }),
+
+    // Delete credential
+    deleteCredential: protectedProcedure
+      .input(z.object({ credentialId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { webAuthnCredentials } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        
+        // Ensure user can only delete their own credentials
+        await db.delete(webAuthnCredentials)
+          .where(and(
+            eq(webAuthnCredentials.id, input.credentialId),
+            eq(webAuthnCredentials.userId, ctx.user.id)
+          ));
+        
+        return { success: true };
+      }),
   }),
 });
 

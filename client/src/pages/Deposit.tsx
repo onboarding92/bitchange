@@ -9,6 +9,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ArrowDownRight, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { TrustSignals, TrustBanner } from "@/components/TrustSignals";
 
 const PAYMENT_GATEWAYS = [
   { id: "changenow", name: "ChangeNOW", description: "Fast crypto exchange" },
@@ -109,6 +110,9 @@ export default function Deposit() {
           <h1 className="text-3xl font-bold mb-2">Deposit</h1>
           <p className="text-muted-foreground">Add funds to your account</p>
         </div>
+
+        {/* Trust Banner */}
+        <TrustBanner />
 
         {/* Crypto Deposit Address */}
         <Card className="glass">
