@@ -105,12 +105,3 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
-
-# User uploads (KYC documents, etc.)
-uploads/
-
-# Screenshots
-screenshots/
-
-# Manus internal folder
-.manus/
