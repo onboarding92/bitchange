@@ -10,6 +10,8 @@ import { createContext } from "./context";
 import { serveStatic } from "./static";
 import { upload } from "../upload";
 import path from "path";
+import { WebSocketServer } from "ws";
+import { initWebSocketServer } from "../websocket";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -79,8 +81,13 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
+  // Initialize WebSocket server
+  const wss = new WebSocketServer({ server, path: "/ws" });
+  initWebSocketServer(wss);
+
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    console.log(`WebSocket server running on ws://localhost:${port}/ws`);
     
     // Start alerting system
     import("../alerting").then(({ startAlertingSystem }) => {

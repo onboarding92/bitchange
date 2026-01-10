@@ -25,6 +25,7 @@ export const users = mysqlTable("users", {
   ipWhitelist: text("ipWhitelist"), // JSON array of whitelisted IPs (admin only)
   referralCode: varchar("referralCode", { length: 20 }).unique(), // Unique referral code for this user
   referredBy: int("referredBy"), // User ID who referred this user
+  notificationPreferences: text("notificationPreferences"), // JSON: {trade: true, deposit: true, withdrawal: true, security: true}
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -562,3 +563,72 @@ export const alerts = mysqlTable("alerts", {
 
 export type Alert = typeof alerts.$inferSelect;
 export type InsertAlert = typeof alerts.$inferInsert;
+
+// WebAuthn/FIDO2 Credentials for biometric authentication
+export const webAuthnCredentials = mysqlTable("webAuthnCredentials", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  credentialId: text("credentialId").notNull().unique(), // Base64URL encoded credential ID
+  publicKey: text("publicKey").notNull(), // Base64URL encoded public key
+  counter: int("counter").default(0).notNull(), // Signature counter for replay protection
+  deviceName: varchar("deviceName", { length: 100 }), // User-friendly name (e.g., "iPhone 15", "MacBook Pro")
+  deviceType: varchar("deviceType", { length: 50 }), // "platform" or "cross-platform"
+  transports: text("transports"), // JSON array of supported transports ["usb", "nfc", "ble", "internal"]
+  aaguid: varchar("aaguid", { length: 100 }), // Authenticator Attestation GUID
+  lastUsed: timestamp("lastUsed"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WebAuthnCredential = typeof webAuthnCredentials.$inferSelect;
+export type InsertWebAuthnCredential = typeof webAuthnCredentials.$inferInsert;
+
+// Wallet Production System Tables
+export const coldWallets = mysqlTable("coldWallets", {
+  id: int("id").autoincrement().primaryKey(),
+  network: varchar("network", { length: 50 }).notNull().unique(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  address: varchar("address", { length: 255 }).notNull(),
+  balance: decimal("balance", { precision: 20, scale: 8 }).default("0").notNull(),
+  lastVerifiedAt: timestamp("lastVerifiedAt"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ColdWallet = typeof coldWallets.$inferSelect;
+export type InsertColdWallet = typeof coldWallets.$inferInsert;
+
+export const sweepTransactions = mysqlTable("sweepTransactions", {
+  id: int("id").autoincrement().primaryKey(),
+  fromAddress: varchar("fromAddress", { length: 255 }).notNull(),
+  toAddress: varchar("toAddress", { length: 255 }).notNull(),
+  network: varchar("network", { length: 50 }).notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  txHash: varchar("txHash", { length: 255 }),
+  status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
+  type: mysqlEnum("type", ["deposit_to_hot", "hot_to_cold", "cold_to_hot"]).notNull(),
+  errorMessage: text("errorMessage"),
+  retryCount: int("retryCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type SweepTransaction = typeof sweepTransactions.$inferSelect;
+export type InsertSweepTransaction = typeof sweepTransactions.$inferInsert;
+
+export const walletThresholds = mysqlTable("walletThresholds", {
+  id: int("id").autoincrement().primaryKey(),
+  network: varchar("network", { length: 50 }).notNull().unique(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  minBalance: decimal("minBalance", { precision: 20, scale: 8 }).notNull(),
+  maxBalance: decimal("maxBalance", { precision: 20, scale: 8 }).notNull(),
+  targetBalance: decimal("targetBalance", { precision: 20, scale: 8 }).notNull(),
+  alertEmail: varchar("alertEmail", { length: 320 }),
+  lastAlertSent: timestamp("lastAlertSent"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WalletThreshold = typeof walletThresholds.$inferSelect;
+export type InsertWalletThreshold = typeof walletThresholds.$inferInsert;
