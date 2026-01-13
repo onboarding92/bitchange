@@ -151,8 +151,8 @@ export async function getOrderBook(
 
     return {
       success: true,
-      bids: orderBook.bids.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
-      asks: orderBook.asks.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
+      bids: orderBook.bids.map(([price, amount]: [any, any]) => [Number(price), Number(amount)] as [number, number]),
+      asks: orderBook.asks.map(([price, amount]: [any, any]) => [Number(price), Number(amount)] as [number, number]),
       exchange: "binance",
     };
   } catch (error) {
@@ -167,8 +167,8 @@ export async function getOrderBook(
       const orderBook = await krakenExchange.fetchOrderBook(symbol, limit);
       return {
         success: true,
-        bids: orderBook.bids.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
-        asks: orderBook.asks.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
+        bids: orderBook.bids.map(([price, amount]: [any, any]) => [Number(price), Number(amount)] as [number, number]),
+        asks: orderBook.asks.map(([price, amount]: [any, any]) => [Number(price), Number(amount)] as [number, number]),
         exchange: "kraken",
       };
     } catch (fallbackError) {
