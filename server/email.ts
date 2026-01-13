@@ -1,335 +1,447 @@
 import nodemailer from "nodemailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport";
+import sgMail from "@sendgrid/mail";
 
-// SendGrid SMTP Configuration
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.sendgrid.net",
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_PORT === "465",
-  auth: {
-    user: process.env.SMTP_USER || "apikey",
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Initialize SendGrid if API key is provided
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || "";
+const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || "noreply@bitchangemoney.xyz";
 
-interface EmailOptions {
-  to: string;
-  subject: string;
-  html: string;
-  text?: string;
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log("[email] SendGrid initialized");
 }
 
-/**
- * Send an email using SendGrid SMTP
- */
-export async function sendEmail(options: EmailOptions): Promise<boolean> {
-  try {
-    const info = await transporter.sendMail({
-      from: `${process.env.SMTP_FROM_NAME || "BitChange Pro"} <${process.env.SMTP_FROM_EMAIL || "info@bitchangemoney.xyz"}>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text || options.html.replace(/<[^>]*>/g, ""),
-    });
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-    console.log("Email sent successfully:", info.messageId);
-    return true;
-  } catch (error) {
-    console.error("Failed to send email:", error);
-    return false;
+let cachedTransporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null = null;
+
+function getTransporter(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null {
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const secure = process.env.SMTP_SECURE === "true";
+
+  if (!host || !port || !user || !pass) {
+    console.warn(
+      "[email] SMTP not configured (SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS missing). Emails will not be sent."
+    );
+    return null;
+  }
+
+  if (cachedTransporter) {
+    return cachedTransporter;
+  }
+
+  cachedTransporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: secure ?? false,
+    auth: {
+      user,
+      pass,
+    },
+  });
+
+  return cachedTransporter;
+}
+
+type SendEmailParams = {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+};
+
+/**
+ * Base function to send emails.
+ * If SMTP not configured, logs and returns without throwing errors.
+ */
+export async function sendEmail(params: SendEmailParams): Promise<void> {
+  // Try SendGrid first if configured
+  if (SENDGRID_API_KEY) {
+    try {
+      await sgMail.send({
+        from: SENDGRID_FROM_EMAIL,
+        to: params.to,
+        subject: params.subject,
+        text: params.text,
+        html: params.html ?? params.text,
+      });
+      console.log(`[email] Sent via SendGrid to ${params.to}: ${params.subject}`);
+      return;
+    } catch (err) {
+      console.error("[email] SendGrid failed, falling back to SMTP:", err);
+    }
+  }
+
+  // Fallback to SMTP
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.log(
+      "[email] Email sending skipped (no SMTP/SendGrid config). Intended email:",
+      {
+        to: params.to,
+        subject: params.subject,
+      }
+    );
+    return;
+  }
+
+  const from = process.env.SMTP_FROM || 'BitChange <no-reply@bitchangemoney.xyz>';
+
+  try {
+    await transporter.sendMail({
+      from,
+      to: params.to,
+      subject: params.subject,
+      text: params.text,
+      html: params.html ?? params.text,
+    });
+    console.log(`[email] Sent via SMTP to ${params.to}: ${params.subject}`);
+  } catch (err) {
+    console.error("[email] Failed to send email:", err);
   }
 }
 
 /**
- * Send welcome email to new user
+ * Welcome email for new users
  */
-export async function sendWelcomeEmail(email: string, name: string): Promise<boolean> {
+export async function sendWelcomeEmail(to: string) {
+  const subject = "Welcome to BitChange";
+  const text = `Welcome to BitChange!
+
+Your account has been created successfully.
+
+If you did not create this account, please contact support immediately.
+
+BitChange Team`;
+
   const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>Welcome to BitChange Pro! 🚀</h1>
-        </div>
-        <div class="content">
-          <h2>Hello ${name}!</h2>
-          <p>Thank you for joining BitChange Pro, your professional cryptocurrency exchange platform.</p>
-          
-          <p><strong>What you can do now:</strong></p>
-          <ul>
-            <li>✅ Deposit cryptocurrencies to your wallet</li>
-            <li>📊 Start trading with advanced charts and indicators</li>
-            <li>💰 Track your portfolio performance in real-time</li>
-            <li>🎯 Set price alerts for your favorite coins</li>
-          </ul>
-
-          <a href="https://www.bitchangemoney.xyz/dashboard" class="button">Go to Dashboard</a>
-
-          <p>If you have any questions, feel free to contact our support team.</p>
-          
-          <p>Happy Trading!<br>The BitChange Pro Team</p>
-        </div>
-        <div class="footer">
-          <p>© 2026 BitChange Pro. All rights reserved.</p>
-          <p>This email was sent to ${email}</p>
-        </div>
-      </div>
-    </body>
-    </html>
+    <h2>Welcome to BitChange 👋</h2>
+    <p>Your account has been created successfully.</p>
+    <p>If you did not create this account, please contact support immediately.</p>
+    <p>Best regards,<br/>BitChange Team</p>
   `;
 
-  return sendEmail({
-    to: email,
-    subject: "Welcome to BitChange Pro! 🚀",
-    html,
-  });
+  return sendEmail({ to: to, subject: subject, text: text, html: html });
 }
 
 /**
- * Send email verification code
+ * Email verification code
  */
-export async function sendVerificationEmail(email: string, code: string): Promise<boolean> {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .code { background: white; border: 2px dashed #667eea; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 5px; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>Email Verification</h1>
-        </div>
-        <div class="content">
-          <h2>Verify Your Email Address</h2>
-          <p>Please use the following verification code to complete your registration:</p>
-          
-          <div class="code">${code}</div>
+export async function sendVerificationEmail(to: string, code: string) {
+  const subject = "Verify your BitChange account";
+  const text = `Your BitChange Verification Code
 
-          <p><strong>This code will expire in 15 minutes.</strong></p>
-          
-          <p>If you didn't request this verification, please ignore this email.</p>
-          
-          <p>Best regards,<br>The BitChange Pro Team</p>
-        </div>
-        <div class="footer">
-          <p>© 2026 BitChange Pro. All rights reserved.</p>
-          <p>This email was sent to ${email}</p>
-        </div>
-      </div>
-    </body>
-    </html>
+Enter this code to verify your email:
+
+${code}
+
+This code expires in 10 minutes.
+
+BitChange Team`;
+
+  const html = `
+    <h2>Your BitChange Verification Code</h2>
+    <p>Enter this code to verify your email:</p>
+    <h1 style="font-size: 32px; letter-spacing: 4px; color: #6366f1;">${code}</h1>
+    <p>This code expires in 10 minutes.</p>
+    <p>Best regards,<br/>BitChange Team</p>
   `;
 
-  return sendEmail({
-    to: email,
-    subject: "Verify Your Email - BitChange Pro",
-    html,
-  });
+  return sendEmail({ to: to, subject: subject, text: text, html: html });
 }
 
 /**
- * Send password reset email
+ * Login alert email
  */
-export async function sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean> {
+export async function sendLoginAlertEmail(params: {
+  to: string;
+  ip: string;
+  userAgent: string;
+  timestamp: string;
+}) {
+  const subject = "New login to your BitChange account";
+  const text = `Hello,
+
+A new login to your BitChange account was detected.
+
+IP address: ${params.ip}
+Device / Browser: ${params.userAgent}
+Time: ${params.timestamp}
+
+If this was you, you can ignore this message.
+If you do not recognize this login, please change your password immediately and contact support.
+
+BitChange Security Team`;
+
   const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>Password Reset Request</h1>
-        </div>
-        <div class="content">
-          <h2>Reset Your Password</h2>
-          <p>We received a request to reset your password for your BitChange Pro account.</p>
-          
-          <a href="${resetLink}" class="button">Reset Password</a>
-
-          <p>Or copy and paste this link into your browser:</p>
-          <p style="word-break: break-all; color: #667eea;">${resetLink}</p>
-
-          <div class="warning">
-            <strong>⚠️ Security Notice:</strong><br>
-            This link will expire in 1 hour. If you didn't request a password reset, please ignore this email and ensure your account is secure.
-          </div>
-          
-          <p>Best regards,<br>The BitChange Pro Team</p>
-        </div>
-        <div class="footer">
-          <p>© 2026 BitChange Pro. All rights reserved.</p>
-          <p>This email was sent to ${email}</p>
-        </div>
-      </div>
-    </body>
-    </html>
+    <h2>New login detected</h2>
+    <p>A new login to your <strong>BitChange</strong> account was detected.</p>
+    <ul>
+      <li><strong>IP address:</strong> ${escapeHtml(params.ip)}</li>
+      <li><strong>Device / Browser:</strong> ${escapeHtml(params.userAgent)}</li>
+      <li><strong>Time:</strong> ${escapeHtml(params.timestamp)}</li>
+    </ul>
+    <p>If this was you, you can ignore this message.</p>
+    <p>If you do not recognize this login, please change your password immediately and contact support.</p>
+    <p>Best regards,<br/>BitChange Security Team</p>
   `;
 
-  return sendEmail({
-    to: email,
-    subject: "Password Reset - BitChange Pro",
-    html,
-  });
+  return sendEmail({ to: params.to, subject: subject, text: text, html: html });
 }
 
 /**
- * Send deposit confirmation email
+ * Password reset email
  */
-export async function sendDepositConfirmationEmail(
-  email: string,
-  amount: number,
-  currency: string,
-  txHash: string
-): Promise<boolean> {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .details { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>✅ Deposit Confirmed</h1>
-        </div>
-        <div class="content">
-          <h2>Your deposit has been processed!</h2>
-          <p>We've successfully received your deposit. The funds are now available in your account.</p>
-          
-          <div class="details">
-            <div class="detail-row">
-              <strong>Amount:</strong>
-              <span>${amount} ${currency}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Transaction Hash:</strong>
-              <span style="font-size: 12px; word-break: break-all;">${txHash}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Status:</strong>
-              <span style="color: #10b981; font-weight: bold;">✅ Confirmed</span>
-            </div>
-          </div>
+export async function sendPasswordResetEmail(params: {
+  to: string;
+  resetLink: string;
+  expiresAt?: string;
+}) {
+  const subject = "Reset your BitChange password";
 
-          <p>You can now use these funds for trading.</p>
-          
-          <p>Best regards,<br>The BitChange Pro Team</p>
-        </div>
-        <div class="footer">
-          <p>© 2026 BitChange Pro. All rights reserved.</p>
-          <p>This email was sent to ${email}</p>
-        </div>
-      </div>
-    </body>
-    </html>
+  const text = `Hello,
+
+We received a request to reset the password of your BitChange account.
+
+You can reset your password by visiting this link:
+${params.resetLink}
+
+${params.expiresAt ? `This link will expire on ${params.expiresAt}.\n\n` : ""}If you did not request this, you can safely ignore this email.
+
+BitChange Security Team`;
+
+  const html = `
+    <h2>Password reset request</h2>
+    <p>We received a request to reset the password of your BitChange account.</p>
+    <p><a href="${escapeHtml(params.resetLink)}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Reset Password</a></p>
+    ${
+      params.expiresAt
+        ? `<p>This link will expire on ${escapeHtml(params.expiresAt)}.</p>`
+        : ""
+    }
+    <p>If you did not request this, you can safely ignore this email.</p>
+    <p>Best regards,<br/>BitChange Security Team</p>
   `;
 
-  return sendEmail({
-    to: email,
-    subject: `Deposit Confirmed: ${amount} ${currency}`,
-    html,
-  });
+  return sendEmail({ to: params.to, subject: subject, text: text, html: html });
 }
 
 /**
- * Send withdrawal confirmation email
+ * Withdrawal request email
  */
-export async function sendWithdrawalConfirmationEmail(
-  email: string,
-  amount: number,
-  currency: string,
-  address: string
-): Promise<boolean> {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .details { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>💸 Withdrawal Processing</h1>
-        </div>
-        <div class="content">
-          <h2>Your withdrawal is being processed</h2>
-          <p>We've received your withdrawal request and it's currently being processed.</p>
-          
-          <div class="details">
-            <div class="detail-row">
-              <strong>Amount:</strong>
-              <span>${amount} ${currency}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Destination:</strong>
-              <span style="font-size: 12px; word-break: break-all;">${address}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Status:</strong>
-              <span style="color: #f59e0b; font-weight: bold;">⏳ Processing</span>
-            </div>
-          </div>
+export async function sendWithdrawalRequestEmail(params: {
+  to: string;
+  asset: string;
+  amount: string;
+  address: string;
+}) {
+  const subject = "Withdrawal request received";
+  const text = `Hello,
 
-          <p>You'll receive another email once the withdrawal is completed.</p>
-          
-          <p>Best regards,<br>The BitChange Pro Team</p>
-        </div>
-        <div class="footer">
-          <p>© 2026 BitChange Pro. All rights reserved.</p>
-          <p>This email was sent to ${email}</p>
-        </div>
-      </div>
-    </body>
-    </html>
+We have received your withdrawal request:
+
+Asset: ${params.asset}
+Amount: ${params.amount}
+Destination address: ${params.address}
+
+We will process this request according to our standard verification and security checks.
+
+If you did not initiate this withdrawal, please contact support immediately.
+
+BitChange Security Team`;
+
+  const html = `
+    <h2>Withdrawal request received</h2>
+    <p>We have received a new withdrawal request from your <strong>BitChange</strong> account:</p>
+    <ul>
+      <li><strong>Asset:</strong> ${escapeHtml(params.asset)}</li>
+      <li><strong>Amount:</strong> ${escapeHtml(params.amount)}</li>
+      <li><strong>Destination address:</strong> ${escapeHtml(params.address)}</li>
+    </ul>
+    <p>We will process this request according to our standard verification and security checks.</p>
+    <p>If you did not initiate this withdrawal, please change your password immediately and contact support.</p>
+    <p>Best regards,<br/>BitChange Security Team</p>
   `;
 
+  return sendEmail({ to: params.to, subject: subject, text: text, html: html });
+}
+
+/**
+ * Deposit confirmation email
+ */
+export async function sendDepositConfirmationEmail(params: {
+  to: string;
+  asset: string;
+  amount: string;
+  network: string;
+}) {
+  const subject = "Deposit Confirmed - BitChange";
+  const text = `Hello,
+
+Your deposit has been confirmed and credited to your account:
+
+Asset: ${params.asset}
+Amount: ${params.amount}
+Network: ${params.network}
+
+You can now use these funds for trading.
+
+Thank you for using BitChange!
+
+BitChange Team`;
+
+  const html = `
+    <h2>✅ Deposit Confirmed</h2>
+    <p>Your deposit has been successfully confirmed and credited to your <strong>BitChange</strong> account:</p>
+    <ul>
+      <li><strong>Asset:</strong> ${escapeHtml(params.asset)}</li>
+      <li><strong>Amount:</strong> ${escapeHtml(params.amount)}</li>
+      <li><strong>Network:</strong> ${escapeHtml(params.network)}</li>
+    </ul>
+    <p>You can now use these funds for trading on our platform.</p>
+    <p>Thank you for choosing BitChange!</p>
+    <p>Best regards,<br/>BitChange Team</p>
+  `;
+
+  return sendEmail({ to: params.to, subject: subject, text: text, html: html });
+}
+
+/**
+ * Withdrawal approved email
+ */
+export async function sendWithdrawalApprovedEmail(params: {
+  to: string;
+  asset: string;
+  amount: string;
+  address: string;
+}) {
+  const subject = "Withdrawal Approved - BitChange";
+  const text = `Hello,
+
+Your withdrawal request has been approved and is being processed:
+
+Asset: ${params.asset}
+Amount: ${params.amount}
+Destination: ${params.address}
+
+The funds will be sent to your address shortly.
+
+BitChange Team`;
+
+  const html = `
+    <h2>✅ Withdrawal Approved</h2>
+    <p>Your withdrawal request has been approved and is being processed:</p>
+    <ul>
+      <li><strong>Asset:</strong> ${escapeHtml(params.asset)}</li>
+      <li><strong>Amount:</strong> ${escapeHtml(params.amount)}</li>
+      <li><strong>Destination:</strong> ${escapeHtml(params.address)}</li>
+    </ul>
+    <p>The funds will be sent to your address shortly. You can track the transaction status in your account.</p>
+    <p>Best regards,<br/>BitChange Team</p>
+  `;
+
+  return sendEmail({ to: params.to, subject: subject, text: text, html: html });
+}
+
+/**
+ * Withdrawal rejected email
+ */
+export async function sendWithdrawalRejectedEmail(params: {
+  to: string;
+  asset: string;
+  amount: string;
+  reason?: string;
+}) {
+  const subject = "Withdrawal Rejected - BitChange";
+  const reasonText = params.reason ? `\n\nReason: ${params.reason}` : "";
+  const text = `Hello,
+
+Your withdrawal request has been rejected:
+
+Asset: ${params.asset}
+Amount: ${params.amount}${reasonText}
+
+The funds have been returned to your available balance. If you have questions, please contact support.
+
+BitChange Team`;
+
+  const html = `
+    <h2>❌ Withdrawal Rejected</h2>
+    <p>Your withdrawal request has been rejected:</p>
+    <ul>
+      <li><strong>Asset:</strong> ${escapeHtml(params.asset)}</li>
+      <li><strong>Amount:</strong> ${escapeHtml(params.amount)}</li>
+      ${params.reason ? `<li><strong>Reason:</strong> ${escapeHtml(params.reason)}</li>` : ""}
+    </ul>
+    <p>The funds have been returned to your available balance. If you have questions about this decision, please contact our support team.</p>
+    <p>Best regards,<br/>BitChange Team</p>
+  `;
+
+  return sendEmail({ to: params.to, subject: subject, text: text, html: html });
+}
+
+/**
+ * KYC status email
+ */
+export async function sendKycStatusEmail(params: {
+  to: string;
+  status: "approved" | "rejected";
+  reason?: string | null;
+}) {
+  const subject =
+    params.status === "approved" ? "KYC approved" : "KYC review completed";
+
+  const textApproved = `Hello,
+
+Your KYC verification has been approved.
+
+You can now access all features that require verified status.
+
+BitChange Compliance Team`;
+
+  const textRejected = `Hello,
+
+Your KYC verification has been reviewed and was not approved.
+
+Reason: ${params.reason || "no specific reason provided"}
+
+You may update your documents and try again, or contact support for more information.
+
+BitChange Compliance Team`;
+
+  const htmlApproved = `
+    <h2>KYC approved ✅</h2>
+    <p>Your KYC verification has been approved.</p>
+    <p>You can now access all features that require verified status.</p>
+    <p>Best regards,<br/>BitChange Compliance Team</p>
+  `;
+
+  const htmlRejected = `
+    <h2>KYC review completed</h2>
+    <p>Your KYC verification has been reviewed and was <strong>not approved</strong>.</p>
+    <p><strong>Reason:</strong> ${escapeHtml(
+      params.reason || "no specific reason provided"
+    )}</p>
+    <p>You may update your documents and try again, or contact support for more information.</p>
+    <p>Best regards,<br/>BitChange Compliance Team</p>
+  `;
+
+  const isApproved = params.status === "approved";
+
   return sendEmail({
-    to: email,
-    subject: `Withdrawal Processing: ${amount} ${currency}`,
-    html,
+    to: params.to,
+    subject,
+    text: isApproved ? textApproved : textRejected,
+    html: isApproved ? htmlApproved : htmlRejected,
   });
 }
