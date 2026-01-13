@@ -2145,7 +2145,6 @@ export const appRouter = router({
           status: deposits.status,
           provider: deposits.provider,
           externalId: deposits.externalId,
-          referenceId: deposits.referenceId,
           txHash: deposits.externalId,
           createdAt: deposits.createdAt,
           userName: users.name,
@@ -2169,7 +2168,7 @@ export const appRouter = router({
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
         await db.update(deposits)
-          .set({ status: input.status })
+          .set({ status: input.status as "pending" | "completed" | "failed" })
           .where(eq(deposits.id, input.depositId));
 
         return { success: true };
@@ -2228,8 +2227,7 @@ export const appRouter = router({
         // Update deposit status to completed
         await db.update(deposits)
           .set({ 
-            status: "completed",
-            processedAt: new Date()
+            status: "completed"
           })
           .where(eq(deposits.id, input.depositId));
 

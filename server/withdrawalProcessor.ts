@@ -20,7 +20,7 @@
  * - Polygon (MATIC, USDT Polygon, USDC Polygon)
  */
 
-import { ethers, utils, Wallet } from "ethers";
+import { Wallet, JsonRpcProvider, parseEther, formatEther, parseUnits, formatUnits, Contract } from "ethers";
 import * as bitcoin from "bitcoinjs-lib";
 import TronWeb from "tronweb";
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
@@ -294,20 +294,20 @@ async function processEVMNativeWithdrawal(
 ): Promise<{ success: boolean; txHash?: string; error?: string }> {
   try {
     const rpcUrl = RPC_ENDPOINTS[network as keyof typeof RPC_ENDPOINTS];
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const provider = new JsonRpcProvider(rpcUrl);
 
     // Decrypt private key (in production, use proper encryption)
     const privateKey = masterWallet.privateKey;
     const wallet = new Wallet(privateKey, provider);
 
     // Check balance
-    const balance = await wallet.getBalance();
-    const amountWei = utils.parseEther(amount);
+    const balance = await provider.getBalance(wallet.address);
+    const amountWei = parseEther(amount.toString());
 
-    if (balance.lt(amountWei)) {
+    if (balance < amountWei) {
       return {
         success: false,
-        error: `Insufficient balance in hot wallet. Available: ${utils.formatEther(balance)} ${network}`,
+        error: `Insufficient balance in hot wallet. Available: ${formatEther(balance)} ${network}`,
       };
     }
 
@@ -338,23 +338,23 @@ async function processEVMTokenWithdrawal(
 ): Promise<{ success: boolean; txHash?: string; error?: string }> {
   try {
     const rpcUrl = RPC_ENDPOINTS[network as keyof typeof RPC_ENDPOINTS];
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const provider = new JsonRpcProvider(rpcUrl);
 
     // Decrypt private key
     const privateKey = masterWallet.privateKey;
     const wallet = new Wallet(privateKey, provider);
 
     // Connect to token contract
-    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, wallet);
+    const tokenContract = new Contract(tokenAddress, ERC20_ABI, wallet);
 
     // Check balance
     const balance = await tokenContract.balanceOf(wallet.address);
-    const amountTokens = utils.parseUnits(amount, decimals);
+    const amountTokens = parseUnits(amount.toString(), decimals);
 
-    if (balance.lt(amountTokens)) {
+    if (balance < amountTokens) {
       return {
         success: false,
-        error: `Insufficient token balance in hot wallet. Available: ${utils.formatUnits(balance, decimals)}`,
+        error: `Insufficient token balance in hot wallet. Available: ${formatUnits(balance, decimals)}`,
       };
     }
 
@@ -512,12 +512,12 @@ export async function checkHotWalletBalance(network: string, asset: string): Pro
     // Check balance based on network
     if (network === "ETH" || network === "BNB" || network === "MATIC") {
       const rpcUrl = RPC_ENDPOINTS[network as keyof typeof RPC_ENDPOINTS];
-      const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+      const provider = new JsonRpcProvider(rpcUrl);
 
       if (asset === network) {
         // Native token
         const balance = await provider.getBalance(masterWallet.address);
-        return { balance: utils.formatEther(balance) };
+        return { balance: formatEther(balance) };
       } else {
         // ERC20 token
         const tokenAddress = TOKEN_ADDRESSES[`${asset}_${network === "ETH" ? "ERC20" : network === "BNB" ? "BEP20" : "POLYGON"}` as keyof typeof TOKEN_ADDRESSES];
@@ -525,10 +525,10 @@ export async function checkHotWalletBalance(network: string, asset: string): Pro
           return { balance: "0", error: "Token address not found" };
         }
 
-        const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+        const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider);
         const balance = await tokenContract.balanceOf(masterWallet.address);
         const decimals = asset === "USDT" || asset === "USDC" ? 6 : 18;
-        return { balance: utils.formatUnits(balance, decimals) };
+        return { balance: formatUnits(balance, decimals) };
       }
     } else if (network === "TRX" || network === "TRC20") {
       const tronWeb = new (TronWeb as any)({

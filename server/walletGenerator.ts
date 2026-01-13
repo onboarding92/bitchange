@@ -6,7 +6,7 @@
  */
 
 import * as bitcoin from "bitcoinjs-lib";
-import { ethers } from "ethers";
+import { Wallet, HDNodeWallet, isAddress } from "ethers";
 import TronWeb from "tronweb";
 const { TronWeb: TronWebClass } = TronWeb as any;
 import { Keypair } from "@solana/web3.js";
@@ -97,13 +97,13 @@ export function generateBTCWallet() {
  * Generate ETH wallet (also works for ERC20 tokens)
  */
 export function generateETHWallet() {
-  const wallet = ethers.Wallet.createRandom();
+  const wallet = Wallet.createRandom();
   
   return {
     address: wallet.address,
     privateKey: wallet.privateKey,
     mnemonic: wallet.mnemonic?.phrase || "",
-    derivationPath: wallet.mnemonic?.path || "m/44'/60'/0'/0/0",
+    derivationPath: (wallet as HDNodeWallet).path || "m/44'/60'/0'/0/0",
     encryptedPrivateKey: encrypt(wallet.privateKey),
     encryptedMnemonic: encrypt(wallet.mnemonic?.phrase || ""),
   };
@@ -167,7 +167,7 @@ export function generateMATICWallet() {
  */
 export function deriveETHAddress(mnemonic: string, index: number) {
   const path = `m/44'/60'/0'/0/${index}`;
-  const wallet = ethers.Wallet.fromMnemonic(mnemonic, path);
+  const wallet = HDNodeWallet.fromPhrase(mnemonic, undefined, path);
   
   return {
     address: wallet.address,
@@ -216,7 +216,7 @@ export function validateAddress(address: string, network: string): boolean {
       case "BNB":
       case "MATIC":
         // ETH addresses are 42 chars starting with 0x
-        return /^0x[a-fA-F0-9]{40}$/.test(address) && ethers.utils.isAddress(address);
+        return /^0x[a-fA-F0-9]{40}$/.test(address) && isAddress(address);
       
       case "TRX":
         // TRX addresses start with T and are 34 chars

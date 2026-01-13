@@ -6,6 +6,11 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Analytics from "./pages/Analytics";
+import Trading from "./pages/Trading";
+import Wallet from "./pages/Wallet";
+import KYC from "./pages/KYC";
+import Security from "./pages/Security";
+import Admin from "./pages/Admin";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -13,6 +18,11 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/analytics"} component={Analytics} />
+      <Route path={"/trading"} component={Trading} />
+      <Route path={"/wallet"} component={Wallet} />
+      <Route path={"/kyc"} component={KYC} />
+      <Route path={"/security"} component={Security} />
+      <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
