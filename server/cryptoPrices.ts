@@ -1,71 +1,117 @@
+import axios from "axios";
 import { getDb } from "./db";
 import { cryptoPrices } from "../drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
-export interface CryptoPrice {
-  symbol: string;
-  price: string | number;
-  change24h?: string | number;
-  volume24h?: string | number;
-  marketCap?: string | number;
-  lastUpdated: Date;
+/**
+ * Crypto Prices Module (Database-backed)
+ * Reads prices from database instead of calling external APIs
+ * Prices are kept fresh by priceSyncJob.ts running every 2 minutes
+ */
+
+interface PriceData {
+  asset: string;
+  price: number;
+  change24h: number;
+  volume24h: number;
+  high24h: number;
+  low24h: number;
+  lastUpdated: number;
 }
 
 /**
- * Get the latest price for a cryptocurrency
- * @param symbol Cryptocurrency symbol (e.g., "BTC", "ETH")
- * @returns Price data or null if not found
+ * Ottiene il prezzo corrente di un asset dal database
  */
-export async function getCryptoPrice(symbol: string): Promise<CryptoPrice | null> {
+export async function getCryptoPrice(asset: string): Promise<PriceData | null> {
   const db = await getDb();
-  if (!db) return null;
+  if (!db) {
+    console.error("[CryptoPrices] Database not available");
+    return null;
+  }
 
   try {
     const result = await db
       .select()
       .from(cryptoPrices)
-      .where(eq(cryptoPrices.symbol, symbol))
-      .orderBy(desc(cryptoPrices.lastUpdated))
+      .where(eq(cryptoPrices.asset, asset))
       .limit(1);
 
-    if (result.length === 0) return null;
+    if (result.length === 0) {
+      console.warn(`[CryptoPrices] No price data for ${asset} in database`);
+      return null;
+    }
 
-    const priceData = result[0];
+    const data = result[0];
+    
     return {
-      symbol: priceData.symbol,
-      price: priceData.price,
-      change24h: priceData.change24h,
-      volume24h: priceData.volume24h,
-      marketCap: priceData.marketCap,
-      lastUpdated: priceData.lastUpdated,
+      asset: data.asset,
+      price: parseFloat(data.price),
+      change24h: parseFloat(data.change24h),
+      volume24h: parseFloat(data.volume24h),
+      high24h: parseFloat(data.high24h),
+      low24h: parseFloat(data.low24h),
+      lastUpdated: data.lastUpdated.getTime(),
     };
-  } catch (error) {
-    console.error(`Error fetching crypto price for ${symbol}:`, error);
+  } catch (error: any) {
+    console.error(`[CryptoPrices] Error fetching price for ${asset}:`, error.message);
     return null;
   }
 }
 
 /**
- * Get prices for multiple cryptocurrencies
- * @param symbols Array of cryptocurrency symbols
- * @returns Map of symbol to price data
+ * Ottiene i prezzi di tutti gli asset supportati dal database
  */
-export async function getCryptoPrices(symbols: string[]): Promise<Map<string, CryptoPrice>> {
+export async function getAllCryptoPrices(): Promise<PriceData[]> {
   const db = await getDb();
-  const pricesMap = new Map<string, CryptoPrice>();
-  
-  if (!db) return pricesMap;
-
-  try {
-    for (const symbol of symbols) {
-      const price = await getCryptoPrice(symbol);
-      if (price) {
-        pricesMap.set(symbol, price);
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching crypto prices:", error);
+  if (!db) {
+    console.error("[CryptoPrices] Database not available");
+    return [];
   }
 
-  return pricesMap;
+  try {
+    const results = await db.select().from(cryptoPrices);
+
+    return results.map((data) => ({
+      asset: data.asset,
+      price: parseFloat(data.price),
+      change24h: parseFloat(data.change24h),
+      volume24h: parseFloat(data.volume24h),
+      high24h: parseFloat(data.high24h),
+      low24h: parseFloat(data.low24h),
+      lastUpdated: data.lastUpdated.getTime(),
+    }));
+  } catch (error: any) {
+    console.error("[CryptoPrices] Error fetching all prices:", error.message);
+    return [];
+  }
+}
+
+/**
+ * Ottiene il prezzo di un trading pair (es. BTC/USDT)
+ */
+export async function getPairPrice(pair: string): Promise<number> {
+  const [base, quote] = pair.split("/");
+  
+  if (quote === "USDT" || quote === "USD") {
+    const priceData = await getCryptoPrice(base);
+    return priceData?.price || 0;
+  }
+
+  // Per altri pair, calcola il rapporto
+  const basePrice = await getCryptoPrice(base);
+  const quotePrice = await getCryptoPrice(quote);
+
+  if (!basePrice || !quotePrice || quotePrice.price === 0) {
+    return 0;
+  }
+
+  return basePrice.price / quotePrice.price;
+}
+
+/**
+ * Pulisce la cache (no-op, kept for compatibility)
+ */
+export function clearPriceCache() {
+  // No longer needed, prices are in database
+  console.log("[CryptoPrices] clearPriceCache called (no-op)");
 }
