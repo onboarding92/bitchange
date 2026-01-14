@@ -10,6 +10,7 @@ import PriceChartWithIndicators from "@/components/PriceChartWithIndicators";
 import { useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { safeToFixed } from "@/lib/utils";
 
 const TRADING_PAIRS = [
   { symbol: "BTCUSDT", base: "BTC", quote: "USDT", name: "Bitcoin" },
@@ -114,17 +115,21 @@ export default function Trading() {
                 <PriceChartWithIndicators 
                   symbol={selectedPair.symbol}
                   priceData={useMemo(() => {
-                    // Generate mock data for demonstration
+                    // Generate mock data for demonstration - changes with selected pair
                     const now = Date.now();
+                    const basePrice = selectedPair.symbol === 'BTCUSDT' ? 90000 : 
+                                     selectedPair.symbol === 'ETHUSDT' ? 3500 :
+                                     selectedPair.symbol === 'BNBUSDT' ? 600 :
+                                     selectedPair.symbol === 'SOLUSDT' ? 150 : 100;
                     return Array.from({ length: 100 }, (_, i) => ({
                       timestamp: now - (100 - i) * 3600000,
-                      open: 43000 + Math.random() * 1000,
-                      high: 43500 + Math.random() * 1000,
-                      low: 42500 + Math.random() * 1000,
-                      close: 43000 + Math.random() * 1000,
+                      open: basePrice + Math.random() * (basePrice * 0.02),
+                      high: basePrice + Math.random() * (basePrice * 0.03),
+                      low: basePrice - Math.random() * (basePrice * 0.02),
+                      close: basePrice + Math.random() * (basePrice * 0.02),
                       volume: Math.random() * 1000000
                     }));
-                  }, [])}
+                  }, [selectedPair.symbol])}
                 />
               </CardContent>
             </Card>
@@ -139,9 +144,9 @@ export default function Trading() {
                   {recentTrades?.map((trade: any, i: number) => (
                     <div key={i} className="flex justify-between text-sm">
                       <span className={trade.side === "buy" ? "text-green-400" : "text-red-400"}>
-                        {trade.price.toFixed(2)}
+                        {safeToFixed(trade.price, 2)}
                       </span>
-                      <span className="text-slate-400">{trade.amount.toFixed(4)}</span>
+                      <span className="text-slate-400">{safeToFixed(trade.amount, 4)}</span>
                       <span className="text-slate-500">
                         {new Date(trade.timestamp).toLocaleTimeString()}
                       </span>
@@ -162,11 +167,11 @@ export default function Trading() {
               <CardContent className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-400">{selectedPair.base}:</span>
-                  <span className="text-white font-medium">{baseBalance.toFixed(8)}</span>
+                  <span className="text-white font-medium">{safeToFixed(baseBalance, 8)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">{selectedPair.quote}:</span>
-                  <span className="text-white font-medium">{quoteBalance.toFixed(2)}</span>
+                  <span className="text-white font-medium">{safeToFixed(quoteBalance, 2)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -260,8 +265,8 @@ export default function Trading() {
                     <div className="space-y-1 max-h-32 overflow-y-auto">
                       {orderBook?.asks?.slice(0, 10).map((order: any, i: number) => (
                         <div key={i} className="flex justify-between text-sm">
-                          <span className="text-red-400">{order.price.toFixed(2)}</span>
-                          <span className="text-slate-400">{order.amount.toFixed(4)}</span>
+                          <span className="text-red-400">{safeToFixed(order.price, 2)}</span>
+                          <span className="text-slate-400">{safeToFixed(order.amount, 4)}</span>
                         </div>
                       ))}
                     </div>
@@ -270,7 +275,7 @@ export default function Trading() {
                   {/* Spread */}
                   <div className="text-center py-2 border-y border-slate-700">
                     <Badge variant="outline" className="text-slate-400">
-                      Spread: {orderBook?.spread?.toFixed(2) || "0.00"}
+                      Spread: {safeToFixed(orderBook?.spread, 2)}
                     </Badge>
                   </div>
 
@@ -280,8 +285,8 @@ export default function Trading() {
                     <div className="space-y-1 max-h-32 overflow-y-auto">
                       {orderBook?.bids?.slice(0, 10).map((order: any, i: number) => (
                         <div key={i} className="flex justify-between text-sm">
-                          <span className="text-green-400">{order.price.toFixed(2)}</span>
-                          <span className="text-slate-400">{order.amount.toFixed(4)}</span>
+                          <span className="text-green-400">{safeToFixed(order.price, 2)}</span>
+                          <span className="text-slate-400">{safeToFixed(order.amount, 4)}</span>
                         </div>
                       ))}
                     </div>

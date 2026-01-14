@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { safeToFixed } from "@/lib/utils";
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ export default function Analytics() {
   };
 
   const formatPercent = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+    return `${value >= 0 ? '+' : ''}${safeToFixed(value, 2)}%`;
   };
 
   return (
@@ -119,7 +120,7 @@ export default function Analytics() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ asset, percentage }) => `${asset} ${percentage.toFixed(1)}%`}
+                    label={({ asset, percentage }) => `${asset} ${safeToFixed(percentage, 1)}%`}
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"

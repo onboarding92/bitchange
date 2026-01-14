@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { safeToFixed } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -127,7 +128,7 @@ export default function Wallet() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-white mb-2">
-              ${wallets?.reduce((sum, w) => sum + w.balance * (w.asset === "USDT" ? 1 : 43000), 0).toFixed(2) || "0.00"}
+              ${safeToFixed(wallets?.reduce((sum, w) => sum + w.balance * (w.asset === "USDT" ? 1 : 43000), 0), 2)}
             </div>
             <p className="text-purple-100">Estimated value in USD</p>
           </CardContent>
@@ -157,9 +158,9 @@ export default function Wallet() {
                       {asset.network}
                     </Badge>
                   </div>
-                  <div className="text-xl font-semibold text-white">{balance.toFixed(8)}</div>
+                  <div className="text-xl font-semibold text-white">{safeToFixed(balance, 8)}</div>
                   <div className="text-sm text-slate-400">
-                    ≈ ${(balance * (asset.symbol === "USDT" ? 1 : 43000)).toFixed(2)}
+                    ≈ ${safeToFixed(balance * (asset.symbol === "USDT" ? 1 : 43000), 2)}
                   </div>
                 </CardContent>
               </Card>
@@ -260,7 +261,7 @@ export default function Wallet() {
                   <div>
                     <Label className="text-slate-400">Current Balance</Label>
                     <div className="text-2xl font-bold text-white mt-1">
-                      {currentBalance.toFixed(8)} {selectedAsset.symbol}
+                      {safeToFixed(currentBalance, 8)} {selectedAsset.symbol}
                     </div>
                   </div>
 
@@ -287,28 +288,28 @@ export default function Wallet() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setWithdrawAmount((currentBalance * 0.25).toFixed(8))}
+                        onClick={() => setWithdrawAmount(safeToFixed(currentBalance * 0.25, 8))}
                       >
                         25%
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setWithdrawAmount((currentBalance * 0.5).toFixed(8))}
+                        onClick={() => setWithdrawAmount(safeToFixed(currentBalance * 0.5, 8))}
                       >
                         50%
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setWithdrawAmount((currentBalance * 0.75).toFixed(8))}
+                        onClick={() => setWithdrawAmount(safeToFixed(currentBalance * 0.75, 8))}
                       >
                         75%
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setWithdrawAmount(currentBalance.toFixed(8))}
+                        onClick={() => setWithdrawAmount(safeToFixed(currentBalance, 8))}
                       >
                         Max
                       </Button>

@@ -84,3 +84,38 @@
 - [ ] Mobile responsiveness check
 - [ ] Performance optimization
 - [ ] Security audit
+
+## UI/UX Fixes - User Reported Issues
+- [ ] Fix trading chart not loading (shows "Data collection in progress...")
+- [x] Fix error when switching from BTC/USDT to ETH/USDT in trading
+- [x] Fix staking positions visibility - user can't see staked assets (VERIFIED: no stakes in DB, user needs to complete staking process)
+- [ ] Remove useless buttons in Portfolio page
+- [ ] Remove useless buttons in History page
+- [ ] Verify ticket system functionality
+- [ ] Add missing buttons identified by user
+- [ ] Improve overall graphics and UI consistency
+
+## Deploy and Authentication Tasks
+- [ ] Copy complete project to VPS with all configuration files
+- [ ] Successfully rebuild Docker container on VPS
+- [ ] Implement email/password registration system
+- [ ] Implement email/password login system
+- [ ] Implement password reset functionality
+- [ ] Remove Manus OAuth dependency
+- [ ] Test complete authentication flow
+- [ ] Deploy and verify on production
+
+## Homepage Error Fix - URGENT
+- [ ] Fix toFixed error on homepage (Ba-yZsIT.js:262:8647)
+- [ ] Scan Home.tsx for all toFixed calls
+- [ ] Scan all page components for toFixed calls
+- [ ] Protect all toFixed calls across entire application
+- [ ] Test all pages (Home, Trading, Wallet, KYC, Security, Analytics, Admin, Staking)
+
+## Final Fixes - User Requested
+- [x] Fix Admin Dashboard map error (u?.map is not a function)
+- [ ] Fix Staking page 404 (implement or remove)
+- [ ] Test KYC page functionality
+- [ ] Test Security page functionality
+- [ ] Comprehensive end-to-end testing of all pages
+- [ ] Push final code to GitHub with README
