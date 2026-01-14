@@ -4,7 +4,7 @@ import { createServer } from "http";
 import net from "net";
 import cookieParser from "cookie-parser";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
+// OAuth removed - using custom email/password authentication
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic } from "./static";
@@ -54,8 +54,7 @@ async function startServer() {
     res.json({ url: fileUrl, filename: req.file.filename });
   });
   
-  // OAuth callback under /api/oauth/callback
-  registerOAuthRoutes(app);
+  // OAuth removed - using custom email/password authentication
   // tRPC API
   app.use(
     "/api/trpc",

@@ -129,11 +129,11 @@
 - [x] Create Portfolio.tsx with safeToFixed() from start
 - [x] Add Portfolio route to App.tsx
 - [x] Add Staking to DashboardLayout sidebar with Coins icon
-- [ ] Complete checkpoint save with all fixes
-- [ ] Remove Manus OAuth - implement custom email/password authentication
-- [ ] Create custom login page (email/password)
-- [ ] Create custom register page (email/password)
-- [ ] Update backend auth system to use custom authentication
+- [x] Complete checkpoint save with all fixes
+- [x] Remove Manus OAuth - implement custom email/password authentication
+- [x] Create custom login page (email/password)
+- [x] Create custom register page (email/password)
+- [x] Update backend auth system to use custom authentication
 - [ ] Test all pages with new authentication
 - [ ] Backup database before major changes
 - [ ] Final testing and deployment

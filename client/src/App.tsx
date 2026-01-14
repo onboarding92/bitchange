@@ -13,11 +13,15 @@ import Security from "./pages/Security";
 import Admin from "./pages/Admin";
 import Staking from "./pages/Staking";
 import Portfolio from "./pages/Portfolio";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
+      <Route path={"/login"} component={Login} />
+      <Route path={"/register"} component={Register} />
       <Route path={"/"} component={Home} />
       <Route path={"/analytics"} component={Analytics} />
       <Route path={"/trading"} component={Trading} />

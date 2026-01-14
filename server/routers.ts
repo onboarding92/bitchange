@@ -112,7 +112,7 @@ export const appRouter = router({
             success: false,
           });
           recordLoginResult({ ip, email: input.email, success: false });
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Please use OAuth login" });
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
         }
 
         // Verify password
