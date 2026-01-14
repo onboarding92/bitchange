@@ -134,6 +134,7 @@
 - [x] Create custom login page (email/password)
 - [x] Create custom register page (email/password)
 - [x] Update backend auth system to use custom authentication
-- [ ] Test all pages with new authentication
-- [ ] Backup database before major changes
-- [ ] Final testing and deployment
+- [x] Test all pages with new authentication
+- [x] Backup database before major changes
+- [x] Final testing and deployment
+- [x] Fixed getLoginUrl() to redirect to /login instead of Manus OAuth
