@@ -2,14 +2,11 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
-import cookieParser from "cookie-parser";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-// OAuth removed - using custom email/password authentication
+import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { serveStatic } from "./static";
-import { upload } from "../upload";
-import path from "path";
+import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -36,25 +33,8 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  // Configure cookie parser
-  app.use(cookieParser());
-  
-  // API logging middleware
-  const { apiLoggingMiddleware } = await import("../middleware/apiLogger");
-  app.use(apiLoggingMiddleware);
-  // Serve uploads folder as static files
-  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-  
-  // File upload endpoint
-  app.post("/api/upload", upload.single("file"), (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl, filename: req.file.filename });
-  });
-  
-  // OAuth removed - using custom email/password authentication
+  // OAuth callback under /api/oauth/callback
+  registerOAuthRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",
@@ -65,7 +45,6 @@ async function startServer() {
   );
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
-    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
     serveStatic(app);
@@ -80,27 +59,6 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
-    
-    // Start alerting system
-    import("../alerting").then(({ startAlertingSystem }) => {
-      startAlertingSystem();
-    }).catch(console.error);
-    
-    // Initialize cryptoPrices table and start price sync job
-    import("../initCryptoPricesTable").then(({ initCryptoPricesTable }) => {
-      initCryptoPricesTable().then((success) => {
-        if (success) {
-          import("../priceSyncJob").then(({ startPriceSyncJob }) => {
-            startPriceSyncJob();
-          }).catch(console.error);
-          
-          // Start price alert monitoring job
-          import("../priceAlertJob").then(({ startPriceAlertJob }) => {
-            startPriceAlertJob();
-          }).catch(console.error);
-        }
-      });
-    }).catch(console.error);
   });
 }
 

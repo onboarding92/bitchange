@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE IF NOT EXISTS withdrawalLimits (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL UNIQUE,\n  dailyLimit DECIMAL(20,8) DEFAULT 10000 NOT NULL,\n  monthlyLimit DECIMAL(20,8) DEFAULT 100000 NOT NULL,\n  dailyUsed DECIMAL(20,8) DEFAULT 0 NOT NULL,\n  monthlyUsed DECIMAL(20,8) DEFAULT 0 NOT NULL,\n  lastDailyReset TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  lastMonthlyReset TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute CREATE TABLE IF NOT EXISTS withdrawalLimits (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL UNIQUE,\n  dailyLimit DECIMAL(20,8) DEFAULT 10000 NOT NULL,\n  monthlyLimit DECIMAL(20,8) DEFAULT 100000 NOT NULL,\n  dailyUsed DECIMAL(20,8) DEFAULT 0 NOT NULL,\n  monthlyUsed DECIMAL(20,8) DEFAULT 0 NOT NULL,\n  lastDailyReset TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  lastMonthlyReset TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 217
-}

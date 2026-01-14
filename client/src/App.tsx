@@ -5,32 +5,12 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import Analytics from "./pages/Analytics";
-import Trading from "./pages/Trading";
-import Wallet from "./pages/Wallet";
-import KYC from "./pages/KYC";
-import Security from "./pages/Security";
-import Admin from "./pages/Admin";
-import Staking from "./pages/Staking";
-import Portfolio from "./pages/Portfolio";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/login"} component={Login} />
-      <Route path={"/register"} component={Register} />
       <Route path={"/"} component={Home} />
-      <Route path={"/analytics"} component={Analytics} />
-      <Route path={"/trading"} component={Trading} />
-      <Route path={"/wallet"} component={Wallet} />
-      <Route path={"/kyc"} component={KYC} />
-      <Route path={"/security"} component={Security} />
-      <Route path={"/admin"} component={Admin} />
-      <Route path={"/staking"} component={Staking} />
-      <Route path={"/portfolio"} component={Portfolio} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
