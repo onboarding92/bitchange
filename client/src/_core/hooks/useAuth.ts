@@ -25,19 +25,29 @@ export function useAuth(options?: UseAuthOptions) {
   });
 
   const logout = useCallback(async () => {
+    console.log('[Frontend Logout] Starting logout');
     try {
+      console.log('[Frontend Logout] Calling logoutMutation');
       await logoutMutation.mutateAsync();
+      console.log('[Frontend Logout] Mutation successful');
     } catch (error: unknown) {
+      console.error('[Frontend Logout] Error during mutation:', error);
       if (
         error instanceof TRPCClientError &&
         error.data?.code === "UNAUTHORIZED"
       ) {
+        // Already logged out, redirect anyway
+        console.log('[Frontend Logout] Already logged out, redirecting');
+        window.location.href = '/auth/login';
         return;
       }
       throw error;
     } finally {
+      console.log('[Frontend Logout] Cleaning up and redirecting');
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
+      // Redirect to login page after logout
+      window.location.href = '/auth/login';
     }
   }, [logoutMutation, utils]);
 

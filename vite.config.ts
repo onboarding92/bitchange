@@ -24,6 +24,36 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Vendor chunks for better caching
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@trpc') || id.includes('@tanstack/react-query')) {
+              return 'trpc-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('recharts')) {
+              return 'chart-vendor';
+            }
+            if (id.includes('lucide-react')) {
+              return 'icons-vendor';
+            }
+            // Other node_modules go to vendor chunk
+            return 'vendor';
+          }
+          // Admin pages in separate chunk
+          if (id.includes('/pages/admin/') || id.includes('/pages/Admin')) {
+            return 'admin-pages';
+          }
+        },
+      },
+    },
   },
   server: {
     host: true,
