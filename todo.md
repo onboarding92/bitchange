@@ -167,3 +167,77 @@
 - Transaction History with filters
 - System Health with real-time monitoring
 - All sidebar navigation items
+
+
+## 🐛 USER REPORTED BUGS - January 14, 2026 (16:00)
+
+### UI/UX Issues
+- [ ] 1. Frontend redesign - improve overall aesthetics
+- [x] 2. History page - remove "Back to Dashboard" button (unnecessary)
+- [ ] 11. Referral Program page - remove "Return to Dashboard" button
+
+### Functional Issues
+- [x] 3. Trading page - charts not working/loading (connected to backend prices.history endpoint)
+- [ ] 4. Portfolio page - empty section needs content or removal
+- [x] 5. Staking visibility - NOT A BUG (Active Positions section exists, shows when user has stakes)
+- [ ] 10. Dashboard "Trade" button - leads to error page
+
+### Deposit System
+- [ ] 6. Add missing crypto networks:
+  - [ ] USDC on Solana network
+  - [ ] USDC on ERC-20 network
+  - [ ] USDC on BEP-20 network
+  - [ ] Tether wallet support
+- [ ] 7. Deposit tracking - identify which user deposited
+
+### System Verification
+- [ ] 8. Email functionality - verify all emails are being sent
+- [ ] 9. Support section - verify ticket system works
+
+### Deployment
+- [ ] Deploy all fixes to VPS (188.245.99.239)
+- [ ] Push final code to GitHub repository
+
+
+## 🔥 CRITICAL BUGS - User Verified (January 15, 2026)
+
+### Navigation Issues (CONFIRMED)
+- [x] Remove "Back to Dashboard" button from History page (not found - already removed)
+- [x] Remove back arrow from Referral page (removed ArrowLeft button and import)
+
+### Wallet Address Issues (CRITICAL)
+- [x] Fix USDC Solana wallet - modified getDepositAddress to use network.type from database
+- [x] Fix USDT Tron wallet - modified getDepositAddress to use network.type from database
+- [ ] Test wallet generation for all networks (Solana, Tron, Ethereum, BSC)
+
+### Staking System (VERIFIED ✅)
+- [x] Test locked staking - CONFIRMED: Hard block prevents withdrawal before maturity
+- [x] Verify penalty system - CONFIRMED: No penalties, early withdrawal completely blocked
+- [x] Verify APR calculations - CONFIRMED: Formula correct (principal * apr * days) / (365 * 100)
+- [ ] Add "Max" button to fill available wallet balance in staking form
+- [ ] Add prominent lock warning in dialog for locked plans
+- [ ] Show maturity date clearly when staking locked positions
+
+### Charts Status
+- [x] Trading page chart - WORKS LOCALLY in Manus dev (shows BTC price $90,724.56)
+- [x] Backend prices.history endpoint - VERIFIED: Returns data correctly from cryptoPrices table
+- [x] Database has 33k+ price records with BTC, ETH, and other assets
+- [ ] Charts NOT deployed to production VPS yet
+- [ ] Portfolio historical chart - needs implementation (add PortfolioHistoryChart component)
+
+### UI/UX Improvements (USER REQUEST)
+- [ ] Complete design overhaul for professional appearance
+- [ ] Improve color scheme and contrast
+- [ ] Better spacing and layout consistency
+- [ ] Improve typography
+- [ ] Better mobile responsiveness
+- [ ] Add proper loading states
+- [ ] Improve error messages
+
+### Deployment Process
+- [ ] Test ALL fixes in Manus local environment FIRST
+- [ ] Create checkpoint after testing
+- [ ] Push to GitHub repository
+- [ ] Deploy to production VPS (188.245.99.239)
+- [ ] Verify EVERYTHING works in production
+- [ ] Update documentation

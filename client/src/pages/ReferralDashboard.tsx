@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Copy, Users, DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import { Copy, Users, DollarSign, Clock, CheckCircle2 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 
 
@@ -36,12 +36,10 @@ export default function ReferralDashboard() {
     return (
       <DashboardLayout>
         <div className="container max-w-6xl py-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/dashboard")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-3xl font-bold">Referral Program</h1>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Referral Program</h1>
+        <p className="text-muted-foreground mt-2">Earn rewards by inviting friends to BitChange Pro</p>
+      </div>
         <div className="text-center py-12">Loading...</div>
         </div>
       </DashboardLayout>
@@ -52,14 +50,9 @@ export default function ReferralDashboard() {
     <DashboardLayout>
       <div className="container max-w-6xl py-8">
       {/* Header with Back Button */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => setLocation("/dashboard")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Referral Program</h1>
-          <p className="text-muted-foreground">Invite friends and earn rewards</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Referral Program</h1>
+        <p className="text-muted-foreground mt-2">Earn rewards by inviting friends to BitChange Pro</p>
       </div>
 
       {/* Stats Cards */}

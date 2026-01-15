@@ -1,0 +1,70 @@
+{
+  "query": "SELECT asset, COUNT(*) as count FROM cryptoPrices GROUP BY asset ORDER BY count DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SELECT asset, COUNT(*) as count FROM cryptoPrices GROUP BY asset ORDER BY count DESC LIMIT 20;",
+  "rows": [
+    {
+      "asset": "SHIB",
+      "count": "118"
+    },
+    {
+      "asset": "AVAX",
+      "count": "118"
+    },
+    {
+      "asset": "BNB",
+      "count": "118"
+    },
+    {
+      "asset": "ADA",
+      "count": "118"
+    },
+    {
+      "asset": "LTC",
+      "count": "118"
+    },
+    {
+      "asset": "XRP",
+      "count": "118"
+    },
+    {
+      "asset": "ETH",
+      "count": "118"
+    },
+    {
+      "asset": "LINK",
+      "count": "118"
+    },
+    {
+      "asset": "BTC",
+      "count": "118"
+    },
+    {
+      "asset": "MATIC",
+      "count": "118"
+    },
+    {
+      "asset": "USDT",
+      "count": "118"
+    },
+    {
+      "asset": "XLM",
+      "count": "118"
+    },
+    {
+      "asset": "SOL",
+      "count": "118"
+    },
+    {
+      "asset": "DOT",
+      "count": "118"
+    },
+    {
+      "asset": "DOGE",
+      "count": "118"
+    }
+  ],
+  "messages": [],
+  "stdout": "asset\tcount\nSHIB\t118\nAVAX\t118\nBNB\t118\nADA\t118\nLTC\t118\nXRP\t118\nETH\t118\nLINK\t118\nBTC\t118\nMATIC\t118\nUSDT\t118\nXLM\t118\nSOL\t118\nDOT\t118\nDOGE\t118\n",
+  "stderr": "",
+  "execution_time_ms": 114
+}

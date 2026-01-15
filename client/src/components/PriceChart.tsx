@@ -17,9 +17,11 @@ export function PriceChart({ asset, assetName }: PriceChartProps) {
   
   const { data: currentPrice } = trpc.prices.get.useQuery({ asset });
 
-  // Placeholder: Will be replaced with real historical data once tRPC types regenerate
-  const priceHistory: Array<{ timestamp: number; price: number; high: number; low: number; volume: number }> = [];
-  const isLoading = false;
+  // Fetch historical price data from backend
+  const { data: priceHistory = [], isLoading } = trpc.prices.history.useQuery({ 
+    asset, 
+    timeframe 
+  });
 
   // Calculate price change percentage from current price data
   const priceChange = currentPrice?.change24h ? parseFloat(String(currentPrice.change24h)) : 0;

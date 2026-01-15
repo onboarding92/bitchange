@@ -1,0 +1,35 @@
+{
+  "query": "SELECT asset, price, lastUpdated FROM cryptoPrices WHERE asset LIKE '%BTC%' ORDER BY lastUpdated DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SELECT asset, price, lastUpdated FROM cryptoPrices WHERE asset LIKE '%BTC%' ORDER BY lastUpdated DESC LIMIT 5;",
+  "rows": [
+    {
+      "asset": "BTC",
+      "price": "96252.50000000",
+      "lastUpdated": "2026-01-15 06:35:56"
+    },
+    {
+      "asset": "BTC",
+      "price": "96370.69000000",
+      "lastUpdated": "2026-01-15 06:33:58"
+    },
+    {
+      "asset": "BTC",
+      "price": "97613.99000000",
+      "lastUpdated": "2026-01-14 17:24:11"
+    },
+    {
+      "asset": "BTC",
+      "price": "97601.51000000",
+      "lastUpdated": "2026-01-14 17:22:06"
+    },
+    {
+      "asset": "BTC",
+      "price": "97612.84000000",
+      "lastUpdated": "2026-01-14 17:20:09"
+    }
+  ],
+  "messages": [],
+  "stdout": "asset\tprice\tlastUpdated\nBTC\t96252.50000000\t2026-01-15 06:35:56\nBTC\t96370.69000000\t2026-01-15 06:33:58\nBTC\t97613.99000000\t2026-01-14 17:24:11\nBTC\t97601.51000000\t2026-01-14 17:22:06\nBTC\t97612.84000000\t2026-01-14 17:20:09\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks } from "../drizzle/schema";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -789,6 +789,22 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
+        // Get network info from database to determine correct network type
+        const networkInfo = await db
+          .select()
+          .from(networks)
+          .where(eq(networks.symbol, input.network))
+          .limit(1);
+        
+        if (networkInfo.length === 0) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "Invalid network selected" 
+          });
+        }
+
+        const networkType = networkInfo[0].type; // e.g., "solana", "tron", "ethereum"
+
         // Check if address already exists for this user/asset/network
         const existing = await db
           .select()
@@ -806,8 +822,8 @@ export const appRouter = router({
           return existing[0];
         }
 
-        // Generate new address for the specified network
-        const address = await generateWalletAddress(ctx.user.id, input.asset, input.network);
+        // Generate new address using the correct network type
+        const address = await generateWalletAddress(ctx.user.id, input.asset, networkType);
         
         // Save to database
         await db.insert(walletAddresses).values({
