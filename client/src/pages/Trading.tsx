@@ -141,10 +141,10 @@ export default function Trading() {
           </Select>
         </div>
 
-        {/* Price History Chart */}
-        <PriceChart 
-          asset={selectedPair.split("/")[0]} 
-          assetName={selectedPair}
+        {/* Price History Chart - TradingView Widget */}
+        <div 
+          id="tradingview_chart" 
+          style={{ height: '500px', width: '100%' }}
         />
 
         {/* Order Book Depth Chart */}

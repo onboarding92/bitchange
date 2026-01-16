@@ -1,0 +1,100 @@
+{
+  "query": "SELECT id, name, symbol, type FROM networks WHERE symbol LIKE '%USDC%' OR symbol LIKE '%USDT%' ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SELECT id, name, symbol, type FROM networks WHERE symbol LIKE '%USDC%' OR symbol LIKE '%USDT%' ORDER BY id;",
+  "rows": [
+    {
+      "id": "3",
+      "name": "Tether (ERC20)",
+      "symbol": "USDT-ERC20",
+      "type": "ERC20"
+    },
+    {
+      "id": "4",
+      "name": "Tether (TRC20)",
+      "symbol": "USDT-TRC20",
+      "type": "TRC20"
+    },
+    {
+      "id": "5",
+      "name": "Tether (BEP20)",
+      "symbol": "USDT-BEP20",
+      "type": "BEP20"
+    },
+    {
+      "id": "6",
+      "name": "Tether (Polygon)",
+      "symbol": "USDT-POLYGON",
+      "type": "POLYGON"
+    },
+    {
+      "id": "7",
+      "name": "Tether (Solana)",
+      "symbol": "USDT-SOL",
+      "type": "SPL"
+    },
+    {
+      "id": "8",
+      "name": "USD Coin (ERC20)",
+      "symbol": "USDC-ERC20",
+      "type": "ERC20"
+    },
+    {
+      "id": "9",
+      "name": "USD Coin (BEP20)",
+      "symbol": "USDC-BEP20",
+      "type": "BEP20"
+    },
+    {
+      "id": "10",
+      "name": "USD Coin (Polygon)",
+      "symbol": "USDC-POLYGON",
+      "type": "POLYGON"
+    },
+    {
+      "id": "11",
+      "name": "USD Coin (Solana)",
+      "symbol": "USDC-SOL",
+      "type": "SPL"
+    },
+    {
+      "id": "30003",
+      "name": "USDT ERC20",
+      "symbol": "USDT",
+      "type": "ERC20"
+    },
+    {
+      "id": "30004",
+      "name": "USDT TRC20",
+      "symbol": "USDT",
+      "type": "TRC20"
+    },
+    {
+      "id": "30005",
+      "name": "USDT BEP20",
+      "symbol": "USDT",
+      "type": "BEP20"
+    },
+    {
+      "id": "30007",
+      "name": "USDC ERC20",
+      "symbol": "USDC",
+      "type": "ERC20"
+    },
+    {
+      "id": "30008",
+      "name": "USDC TRC20",
+      "symbol": "USDC",
+      "type": "TRC20"
+    },
+    {
+      "id": "30009",
+      "name": "USDC BEP20",
+      "symbol": "USDC",
+      "type": "BEP20"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tsymbol\ttype\n3\tTether (ERC20)\tUSDT-ERC20\tERC20\n4\tTether (TRC20)\tUSDT-TRC20\tTRC20\n5\tTether (BEP20)\tUSDT-BEP20\tBEP20\n6\tTether (Polygon)\tUSDT-POLYGON\tPOLYGON\n7\tTether (Solana)\tUSDT-SOL\tSPL\n8\tUSD Coin (ERC20)\tUSDC-ERC20\tERC20\n9\tUSD Coin (BEP20)\tUSDC-BEP20\tBEP20\n10\tUSD Coin (Polygon)\tUSDC-POLYGON\tPOLYGON\n11\tUSD Coin (Solana)\tUSDC-SOL\tSPL\n30003\tUSDT ERC20\tUSDT\tERC20\n30004\tUSDT TRC20\tUSDT\tTRC20\n30005\tUSDT BEP20\tUSDT\tBEP20\n30007\tUSDC ERC20\tUSDC\tERC20\n30008\tUSDC TRC20\tUSDC\tTRC20\n30009\tUSDC BEP20\tUSDC\tBEP20\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}
