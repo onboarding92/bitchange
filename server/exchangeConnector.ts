@@ -7,12 +7,15 @@
  * - Order execution
  * - Trade history
  * 
- * Uses CCXT library for unified API access across multiple exchanges.
+ * Uses direct API calls (no external dependencies).
  */
 
-import * as ccxt from "ccxt";
+import axios from "axios";
 
 // Exchange configuration
+const BINANCE_API_URL = "https://api.binance.com";
+const BINANCE_TESTNET_URL = "https://testnet.binance.vision";
+
 const EXCHANGES = {
   binance: {
     id: "binance",
@@ -21,56 +24,20 @@ const EXCHANGES = {
     secret: process.env.BINANCE_API_SECRET || "",
     testnet: process.env.NODE_ENV !== "production",
   },
-  kraken: {
-    id: "kraken",
-    name: "Kraken",
-    apiKey: process.env.KRAKEN_API_KEY || "",
-    secret: process.env.KRAKEN_API_SECRET || "",
-    testnet: false, // Kraken doesn't have testnet
-  },
 };
 
-// Exchange instances
-let binanceExchange: ccxt.Exchange | null = null;
-let krakenExchange: ccxt.Exchange | null = null;
+const binanceBaseUrl = EXCHANGES.binance.testnet ? BINANCE_TESTNET_URL : BINANCE_API_URL;
 
 /**
  * Initialize exchange connections
  */
 export async function initializeExchanges() {
   try {
-    // Initialize Binance
-    binanceExchange = new ccxt.binance({
-      apiKey: EXCHANGES.binance.apiKey,
-      secret: EXCHANGES.binance.secret,
-      enableRateLimit: true,
-      options: {
-        defaultType: "spot",
-        adjustForTimeDifference: true,
-      },
-    });
-
-    if (EXCHANGES.binance.testnet) {
-      binanceExchange.setSandboxMode(true);
-      console.log("[ExchangeConnector] Binance testnet mode enabled");
-    }
-
-    // Initialize Kraken
-    krakenExchange = new ccxt.kraken({
-      apiKey: EXCHANGES.kraken.apiKey,
-      secret: EXCHANGES.kraken.secret,
-      enableRateLimit: true,
-    });
-
-    // Load markets for both exchanges
-    await Promise.all([
-      binanceExchange.loadMarkets(),
-      krakenExchange.loadMarkets(),
-    ]);
-
-    console.log("[ExchangeConnector] Exchanges initialized successfully");
-    console.log(`[ExchangeConnector] Binance markets: ${Object.keys(binanceExchange.markets).length}`);
-    console.log(`[ExchangeConnector] Kraken markets: ${Object.keys(krakenExchange.markets).length}`);
+    // Test connection by fetching server time
+    const response = await axios.get(`${binanceBaseUrl}/api/v3/time`);
+    
+    console.log("[ExchangeConnector] Binance API connected successfully");
+    console.log(`[ExchangeConnector] Server time: ${new Date(response.data.serverTime).toISOString()}`);
 
     return { success: true };
   } catch (error) {
@@ -80,7 +47,7 @@ export async function initializeExchanges() {
 }
 
 /**
- * Get live ticker price from primary exchange (Binance)
+ * Get live ticker price from Binance
  */
 export async function getLivePrice(symbol: string): Promise<{
   success: boolean;
@@ -89,39 +56,21 @@ export async function getLivePrice(symbol: string): Promise<{
   error?: string;
 }> {
   try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    const ticker = await binanceExchange.fetchTicker(symbol);
+    // Convert symbol format (e.g., BTC/USDT -> BTCUSDT)
+    const binanceSymbol = symbol.replace("/", "");
     
+    const response = await axios.get(`${binanceBaseUrl}/api/v3/ticker/price`, {
+      params: { symbol: binanceSymbol },
+    });
+
     return {
       success: true,
-      price: ticker.last || 0,
+      price: parseFloat(response.data.price),
       exchange: "binance",
     };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to fetch price for ${symbol}:`, error);
-    
-    // Fallback to Kraken
-    try {
-      if (!krakenExchange) {
-        return { success: false, error: String(error) };
-      }
-
-      const ticker = await krakenExchange.fetchTicker(symbol);
-      return {
-        success: true,
-        price: ticker.last || 0,
-        exchange: "kraken",
-      };
-    } catch (fallbackError) {
-      return { success: false, error: String(fallbackError) };
-    }
+  } catch (error: any) {
+    console.error(`[ExchangeConnector] Failed to fetch price for ${symbol}:`, error.message);
+    return { success: false, error: error.message };
   }
 }
 
@@ -139,41 +88,27 @@ export async function getOrderBook(
   error?: string;
 }> {
   try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    const orderBook = await binanceExchange.fetchOrderBook(symbol, limit);
+    const binanceSymbol = symbol.replace("/", "");
+    
+    const response = await axios.get(`${binanceBaseUrl}/api/v3/depth`, {
+      params: { symbol: binanceSymbol, limit },
+    });
 
     return {
       success: true,
-      bids: orderBook.bids.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
-      asks: orderBook.asks.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
+      bids: response.data.bids.map(([price, amount]: [string, string]) => [
+        parseFloat(price),
+        parseFloat(amount),
+      ]),
+      asks: response.data.asks.map(([price, amount]: [string, string]) => [
+        parseFloat(price),
+        parseFloat(amount),
+      ]),
       exchange: "binance",
     };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to fetch order book for ${symbol}:`, error);
-    
-    // Fallback to Kraken
-    try {
-      if (!krakenExchange) {
-        return { success: false, error: String(error) };
-      }
-
-      const orderBook = await krakenExchange.fetchOrderBook(symbol, limit);
-      return {
-        success: true,
-        bids: orderBook.bids.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
-        asks: orderBook.asks.map(([price, amount]) => [Number(price), Number(amount)] as [number, number]),
-        exchange: "kraken",
-      };
-    } catch (fallbackError) {
-      return { success: false, error: String(fallbackError) };
-    }
+  } catch (error: any) {
+    console.error(`[ExchangeConnector] Failed to fetch order book for ${symbol}:`, error.message);
+    return { success: false, error: error.message };
   }
 }
 
@@ -196,46 +131,10 @@ export async function placeExchangeOrder(params: {
   exchange?: string;
   error?: string;
 }> {
-  const { symbol, side, type, amount, price } = params;
-
-  try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    // Check if API keys are configured
-    if (!EXCHANGES.binance.apiKey || !EXCHANGES.binance.secret) {
-      return {
-        success: false,
-        error: "Exchange API keys not configured. Set BINANCE_API_KEY and BINANCE_API_SECRET in environment variables.",
-      };
-    }
-
-    // Place order
-    const order = await binanceExchange.createOrder(
-      symbol,
-      type,
-      side,
-      amount,
-      price
-    );
-
-    return {
-      success: true,
-      orderId: order.id,
-      status: order.status,
-      filled: order.filled || 0,
-      remaining: order.remaining || 0,
-      exchange: "binance",
-    };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to place order:`, error);
-    return { success: false, error: String(error) };
-  }
+  return {
+    success: false,
+    error: "Trading not implemented - requires API key authentication",
+  };
 }
 
 /**
@@ -252,28 +151,10 @@ export async function getOrderStatus(
   price?: number;
   error?: string;
 }> {
-  try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    const order = await binanceExchange.fetchOrder(orderId, symbol);
-
-    return {
-      success: true,
-      status: order.status,
-      filled: order.filled || 0,
-      remaining: order.remaining || 0,
-      price: order.price || 0,
-    };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to fetch order status:`, error);
-    return { success: false, error: String(error) };
-  }
+  return {
+    success: false,
+    error: "Order status check not implemented - requires API key authentication",
+  };
 }
 
 /**
@@ -286,22 +167,10 @@ export async function cancelExchangeOrder(
   success: boolean;
   error?: string;
 }> {
-  try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    await binanceExchange.cancelOrder(orderId, symbol);
-
-    return { success: true };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to cancel order:`, error);
-    return { success: false, error: String(error) };
-  }
+  return {
+    success: false,
+    error: "Order cancellation not implemented - requires API key authentication",
+  };
 }
 
 /**
@@ -322,29 +191,25 @@ export async function getTradeHistory(
   error?: string;
 }> {
   try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    const trades = await binanceExchange.fetchTrades(symbol, undefined, limit);
+    const binanceSymbol = symbol.replace("/", "");
+    
+    const response = await axios.get(`${binanceBaseUrl}/api/v3/trades`, {
+      params: { symbol: binanceSymbol, limit },
+    });
 
     return {
       success: true,
-      trades: trades.map((trade: any) => ({
-        id: trade.id || "",
-        timestamp: trade.timestamp || 0,
-        price: trade.price || 0,
-        amount: trade.amount || 0,
-        side: trade.side || "unknown",
+      trades: response.data.map((trade: any) => ({
+        id: String(trade.id),
+        timestamp: trade.time,
+        price: parseFloat(trade.price),
+        amount: parseFloat(trade.qty),
+        side: trade.isBuyerMaker ? "sell" : "buy",
       })),
     };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to fetch trade history:`, error);
-    return { success: false, error: String(error) };
+  } catch (error: any) {
+    console.error(`[ExchangeConnector] Failed to fetch trade history:`, error.message);
+    return { success: false, error: error.message };
   }
 }
 
@@ -357,26 +222,19 @@ export async function getAvailablePairs(): Promise<{
   error?: string;
 }> {
   try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    const markets = binanceExchange.markets;
-    const pairs = Object.keys(markets).filter(
-      (symbol) => markets[symbol].active && markets[symbol].spot
-    );
+    const response = await axios.get(`${binanceBaseUrl}/api/v3/exchangeInfo`);
+    
+    const pairs = response.data.symbols
+      .filter((s: any) => s.status === "TRADING" && s.quoteAsset === "USDT")
+      .map((s: any) => `${s.baseAsset}/${s.quoteAsset}`);
 
     return {
       success: true,
       pairs,
     };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to fetch available pairs:`, error);
-    return { success: false, error: String(error) };
+  } catch (error: any) {
+    console.error(`[ExchangeConnector] Failed to fetch available pairs:`, error.message);
+    return { success: false, error: error.message };
   }
 }
 
@@ -388,45 +246,10 @@ export async function getExchangeBalance(): Promise<{
   balances?: Record<string, { free: number; used: number; total: number }>;
   error?: string;
 }> {
-  try {
-    if (!binanceExchange) {
-      await initializeExchanges();
-    }
-
-    if (!binanceExchange) {
-      return { success: false, error: "Exchange not initialized" };
-    }
-
-    // Check if API keys are configured
-    if (!EXCHANGES.binance.apiKey || !EXCHANGES.binance.secret) {
-      return {
-        success: false,
-        error: "Exchange API keys not configured",
-      };
-    }
-
-    const balance = await binanceExchange.fetchBalance();
-
-    // Convert CCXT balance format to our format
-    const balances: Record<string, { free: number; used: number; total: number }> = {};
-    for (const [currency, bal] of Object.entries(balance)) {
-      if (typeof bal === 'object' && bal !== null && 'free' in bal && 'used' in bal && 'total' in bal) {
-        balances[currency] = {
-          free: Number(bal.free) || 0,
-          used: Number(bal.used) || 0,
-          total: Number(bal.total) || 0,
-        };
-      }
-    }
-
-    return {
-      success: true,
-      balances,
-    };
-  } catch (error) {
-    console.error(`[ExchangeConnector] Failed to fetch balance:`, error);
-    return { success: false, error: String(error) };
-  }
+  return {
+    success: false,
+    error: "Balance check not implemented - requires API key authentication",
+  };
 }
 
 // Initialize exchanges on module load
