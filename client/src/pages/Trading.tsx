@@ -10,7 +10,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import OrderExecutionPanel from "@/components/OrderExecutionPanel";
-import { PriceChart } from "@/components/PriceChart";
+import { HistoricalPriceChart } from "@/components/HistoricalPriceChart";
 import { TrendingUp, TrendingDown, X } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { TRADING_PAIRS } from "@shared/const";
@@ -57,63 +57,7 @@ export default function Trading() {
 
   const openOrders = myOrders?.filter(o => o.status === "open") || [];
 
-  // TradingView widget initialization
-  useEffect(() => {
-    // Map trading pairs to TradingView symbols
-    const symbolMap: Record<string, string> = {
-      "BTC/USDT": "BINANCE:BTCUSDT",
-      "ETH/USDT": "BINANCE:ETHUSDT",
-      "BNB/USDT": "BINANCE:BNBUSDT",
-      "ADA/USDT": "BINANCE:ADAUSDT",
-      "SOL/USDT": "BINANCE:SOLUSDT",
-      "XRP/USDT": "BINANCE:XRPUSDT",
-      "DOT/USDT": "BINANCE:DOTUSDT",
-      "DOGE/USDT": "BINANCE:DOGEUSDT",
-      "MATIC/USDT": "BINANCE:MATICUSDT",
-      "LTC/USDT": "BINANCE:LTCUSDT",
-    };
-
-    const tvSymbol = symbolMap[selectedPair] || "BINANCE:BTCUSDT";
-
-    // Load TradingView widget script if not already loaded
-    if (!document.getElementById("tradingview-widget-script")) {
-      const script = document.createElement("script");
-      script.id = "tradingview-widget-script";
-      script.src = "https://s3.tradingview.com/tv.js";
-      script.async = true;
-      script.onload = () => {
-        initTradingViewWidget(tvSymbol);
-      };
-      document.head.appendChild(script);
-    } else {
-      // Script already loaded, just init widget
-      initTradingViewWidget(tvSymbol);
-    }
-
-    function initTradingViewWidget(symbol: string) {
-      if (typeof (window as any).TradingView !== "undefined") {
-        new (window as any).TradingView.widget({
-          autosize: true,
-          symbol: symbol,
-          interval: "15",
-          timezone: "Etc/UTC",
-          theme: "dark",
-          style: "1",
-          locale: "en",
-          toolbar_bg: "#000000",
-          enable_publishing: false,
-          hide_top_toolbar: false,
-          hide_legend: false,
-          save_image: false,
-          container_id: "tradingview_chart",
-          studies: [
-            "MASimple@tv-basicstudies",
-            "RSI@tv-basicstudies",
-          ],
-        });
-      }
-    }
-  }, [selectedPair]);
+  const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d">("24h");
 
   return (
     <DashboardLayout>
@@ -141,11 +85,33 @@ export default function Trading() {
           </Select>
         </div>
 
-        {/* Price History Chart - TradingView Widget */}
-        <div 
-          id="tradingview_chart" 
-          style={{ height: '500px', width: '100%' }}
-        />
+        {/* Price History Chart - Historical Data */}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              variant={timeframe === "24h" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeframe("24h")}
+            >
+              24h
+            </Button>
+            <Button
+              variant={timeframe === "7d" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeframe("7d")}
+            >
+              7d
+            </Button>
+            <Button
+              variant={timeframe === "30d" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeframe("30d")}
+            >
+              30d
+            </Button>
+          </div>
+          <HistoricalPriceChart pair={selectedPair} timeframe={timeframe} />
+        </div>
 
         {/* Order Book Depth Chart */}
         <Card className="glass">

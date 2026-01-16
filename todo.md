@@ -291,3 +291,37 @@
 - [ ] Test production site one last time
 - [ ] Create deployment documentation
 
+
+
+## 🚀 NEW REQUIREMENTS - January 16, 2026 (User Requested)
+
+### 1. Fix Trading Charts (CRITICAL)
+- [x] Replace TradingView widget with HistoricalPriceChart component
+- [x] Use historical data from cryptoPrices table (40,815+ records)
+- [x] Test chart rendering locally in Manus environment (✅ WORKS PERFECTLY)
+- [x] Build frontend with proper configuration (✅ Build successful in 9.26s)
+- [ ] Deploy to production (❌ BLOCKED: Docker rebuild fails due to missing patches/wouter@3.7.1.patch)
+- [ ] Alternative deployment approach needed (cannot copy dist to running container - causes white screen)
+
+### 2. UI/UX Overhaul (HIGH PRIORITY)
+- [x] Improve color contrast for better readability (professional dark theme with oklch colors)
+- [x] Better spacing and layout consistency (added responsive container padding)
+- [x] Professional button styles (hover scale 1.02, active scale 0.98, 200ms transitions)
+- [x] Mobile responsiveness improvements (breakpoint-specific typography, px-4 on mobile)
+- [x] Better typography (responsive h1-h6, tracking-tight, semibold)
+- [x] Improve card shadows (shadow-lg, hover:shadow-xl)
+- [x] Better form input styling (ring-2 on focus, ring-offset-2)
+- [x] Loading states (animate-pulse utility class)
+- [x] Better focus states (outline-2, outline-offset-2, outline-ring)
+- [x] Smooth scrolling (scroll-smooth on html)
+
+### 3. Testing & Deployment
+- [ ] Test all UI changes locally
+- [ ] Test trading charts locally
+- [ ] Build frontend: pnpm run build
+- [ ] Copy dist files to VPS
+- [ ] Rebuild Docker container: docker compose down && docker compose up -d --build
+- [ ] Test production site thoroughly
+- [ ] Create checkpoint with all changes
+- [ ] Push to GitHub
+
