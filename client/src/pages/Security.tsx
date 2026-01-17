@@ -88,7 +88,7 @@ export default function Security() {
       return;
     }
 
-    disable2FA.mutate({ code: verificationCode });
+    disable2FA.mutate({ password: currentPassword, twoFactorCode: verificationCode });
   };
 
   const handleChangePassword = () => {

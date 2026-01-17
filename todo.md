@@ -545,3 +545,26 @@
 - [ ] Test all critical functionality
 - [ ] Set up automated backups
 - [ ] Configure monitoring and alerts
+
+
+## 🔄 VPS Deployment Completion - Jan 17, 2026
+- [ ] Restart Node.js process on VPS to activate new code
+- [ ] Verify application is running and accessible
+- [ ] Test 2FA withdrawal flow in production
+- [ ] Test 2FA disable flow in production
+- [ ] Check application logs for errors
+
+## 🐛 TypeScript Error Resolution - Jan 17, 2026
+- [ ] Fix Wallet.tsx deposit amount type error (line 87)
+- [ ] Fix Wallet.tsx deposit method type error (line 88)
+- [ ] Fix Wallet.tsx twoFactorCode type error (line 103)
+- [ ] Fix server/routers.ts status type error (line 2277)
+- [ ] Run full TypeScript check to verify all fixes
+
+## ⚙️ PM2 Configuration - Jan 17, 2026
+- [ ] Install PM2 globally on VPS
+- [ ] Create PM2 ecosystem config file
+- [ ] Start application with PM2
+- [ ] Configure PM2 to start on system boot
+- [ ] Test PM2 restart and auto-recovery
+- [ ] Document PM2 commands in SYSADMIN_GUIDE.md

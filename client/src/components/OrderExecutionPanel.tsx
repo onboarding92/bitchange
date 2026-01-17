@@ -205,9 +205,9 @@ export default function OrderExecutionPanel({ selectedPair, currentPrice, onOrde
             className="w-full"
             size="lg"
             onClick={handlePlaceOrder}
-            disabled={placeSimulatedOrder.isLoading || placeLiveOrder.isLoading}
+            disabled={placeSimulatedOrder.isPending || placeLiveOrder.isPending}
           >
-            {placeSimulatedOrder.isLoading || placeLiveOrder.isLoading ? (
+            {placeSimulatedOrder.isPending || placeLiveOrder.isPending ? (
               <>
                 <Clock className="h-4 w-4 mr-2 animate-spin" />
                 Placing Order...
@@ -276,8 +276,8 @@ export default function OrderExecutionPanel({ selectedPair, currentPrice, onOrde
             <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={confirmOrder} disabled={placeSimulatedOrder.isLoading || placeLiveOrder.isLoading}>
-              {placeSimulatedOrder.isLoading || placeLiveOrder.isLoading ? (
+            <Button onClick={confirmOrder} disabled={placeSimulatedOrder.isPending || placeLiveOrder.isPending}>
+              {placeSimulatedOrder.isPending || placeLiveOrder.isPending ? (
                 <>
                   <Clock className="h-4 w-4 mr-2 animate-spin" />
                   Confirming...

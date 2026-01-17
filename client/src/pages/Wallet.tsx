@@ -84,8 +84,9 @@ export default function Wallet() {
 
     createDeposit.mutate({
       asset: selectedAsset.symbol,
-      amount: parseFloat(depositAmount),
-      method: "crypto",
+      amount: depositAmount,
+      network: selectedAsset.network,
+      method: "changenow",
     });
   };
 
