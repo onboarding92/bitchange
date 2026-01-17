@@ -141,6 +141,17 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
         }
 
+        // Check if 2FA is enabled
+        if (user.twoFactorEnabled) {
+          // Don't create session yet, return 2FA required
+          return { 
+            success: false, 
+            requires2FA: true, 
+            userId: user.id,
+            message: "2FA verification required"
+          };
+        }
+
         // Create session
         const token = await createSession(
           { userId: user.id, email: user.email!, role: user.role },
@@ -171,7 +182,7 @@ export const appRouter = router({
           timestamp: new Date().toLocaleString(),
         });
 
-        return { success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
+        return { success: true, requires2FA: false, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
       }),
 
     logout: publicProcedure.mutation(async ({ ctx }) => {

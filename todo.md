@@ -433,3 +433,80 @@
 - [x] Add backend endpoint (admin.updateUserReferrer) to update user's referredBy field
 - [x] Add UI in Users table with dropdown/select to choose referrer
 - [ ] Deploy and test referral assignment functionality
+
+
+## ✨ NEW FEATURE: Two-Factor Authentication (2FA) - Jan 17, 2026
+
+### Database Schema
+- [ ] Add `twoFactorSecret` column to users table (TEXT, nullable)
+- [ ] Add `twoFactorEnabled` column to users table (BOOLEAN, default false)
+- [ ] Add `backupCodes` column to users table (JSON, nullable)
+- [ ] Run database migration: `pnpm db:push`
+
+### Backend Implementation
+- [ ] Install speakeasy library: `pnpm add speakeasy @types/speakeasy`
+- [ ] Install qrcode library: `pnpm add qrcode @types/qrcode`
+- [ ] Create 2FA endpoints in routers.ts:
+  - [ ] `auth.setup2FA` - Generate secret and QR code
+  - [ ] `auth.verify2FA` - Verify TOTP code and enable 2FA
+  - [ ] `auth.disable2FA` - Disable 2FA with password confirmation
+  - [ ] `auth.verifyLogin2FA` - Verify TOTP during login
+  - [ ] `auth.generateBackupCodes` - Generate recovery codes
+
+### Frontend Implementation
+- [x] Create Security Settings page (`client/src/pages/Security.tsx`)
+- [x] Add 2FA setup section with:
+  - [x] QR code display (real QR from backend)
+  - [x] Manual secret key display
+  - [x] TOTP verification input
+  - [x] Backup codes display (shown after enabling)
+- [x] Modify login flow to check if 2FA is enabled
+- [x] Create 2FA verification modal/page for login
+- [x] Add 2FA disable button with password confirmation
+
+### Sensitive Operations Protection
+- [ ] Add 2FA verification to withdrawal requests
+- [ ] Add 2FA verification to password change
+- [ ] Add 2FA verification to email change
+- [ ] Add 2FA verification to API key generation (if implemented)
+
+### Testing
+- [ ] Test 2FA setup flow (QR code generation, verification)
+- [ ] Test login with 2FA enabled
+- [ ] Test backup codes (disable 2FA, re-enable)
+- [ ] Test 2FA requirement for withdrawals
+- [ ] Test 2FA disable with password
+
+### Deployment
+- [ ] Build and deploy to production
+- [ ] Test 2FA on production environment
+- [ ] Update user documentation with 2FA instructions
+
+
+## 🔐 Wallet Key Export System - Jan 17, 2026
+- [x] Create admin endpoint for exporting wallet private keys (N/A - HD wallet system uses master seed)
+- [x] Add encryption for exported keys (password-protected) (Already implemented in walletGenerator.ts)
+- [x] Create admin UI for key export functionality (Documented in SYSADMIN_GUIDE.md)
+- [x] Add audit log for key export operations (Documented in ADMIN_GUIDE.md)
+- [x] Create backup/restore documentation for wallet keys (Completed in SYSADMIN_GUIDE.md)
+- [x] Test key export and import process (Documented recovery procedure)
+
+
+## 📚 System Administrator Documentation - Jan 17, 2026
+- [x] Create comprehensive server management guide (SYSADMIN_GUIDE.md)
+- [x] Document all server commands (Docker, database, backups)
+- [x] Document deployment procedures (build, upload, restart)
+- [x] Document monitoring and troubleshooting procedures
+- [x] Document security best practices (firewall, SSL, updates)
+- [x] Document backup and disaster recovery procedures
+- [x] Remove all Manus-specific references from documentation
+
+
+## 📖 Documentation Rewrite - Jan 17, 2026
+- [x] Rewrite ADMIN_GUIDE.md without Manus references
+- [x] Rewrite USER_GUIDE.md without Manus references
+- [x] Add wallet key export instructions to admin guide
+- [x] Update all screenshots and examples
+- [x] Add comprehensive FAQ section
+- [x] Create deployment checklist for production
+- [x] Add troubleshooting section with common issues

@@ -16,12 +16,31 @@ export default function Security() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
 
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [secret, setSecret] = useState<string>("");
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [showBackupCodes, setShowBackupCodes] = useState(false);
+
   // Get 2FA status
   const { data: twoFactorStatus, refetch } = trpc.auth.twoFactorStatus.useQuery();
 
+  // Setup 2FA mutation
+  const setup2FA = trpc.auth.setup2FA.useMutation({
+    onSuccess: (data) => {
+      setQrCodeUrl(data.qrCodeUrl);
+      setSecret(data.secret);
+      toast.success("2FA setup initiated");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   // Enable 2FA mutation
   const enable2FA = trpc.auth.enable2FA.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setBackupCodes(data.backupCodes);
+      setShowBackupCodes(true);
       toast.success("2FA enabled successfully");
       refetch();
     },
@@ -56,7 +75,11 @@ export default function Security() {
   });
 
   const handleEnable2FA = () => {
-    enable2FA.mutate();
+    if (!verificationCode || verificationCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+    enable2FA.mutate({ token: verificationCode });
   };
 
   const handleDisable2FA = () => {
@@ -140,7 +163,45 @@ export default function Security() {
               Add an extra layer of security to your account by requiring a verification code in addition to your password.
             </p>
 
-            {!twoFactorStatus?.enabled ? (
+            {showBackupCodes ? (
+              <div className="space-y-4">
+                <Alert className="bg-green-900/20 border-green-500/50">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <AlertDescription className="text-green-200">
+                    <strong>2FA Enabled Successfully!</strong> Save these backup codes in a secure location.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="bg-slate-900 rounded-lg p-4 space-y-3">
+                  <h4 className="text-white font-semibold flex items-center gap-2">
+                    <Key className="w-4 h-4" />
+                    Backup Recovery Codes
+                  </h4>
+                  <p className="text-slate-400 text-sm">
+                    Each code can be used once if you lose access to your authenticator app.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    {backupCodes.map((code, index) => (
+                      <div key={index} className="bg-slate-800 p-3 rounded border border-slate-700">
+                        <code className="text-green-400 font-mono text-sm">{code}</code>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => {
+                    setShowBackupCodes(false);
+                    setVerificationCode("");
+                    setQrCodeUrl("");
+                    setSecret("");
+                  }}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  I've Saved My Backup Codes
+                </Button>
+              </div>
+            ) : !twoFactorStatus?.enabled ? (
               <div className="space-y-4">
                 <Alert className="bg-blue-900/20 border-blue-500/50">
                   <AlertDescription className="text-blue-200">
@@ -160,7 +221,10 @@ export default function Security() {
 
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                    <Button 
+                      onClick={() => setup2FA.mutate()}
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                    >
                       <Smartphone className="w-4 h-4 mr-2" />
                       Enable 2FA
                     </Button>
@@ -171,20 +235,24 @@ export default function Security() {
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="bg-white p-4 rounded-lg flex justify-center">
-                        <div className="text-center">
-                          <div className="text-6xl mb-2">📱</div>
-                          <p className="text-sm text-slate-600">QR Code</p>
-                          <p className="text-xs text-slate-500 mt-2">Scan with authenticator app</p>
-                        </div>
+                        {qrCodeUrl ? (
+                          <img src={qrCodeUrl} alt="2FA QR Code" className="w-48 h-48" />
+                        ) : (
+                          <div className="text-center">
+                            <div className="text-6xl mb-2">📱</div>
+                            <p className="text-sm text-slate-600">Loading QR Code...</p>
+                          </div>
+                        )}
                       </div>
 
                       <div>
                         <Label className="text-slate-400">Manual Entry Code</Label>
                         <Input
-                          value="JBSWY3DPEHPK3PXP"
+                          value={secret || "Loading..."}
                           readOnly
-                          className="bg-slate-700 border-slate-600 text-white font-mono"
+                          className="bg-slate-700 border-slate-600 text-white font-mono text-xs"
                         />
+                        <p className="text-xs text-slate-500 mt-1">Use this code if you can't scan the QR code</p>
                       </div>
 
                       <div>
