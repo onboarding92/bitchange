@@ -330,7 +330,7 @@ export const appRouter = router({
         }
 
         // Verify 2FA code
-        const { verify2FAToken } = await import("./twoFactor");
+          const { verify2FAToken } = await import("./twoFactor");
         const valid2FA = verify2FAToken(user[0].twoFactorSecret!, input.twoFactorCode);
         if (!valid2FA) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid 2FA code" });
@@ -734,7 +734,7 @@ export const appRouter = router({
           }
 
           // Verify 2FA code
-          const { verify2FAToken } = await import("./_core/twoFactor");
+          const { verify2FAToken } = await import("./twoFactor");
           const isValid = verify2FAToken(user.twoFactorSecret!, input.twoFactorCode);
           
           if (!isValid) {
