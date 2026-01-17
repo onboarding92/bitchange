@@ -378,6 +378,14 @@ function UsersManager() {
     onError: (error) => toast.error(error.message),
   });
 
+  const updateReferrer = trpc.admin.updateUserReferrer.useMutation({
+    onSuccess: () => {
+      toast.success("Referrer updated!");
+      refetch();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
   const creditBalance = trpc.admin.creditBalance.useMutation({
     onSuccess: () => {
       toast.success("Balance credited successfully!");
@@ -420,6 +428,8 @@ function UsersManager() {
                   <th className="text-left py-3 px-4">Name</th>
                   <th className="text-left py-3 px-4">Role</th>
                   <th className="text-left py-3 px-4">KYC Status</th>
+                  <th className="text-left py-3 px-4">Referred By</th>
+                  <th className="text-right py-3 px-4">Total Balance</th>
                   <th className="text-right py-3 px-4">Registered</th>
                   <th className="text-right py-3 px-4">Actions</th>
                 </tr>
@@ -447,6 +457,32 @@ function UsersManager() {
                       </Select>
                     </td>
                     <td className="py-3 px-4 capitalize">{user.kycStatus}</td>
+                    <td className="py-3 px-4">
+                      <Select
+                        value={user.referredBy?.toString() || "none"}
+                        onValueChange={(value) => {
+                          updateReferrer.mutate({ 
+                            userId: user.id, 
+                            referrerId: value === "none" ? null : parseInt(value)
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="No referrer" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No referrer</SelectItem>
+                          {users?.filter(u => u.id !== user.id).map(u => (
+                            <SelectItem key={u.id} value={u.id.toString()}>
+                              {u.name || u.email || `User #${u.id}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="text-right py-3 px-4 font-semibold text-green-400">
+                      ${(user as any).totalBalance || "0.00"} USDT
+                    </td>
                     <td className="text-right py-3 px-4 text-sm text-muted-foreground">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>

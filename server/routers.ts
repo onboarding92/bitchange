@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices } from "../drizzle/schema";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -32,7 +32,8 @@ export const appRouter = router({
       .input(z.object({ 
         email: z.string().email(), 
         password: z.string().min(8), 
-        name: z.string().min(2) 
+        name: z.string().min(2),
+        referralCode: z.string().optional()
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -51,12 +52,22 @@ export const appRouter = router({
         // Hash password
         const hashedPassword = await hashPassword(input.password);
 
+        // Find referrer if referral code provided
+        let referrerId: number | undefined;
+        if (input.referralCode) {
+          const referrer = await db.select().from(users).where(eq(users.referralCode, input.referralCode)).limit(1);
+          if (referrer.length > 0) {
+            referrerId = referrer[0].id;
+          }
+        }
+
         // Create user
         const result = await db.insert(users).values({
           email: input.email,
           password: hashedPassword,
           name: input.name,
           role: "user",
+          referredBy: referrerId,
         });
 
         // Get user ID
@@ -1150,8 +1161,52 @@ export const appRouter = router({
           .offset(input.offset)
           .orderBy(desc(users.createdAt));
 
+        // Calculate total balance in USDT for each user
+        const usersWithBalance = await Promise.all(
+          usersList.map(async (user) => {
+            // Get all wallets for this user
+            const userWallets = await db.select().from(wallets).where(eq(wallets.userId, user.id));
+            
+            // Get current prices
+            const latestPrices = await db
+              .select()
+              .from(cryptoPrices)
+              .where(sql`${cryptoPrices.lastUpdated} >= NOW() - INTERVAL 1 HOUR`)
+              .orderBy(desc(cryptoPrices.lastUpdated));
+            
+            // Create price map (asset -> price in USDT)
+            const priceMap: Record<string, number> = {};
+            for (const price of latestPrices) {
+              if (!priceMap[price.asset]) {
+                priceMap[price.asset] = parseFloat(price.price);
+              }
+            }
+            
+            // Calculate total balance in USDT
+            let totalBalanceUSDT = 0;
+            for (const wallet of userWallets) {
+              const balance = parseFloat(wallet.balance);
+              const asset = wallet.asset;
+              
+              if (asset === 'USDT' || asset === 'USDC') {
+                // Stablecoins are 1:1 with USD
+                totalBalanceUSDT += balance;
+              } else {
+                // Convert other assets using current price
+                const price = priceMap[asset] || 0;
+                totalBalanceUSDT += balance * price;
+              }
+            }
+            
+            return {
+              ...user,
+              totalBalanceUSDT: totalBalanceUSDT.toFixed(2),
+            };
+          })
+        );
+
         return {
-          users: usersList,
+          users: usersWithBalance,
           total: countResult?.count ?? 0,
         };
       }),
@@ -1608,7 +1663,46 @@ export const appRouter = router({
     listUsers: adminProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];
-      return await db.select().from(users).orderBy(desc(users.createdAt)).limit(100);
+      
+      // Get all users
+      const allUsers = await db.select().from(users).orderBy(desc(users.createdAt)).limit(100);
+      
+      // Get all crypto prices
+      const prices = await getAllCryptoPrices();
+      
+      // Calculate total balance for each user
+      const usersWithBalance = await Promise.all(
+        allUsers.map(async (user) => {
+          // Get all wallets for this user
+          const userWallets = await db.select().from(wallets).where(eq(wallets.userId, user.id));
+          
+          // Calculate total balance in USDT
+          let totalBalanceUSDT = 0;
+          
+          for (const wallet of userWallets) {
+            const balance = parseFloat(wallet.balance);
+            if (balance > 0) {
+              if (wallet.asset === 'USDT' || wallet.asset === 'USDC') {
+                // Stablecoins are 1:1 with USD
+                totalBalanceUSDT += balance;
+              } else {
+                // Convert other assets to USDT using current price
+                const price = prices[wallet.asset as keyof typeof prices];
+                if (price && typeof price === 'number') {
+                  totalBalanceUSDT += balance * price;
+                }
+              }
+            }
+          }
+          
+          return {
+            ...user,
+            totalBalance: totalBalanceUSDT.toFixed(2),
+          };
+        })
+      );
+      
+      return usersWithBalance;
     }),
 
     updateUserRole: adminProcedure
@@ -1622,6 +1716,34 @@ export const appRouter = router({
         await db.update(users).set({ role: input.role }).where(eq(users.id, input.userId));
         return { ok: true };
       }),
+
+    updateUserReferrer: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        referrerId: z.number().nullable(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        
+        // Validate referrer exists if provided
+        if (input.referrerId !== null) {
+          const [referrer] = await db.select().from(users).where(eq(users.id, input.referrerId)).limit(1);
+          if (!referrer) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Referrer user not found" });
+          }
+        }
+        
+        await db.update(users).set({ referredBy: input.referrerId }).where(eq(users.id, input.userId));
+        return { ok: true };
+      }),
+
+    exportWallets: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const allWallets = await db.select().from(wallets);
+      return allWallets;
+    }),
 
     replyToTicket: adminProcedure
       .input(z.object({
@@ -1863,7 +1985,7 @@ export const appRouter = router({
           .where(gte(users.createdAt, startDate));
         
         // Active users (users who logged in during period)
-        const [activeUsers] = await db.select({ count: sql<number>`count(DISTINCT user_id)` })
+        const [activeUsers] = await db.select({ count: sql<number>`count(DISTINCT userId)` })
           .from(systemLogs)
           .where(and(
             eq(systemLogs.action, "login"),
@@ -2596,7 +2718,7 @@ export const appRouter = router({
         .where(eq(users.referredBy, userId));
 
       // Get referral list with details
-      const referralList = await db.select({
+      const referralListRaw = await db.select({
         id: users.id,
         name: users.name,
         email: users.email,
@@ -2606,6 +2728,41 @@ export const appRouter = router({
         .where(eq(users.referredBy, userId))
         .orderBy(desc(users.createdAt))
         .limit(50);
+
+      // Get all crypto prices for balance calculation
+      const prices = await getAllCryptoPrices();
+
+      // Calculate total balance for each referred user
+      const referralList = await Promise.all(
+        referralListRaw.map(async (referredUser) => {
+          // Get all wallets for this referred user
+          const userWallets = await db.select().from(wallets).where(eq(wallets.userId, referredUser.id));
+          
+          // Calculate total balance in USDT
+          let totalBalanceUSDT = 0;
+          
+          for (const wallet of userWallets) {
+            const balance = parseFloat(wallet.balance);
+            if (balance > 0) {
+              if (wallet.asset === 'USDT' || wallet.asset === 'USDC') {
+                // Stablecoins are 1:1 with USD
+                totalBalanceUSDT += balance;
+              } else {
+                // Convert other assets to USDT using current price
+                const price = prices[wallet.asset as keyof typeof prices];
+                if (price && typeof price === 'number') {
+                  totalBalanceUSDT += balance * price;
+                }
+              }
+            }
+          }
+          
+          return {
+            ...referredUser,
+            totalBalance: totalBalanceUSDT.toFixed(2),
+          };
+        })
+      );
 
       // Calculate total rewards (placeholder - implement based on your reward logic)
       const pendingRewards = 0;

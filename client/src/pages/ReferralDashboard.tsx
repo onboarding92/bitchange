@@ -138,6 +138,7 @@ export default function ReferralDashboard() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead className="text-right">Total Balance</TableHead>
                   <TableHead>Joined Date</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -147,6 +148,9 @@ export default function ReferralDashboard() {
                   <TableRow key={referral.id}>
                     <TableCell className="font-medium">{referral.name || "N/A"}</TableCell>
                     <TableCell>{referral.email}</TableCell>
+                    <TableCell className="text-right font-semibold text-green-400">
+                      ${(referral as any).totalBalance || "0.00"} USDT
+                    </TableCell>
                     <TableCell>{new Date(referral.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">

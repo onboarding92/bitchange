@@ -325,3 +325,111 @@
 - [ ] Create checkpoint with all changes
 - [ ] Push to GitHub
 
+
+
+## 🔧 NEW USER REQUIREMENTS - Jan 16, 2026 (Phase 2)
+
+### 1. Admin Panel - User Balance Display
+- [x] Add "Total Balance (USDT)" column in admin panel user list
+- [x] Calculate total balance across all user wallets
+- [x] Convert all crypto balances to USDT equivalent
+- [x] Display formatted USDT amount next to each user
+
+### 2. Referral System Review
+- [x] Document how referral system works
+- [x] Verify referral link generation (REF{userId}{timestamp})
+- [x] Check referral rewards/commissions (NOT IMPLEMENTED - placeholder only)
+- [x] Test referral registration flow (NOT WORKING - register form doesn't accept referral code)
+- [x] Document what users get when registering with referral link (NOTHING - system incomplete)
+
+**FINDINGS:**
+- Referral code generation works (format: REF{userId}{timestamp})
+- Registration form DOES NOT accept referral codes
+- Referral tracking (referredBy field) is never populated
+- Rewards system is placeholder only (pendingRewards = 0, earnedRewards = 0)
+- Users get NOTHING when registering with referral link (system incomplete)### 3. Staking Payment System Review
+- [x] Document how staking payments work
+- [x] Verify if hot wallet is required for staking payouts (NO - rewards created from nothing)
+- [x] Check reward calculation logic (principal * APR * days / 36500)
+- [x] Test staking and unstaking flow
+
+**FINDINGS:**
+- Stake: User deposits crypto, balance subtracted from wallet
+- Rewards: Calculated on unstake using formula (principal * APR * days / 36500)
+- Unstake: Principal + Rewards added directly to user wallet
+- NO hot wallet required: Rewards generated automatically (virtual credits)
+- RISK: System creates crypto "from nothing" without real reserves
+- [ ] Document wallet requirements for staking
+
+### 4. Remove Unsupported Cryptocurrencies
+- [ ] Identify which cryptocurrencies are currently NOT supported
+- [ ] Remove unsupported crypto from deposit page
+- [ ] Remove unsupported crypto from withdraw page
+- [ ] Update wallet generation to skip unsupported networks
+- [ ] Keep only: BTC, ETH, USDT (ERC-20, TRC-20), USDC (ERC-20), BNB
+- [ ] Update documentation with supported crypto list
+
+
+## 🔄 REFERRAL PAGE IMPROVEMENTS - Jan 16, 2026
+
+### Display Referred Users Information
+- [ ] Show total count of referred users at top of page
+- [ ] Create table showing all referred users with columns:
+  - [ ] Email address
+  - [ ] Full name
+  - [ ] Total balance (USDT equivalent)
+- [ ] Add backend query to fetch referred users list
+- [ ] Calculate USDT balance for each referred user
+- [ ] Display in referral dashboard page
+
+
+## 🐛 VPS DEPLOYMENT FIX - Jan 16, 2026 (CRITICAL)
+
+### Site Down - White Screen Issue
+- [x] Identify root cause: vite-plugin-manus-runtime incompatible with standalone VPS
+- [x] Remove vite-plugin-manus-runtime from vite.config.ts
+- [x] Remove manus-runtime script from client/index.html
+- [x] Rebuild project on Manus without Manus plugin
+- [x] Copy clean dist/ files to VPS container
+- [x] Restart container with clean build
+- [x] Verify site loads correctly (✅ WORKING!)
+
+### Total Balance Column Missing
+- [x] Add "Total Balance" column to Admin Panel Users table
+- [x] Calculate total balance for each user (sum all wallet balances in USDT)
+- [x] Display formatted USDT amount
+- [x] Implemented in code (backend + frontend)
+- [ ] Deploy to VPS
+
+### Referral Dashboard Enhancement
+- [x] Add backend endpoint to fetch referred users with total balance
+- [x] Update Referral Dashboard UI to show:
+  - Number of referred users (already present)
+  - Table with referred users list (name, email, total balance, registration date)
+- [x] Deploy to VPS
+
+### 🐛 BUG FIX: Referral Registration
+- [x] Fix registration endpoint to save referredBy when user registers with referral code
+- [x] Test referral registration flow
+- [x] Deploy fix to VPS
+
+### 🐛 BUG FIX: PriceSyncJob Not Updating Prices
+- [x] Investigate why PriceSyncJob is not updating prices correctly (Binance API blocked with HTTP 451)
+- [x] Fix PriceSyncJob to use CoinGecko API instead of Binance
+- [x] Deploy fix and verify live prices update correctly
+
+### 🐛 BUG FIX: Price Query Not Returning Latest Prices
+- [x] Find price query endpoint (cryptoPrices.ts getCryptoPrice)
+- [x] Fix query to ORDER BY lastUpdated DESC LIMIT 1
+- [x] Deploy and verify Live Price matches current market price
+
+### 🐛 BUG FIX: Analytics Section Not Displaying Data
+- [x] Check Analytics section in Admin Panel (Error 500)
+- [x] Identify why registration data is not showing (SQL column name mismatch: user_id vs userId)
+- [x] Fix Analytics queries (changed user_id to userId)
+- [x] Deploy and verify Analytics displays user registration data correctly
+
+### ✨ NEW FEATURE: Admin Can Assign Referrals to Users
+- [x] Add backend endpoint (admin.updateUserReferrer) to update user's referredBy field
+- [x] Add UI in Users table with dropdown/select to choose referrer
+- [ ] Deploy and test referral assignment functionality

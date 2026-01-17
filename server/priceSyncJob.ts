@@ -5,30 +5,30 @@ import { eq, and, lt } from "drizzle-orm";
 
 /**
  * Price Sync Job
- * Fetches crypto prices from Binance API and stores them in database
+ * Fetches crypto prices from CoinGecko API and stores them in database
  * Runs every 2 minutes to keep prices fresh
  * Keeps historical data for 30 days
  */
 
-const BINANCE_API = "https://api.binance.com/api/v3";
+const COINGECKO_API = "https://api.coingecko.com/api/v3";
 const RETENTION_DAYS = 30; // Keep 30 days of historical data
 
-const ASSET_TO_BINANCE: Record<string, string> = {
-  BTC: "BTCUSDT",
-  ETH: "ETHUSDT",
-  USDT: "USDT",
-  BNB: "BNBUSDT",
-  ADA: "ADAUSDT",
-  SOL: "SOLUSDT",
-  XRP: "XRPUSDT",
-  DOT: "DOTUSDT",
-  DOGE: "DOGEUSDT",
-  AVAX: "AVAXUSDT",
-  SHIB: "SHIBUSDT",
-  MATIC: "MATICUSDT",
-  LTC: "LTCUSDT",
-  LINK: "LINKUSDT",
-  XLM: "XLMUSDT",
+const ASSET_TO_COINGECKO: Record<string, string> = {
+  BTC: "bitcoin",
+  ETH: "ethereum",
+  USDT: "tether",
+  BNB: "binancecoin",
+  ADA: "cardano",
+  SOL: "solana",
+  XRP: "ripple",
+  DOT: "polkadot",
+  DOGE: "dogecoin",
+  AVAX: "avalanche-2",
+  SHIB: "shiba-inu",
+  MATIC: "matic-network",
+  LTC: "litecoin",
+  LINK: "chainlink",
+  XLM: "stellar",
 };
 
 export async function syncCryptoPrices() {
@@ -41,44 +41,45 @@ export async function syncCryptoPrices() {
   }
 
   try {
-    // Fetch all prices from Binance in one batch call
-    const response = await axios.get(`${BINANCE_API}/ticker/24hr`, {
+    // Get all coin IDs
+    const coinIds = Object.values(ASSET_TO_COINGECKO).join(",");
+    
+    // Fetch all prices from CoinGecko in one batch call
+    const response = await axios.get(`${COINGECKO_API}/simple/price`, {
+      params: {
+        ids: coinIds,
+        vs_currencies: "usd",
+        include_24hr_vol: true,
+        include_24hr_change: true,
+      },
       timeout: 10000,
     });
 
-    const binancePrices = response.data;
-    const priceMap = new Map(binancePrices.map((p: any) => [p.symbol, p]));
+    const coinGeckoPrices = response.data;
 
     let successCount = 0;
     let errorCount = 0;
 
     // Insert new price records for each asset (keep historical data)
-    for (const [asset, symbol] of Object.entries(ASSET_TO_BINANCE)) {
+    for (const [asset, coinId] of Object.entries(ASSET_TO_COINGECKO)) {
       try {
-        let price, change24h, volume24h, high24h, low24h;
-
-        if (symbol === "USDT") {
-          // USDT is always $1
-          price = "1.00000000";
-          change24h = "0.00";
-          volume24h = "0.00";
-          high24h = "1.00000000";
-          low24h = "1.00000000";
-        } else {
-          const data: any = priceMap.get(symbol);
-          if (!data) {
-            console.warn(`[PriceSyncJob] No data for ${asset} (${symbol})`);
-            errorCount++;
-            continue;
-          }
-
-          const currentPrice = parseFloat(data.lastPrice);
-          price = currentPrice.toFixed(8);
-          change24h = parseFloat(data.priceChangePercent || "0").toFixed(2);
-          volume24h = (parseFloat(data.volume || "0") * currentPrice).toFixed(2);
-          high24h = parseFloat(data.highPrice || currentPrice.toString()).toFixed(8);
-          low24h = parseFloat(data.lowPrice || currentPrice.toString()).toFixed(8);
+        const data = coinGeckoPrices[coinId];
+        
+        if (!data) {
+          console.warn(`[PriceSyncJob] No data for ${asset} (${coinId})`);
+          errorCount++;
+          continue;
         }
+
+        const currentPrice = data.usd || 0;
+        const price = currentPrice.toFixed(8);
+        const change24h = (data.usd_24h_change || 0).toFixed(2);
+        const volume24h = (data.usd_24h_vol || 0).toFixed(2);
+        
+        // CoinGecko doesn't provide high/low in simple/price endpoint
+        // Use current price as approximation
+        const high24h = price;
+        const low24h = price;
 
         // Always insert new record (keep historical data)
         await db.insert(cryptoPrices).values({
@@ -103,7 +104,7 @@ export async function syncCryptoPrices() {
     // Clean up old data (older than RETENTION_DAYS)
     await cleanupOldPrices();
   } catch (error: any) {
-    console.error("[PriceSyncJob] Error fetching prices from Binance:", error.message);
+    console.error("[PriceSyncJob] Error fetching prices from CoinGecko:", error.message);
   }
 }
 

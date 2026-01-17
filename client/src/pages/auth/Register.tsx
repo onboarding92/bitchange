@@ -17,6 +17,10 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
+  
+  // Extract referral code from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const referralCode = urlParams.get('ref') || undefined;
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: (data) => {
@@ -51,7 +55,7 @@ export default function Register() {
       return;
     }
 
-    registerMutation.mutate({ name, email, password });
+    registerMutation.mutate({ name, email, password, referralCode });
   };
 
   if (success) {

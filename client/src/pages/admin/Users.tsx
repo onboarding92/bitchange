@@ -204,6 +204,7 @@ export default function UsersManagement() {
                     <TableHead className="text-slate-300">Role</TableHead>
                     <TableHead className="text-slate-300">KYC</TableHead>
                     <TableHead className="text-slate-300">Status</TableHead>
+                    <TableHead className="text-slate-300">Total Balance (USDT)</TableHead>
                     <TableHead className="text-slate-300">Created</TableHead>
                     <TableHead className="text-slate-300">Actions</TableHead>
                   </TableRow>
@@ -242,6 +243,9 @@ export default function UsersManagement() {
                         }`}>
                           {user.accountStatus || "active"}
                         </span>
+                      </TableCell>
+                      <TableCell className="text-green-400 font-semibold">
+                        ${(user as any).totalBalanceUSDT || "0.00"}
                       </TableCell>
                       <TableCell className="text-slate-400 text-sm">
                         {new Date(user.createdAt).toLocaleDateString()}

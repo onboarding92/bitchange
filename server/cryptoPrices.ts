@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getDb } from "./db";
 import { cryptoPrices } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 /**
  * Crypto Prices Module (Database-backed)
@@ -34,6 +34,7 @@ export async function getCryptoPrice(asset: string): Promise<PriceData | null> {
       .select()
       .from(cryptoPrices)
       .where(eq(cryptoPrices.asset, asset))
+      .orderBy(desc(cryptoPrices.lastUpdated))
       .limit(1);
 
     if (result.length === 0) {
