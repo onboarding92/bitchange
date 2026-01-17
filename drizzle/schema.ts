@@ -113,9 +113,11 @@ export const deposits = mysqlTable("deposits", {
   network: varchar("network", { length: 50 }),
   provider: varchar("provider", { length: 50 }),
   externalId: varchar("externalId", { length: 255 }),
+  referenceId: varchar("referenceId", { length: 255 }),
   status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   completedAt: timestamp("completedAt"),
+  processedAt: timestamp("processedAt"),
 });
 
 export const withdrawals = mysqlTable("withdrawals", {

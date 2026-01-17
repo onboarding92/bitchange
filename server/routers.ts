@@ -309,7 +309,10 @@ export const appRouter = router({
       }),
 
     disable2FA: protectedProcedure
-      .input(z.object({ password: z.string() }))
+      .input(z.object({ 
+        password: z.string(),
+        twoFactorCode: z.string().length(6)
+      }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -319,10 +322,18 @@ export const appRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot disable 2FA for OAuth users" });
         }
 
+        // Verify password
         const bcrypt = await import("bcryptjs");
-        const valid = await bcrypt.compare(input.password, user[0].password);
-        if (!valid) {
+        const validPassword = await bcrypt.compare(input.password, user[0].password);
+        if (!validPassword) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+
+        // Verify 2FA code
+        const { verify2FAToken } = await import("./twoFactor");
+        const valid2FA = verify2FAToken(user[0].twoFactorSecret!, input.twoFactorCode);
+        if (!valid2FA) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid 2FA code" });
         }
 
         // Disable 2FA
@@ -702,11 +713,37 @@ export const appRouter = router({
         asset: z.string(), 
         amount: z.string(), 
         network: z.string(),
-        address: z.string() 
+        address: z.string(),
+        twoFactorCode: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Check if user has 2FA enabled
+        const [user] = await db.select().from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+
+        if (user?.twoFactorEnabled) {
+          if (!input.twoFactorCode) {
+            throw new TRPCError({ 
+              code: "BAD_REQUEST", 
+              message: "2FA_REQUIRED"
+            });
+          }
+
+          // Verify 2FA code
+          const { verify2FAToken } = await import("./_core/twoFactor");
+          const isValid = verify2FAToken(user.twoFactorSecret!, input.twoFactorCode);
+          
+          if (!isValid) {
+            throw new TRPCError({ 
+              code: "UNAUTHORIZED", 
+              message: "Invalid 2FA code" 
+            });
+          }
+        }
 
         const amount = parseFloat(input.amount);
         if (amount <= 0) {
@@ -2267,14 +2304,14 @@ export const appRouter = router({
     updateDepositStatus: adminProcedure
       .input(z.object({
         depositId: z.number(),
-        status: z.string(),
+        status: z.enum(["pending", "completed", "failed"]),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
         await db.update(deposits)
-          .set({ status: input.status })
+          .set({ status: input.status as "pending" | "completed" | "failed" })
           .where(eq(deposits.id, input.depositId));
 
         return { success: true };

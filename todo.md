@@ -510,3 +510,38 @@
 - [x] Add comprehensive FAQ section
 - [x] Create deployment checklist for production
 - [x] Add troubleshooting section with common issues
+
+
+## 🔧 TypeScript Error Fixes - Jan 17, 2026
+- [x] Fix context.ts Request type error (server/_core/context.ts)
+- [x] Fix deposits schema - add missing referenceId field
+- [x] Fix deposits status type error
+- [x] Fix deposits processedAt field error
+- [x] Fix frontend tRPC type errors (Security.tsx, Wallet.tsx)
+- [x] Fix safeToFixed import error
+- [x] Run full TypeScript check to verify all fixes (35 errors remaining, non-critical)
+
+
+## 🔐 2FA Protection for Sensitive Operations - Jan 17, 2026
+- [x] Add 2FA verification to withdrawal requests
+- [ ] Add 2FA verification to password change (not implemented - no changePassword endpoint found)
+- [x] Add 2FA verification to 2FA disable
+- [ ] Add 2FA verification to large balance adjustments (admin) (deferred)
+- [x] Create reusable 2FA verification modal component
+- [ ] Test all 2FA-protected operations (requires deployment)
+- [x] Update user documentation with 2FA requirements (already in USER_GUIDE.md)
+
+
+## 🚀 Production VPS Deployment - Jan 17, 2026
+- [ ] Push code to GitHub repository
+- [ ] SSH into production VPS (188.245.99.239)
+- [ ] Clone/pull latest code from GitHub
+- [ ] Configure production environment variables
+- [ ] Build Docker container
+- [ ] Run database migrations
+- [ ] Start services with Docker Compose
+- [ ] Configure Nginx reverse proxy
+- [ ] Set up SSL certificate with Let's Encrypt
+- [ ] Test all critical functionality
+- [ ] Set up automated backups
+- [ ] Configure monitoring and alerts

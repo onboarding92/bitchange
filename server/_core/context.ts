@@ -56,7 +56,7 @@ export async function createContext(
   const cookies = parseCookieHeader(opts.req.headers.cookie || "");
   
   return {
-    req: { ...opts.req, cookies },
+    req: { ...opts.req, cookies } as typeof opts.req & { cookies: Record<string, string> },
     res: opts.res,
     user,
   };
