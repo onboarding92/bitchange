@@ -733,7 +733,7 @@ export const appRouter = router({
         // Record conversion (using raw SQL to avoid Drizzle ORM bug with AUTO_INCREMENT)
         await db.execute(sql`
           INSERT INTO conversions (userId, fromAsset, toAsset, fromAmount, toAmount, rate, fee, feePercentage, status)
-          VALUES (${ctx.user.id}, ${input.fromAsset}, ${input.toAsset}, ${fromAmount.toString()}, ${toAmount.toString()}, ${rate.toString()}, ${fee.toString()}, ${feePercentage.toString()}, 'completed')
+          VALUES (${ctx.user.id}, ${input.fromAsset}, ${input.toAsset}, ${fromAmount.toString()}, ${toAmount.toString()}, ${rate.toString()}, ${fee.toString()}, ${feePercentage.toString()}, ${'completed'})
         `);
 
         return {

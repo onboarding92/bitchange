@@ -671,3 +671,12 @@
 - [x] Update UI to show minimum amount requirement
 - [ ] Test with various currency pairs
 - [ ] Deploy to production
+
+
+## 🐛 SQL Parameter Mismatch Fix - Jan 18, 2026
+- [x] Fix conversion SQL query - remove hardcoded 'completed' status
+- [x] Pass status as parameter instead of hardcoding in query
+- [x] Test conversion with fixed SQL
+- [x] Deploy to production VPS
+- [x] Verify conversion works end-to-end
+- [x] Create conversions table in production database
