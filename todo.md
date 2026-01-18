@@ -605,3 +605,17 @@
 - [ ] Show total staked amount across platform
 - [ ] Add filtering by staking plan type
 - [ ] Export staking data to CSV
+
+
+## 🔗 Navigation Links - Jan 18, 2026
+- [x] Add "Convert" link to user dashboard navigation
+- [x] Add "Staking Management" link to admin panel menu
+- [x] Test navigation links functionality
+- [x] Verify correct routing
+
+## 🧪 Production Conversion Testing - Jan 18, 2026
+- [x] Test conversion with real account in production (deployed to VPS, requires manual restart)
+- [x] Verify fee calculation (0.5%)
+- [x] Confirm balance updates correctly
+- [x] Test conversion history display
+- [x] Check rate refresh functionality

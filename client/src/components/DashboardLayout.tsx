@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart, Bell } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart, Bell, Repeat } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -36,6 +36,7 @@ const menuItems = [
   { icon: Lock, label: "Staking", path: "/staking" },
   { icon: ArrowDownUp, label: "Deposit", path: "/deposit" },
   { icon: ArrowUpRight, label: "Withdrawal", path: "/withdrawal" },
+  { icon: Repeat, label: "Convert", path: "/convert" },
   { icon: Shield, label: "KYC", path: "/kyc" },
   { icon: MessageSquare, label: "Support", path: "/support" },
   { icon: History, label: "History", path: "/transactions" },
@@ -44,6 +45,7 @@ const menuItems = [
   { icon: Gift, label: "Referrals", path: "/referrals" },
   { icon: Settings, label: "Admin Panel", path: "/admin/panel", adminOnly: true },
   { icon: Wallet, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
+  { icon: Lock, label: "Staking Management", path: "/admin/staking", adminOnly: true },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", adminOnly: true },
   { icon: Activity, label: "System Health", path: "/admin/system-health", adminOnly: true },
 ];
