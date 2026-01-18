@@ -1,0 +1,28 @@
+{
+  "query": "SHOW CREATE TABLE conversions;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SHOW CREATE TABLE conversions;",
+  "rows": [
+    {
+      "Table": "conversions",
+      "Create Table": "CREATE TABLE `conversions` ("
+    }
+  ],
+  "messages": [
+    "  `id` int(11) NOT NULL AUTO_INCREMENT,",
+    "  `userId` int(11) NOT NULL,",
+    "  `fromAsset` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `toAsset` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `fromAmount` decimal(20,8) NOT NULL,",
+    "  `toAmount` decimal(20,8) NOT NULL,",
+    "  `rate` decimal(20,8) NOT NULL,",
+    "  `fee` decimal(20,8) NOT NULL,",
+    "  `feePercentage` decimal(5,2) NOT NULL DEFAULT '0.5',",
+    "  `status` enum('pending','completed','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'completed',",
+    "  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+    "  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */",
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+  ],
+  "stdout": "Table\tCreate Table\nconversions\tCREATE TABLE `conversions` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `userId` int(11) NOT NULL,\n  `fromAsset` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `toAsset` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `fromAmount` decimal(20,8) NOT NULL,\n  `toAmount` decimal(20,8) NOT NULL,\n  `rate` decimal(20,8) NOT NULL,\n  `fee` decimal(20,8) NOT NULL,\n  `feePercentage` decimal(5,2) NOT NULL DEFAULT '0.5',\n  `status` enum('pending','completed','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'completed',\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

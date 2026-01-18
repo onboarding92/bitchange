@@ -640,3 +640,15 @@
 - [ ] Test conversion execution
 - [ ] Verify balance updates
 - [ ] Check conversion history
+
+
+## 🐛 Convert SQL Error Fix - Jan 18, 2026
+- [x] Fix conversions table schema - used raw SQL to avoid Drizzle ORM bug
+- [x] Test conversion with SQL fix
+- [x] Verify conversion history displays correctly
+
+## 🔘 MAX Button Feature - Jan 18, 2026
+- [x] Add MAX button next to From amount input
+- [x] Implement MAX button click handler to fill available balance
+- [x] Test MAX button with different currencies
+- [x] Deploy to production

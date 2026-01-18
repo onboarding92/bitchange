@@ -730,18 +730,11 @@ export const appRouter = router({
             eq(wallets.asset, input.toAsset)
           ));
 
-        // Record conversion
-        await db.insert(conversions).values({
-          userId: ctx.user.id,
-          fromAsset: input.fromAsset,
-          toAsset: input.toAsset,
-          fromAmount: fromAmount.toString(),
-          toAmount: toAmount.toString(),
-          rate: rate.toString(),
-          fee: fee.toString(),
-          feePercentage: feePercentage.toString(),
-          status: "completed",
-        });
+        // Record conversion (using raw SQL to avoid Drizzle ORM bug with AUTO_INCREMENT)
+        await db.execute(sql`
+          INSERT INTO conversions (userId, fromAsset, toAsset, fromAmount, toAmount, rate, fee, feePercentage, status)
+          VALUES (${ctx.user.id}, ${input.fromAsset}, ${input.toAsset}, ${fromAmount.toString()}, ${toAmount.toString()}, ${rate.toString()}, ${fee.toString()}, ${feePercentage.toString()}, 'completed')
+        `);
 
         return {
           success: true,

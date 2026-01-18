@@ -1,0 +1,34 @@
+{
+  "query": "SELECT id, email, role, twoFactorEnabled FROM users LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SELECT id, email, role, twoFactorEnabled FROM users LIMIT 5;",
+  "rows": [
+    {
+      "id": "690001",
+      "email": "admin@bitchangemoney.xyz",
+      "role": "admin",
+      "twoFactorEnabled": "0"
+    },
+    {
+      "id": "810016",
+      "email": "trader1@test.com",
+      "role": "user",
+      "twoFactorEnabled": "0"
+    },
+    {
+      "id": "960001",
+      "email": "benziluca92@gmail.com",
+      "role": "admin",
+      "twoFactorEnabled": "0"
+    },
+    {
+      "id": "1110001",
+      "email": "testadmin@test.com",
+      "role": "user",
+      "twoFactorEnabled": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\trole\ttwoFactorEnabled\n690001\tadmin@bitchangemoney.xyz\tadmin\t0\n810016\ttrader1@test.com\tuser\t0\n960001\tbenziluca92@gmail.com\tadmin\t0\n1110001\ttestadmin@test.com\tuser\t0\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

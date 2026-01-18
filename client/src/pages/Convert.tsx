@@ -114,13 +114,24 @@ export default function Convert() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={fromAmount}
-                  onChange={(e) => setFromAmount(e.target.value)}
-                  className="flex-1"
-                />
+                <div className="flex-1 flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={fromAmount}
+                    onChange={(e) => setFromAmount(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFromAmount(getWalletBalance(fromAsset).toString())}
+                    className="px-3"
+                  >
+                    MAX
+                  </Button>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
                 Available: {getWalletBalance(fromAsset).toFixed(8)} {fromAsset}

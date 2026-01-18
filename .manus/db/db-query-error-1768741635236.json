@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE conversions MODIFY COLUMN id INT AUTO_INCREMENT PRIMARY KEY;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute ALTER TABLE conversions MODIFY COLUMN id INT AUTO_INCREMENT PRIMARY KEY;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8200 (HY000) at line 1: can't change column constraint (PRIMARY KEY)"
+  ]
+}
