@@ -1,0 +1,205 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "achievements"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "alerts"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "apiKeys"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "apiLogs"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "apiRequestLogs"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "blockchainTransactions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "coldWallets"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "copyTradingExecutions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "copyTradingFollows"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "cryptoPrices"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "depositAddresses"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "deposits"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "deviceFingerprints"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "emailVerifications"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "errorLogs"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "exchangeApiLogs"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "fundingHistory"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "futuresContracts"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "hotWallets"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "insuranceFund"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "kycDocuments"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "leaderboard"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "liquidationQueue"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "liquidityPools"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "loginHistory"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "marginAccounts"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "masterWallets"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "networks"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "notificationPreferences"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "orders"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "passwordHistory"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "passwordResets"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "paymentGateways"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "positions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "priceAlerts"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "profitSharing"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "promoCodes"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "promoUsage"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "securityAuditLog"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "sessions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "socialFeed"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "stakingPlans"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "stakingPools"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "stakingPositions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "stakingRewards"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "supportTickets"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "sweepTransactions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "systemLogs"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "systemMetrics"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "ticketReplies"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "traderProfiles"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "trades"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "transactions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "userLiquidityPositions"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "userStakes"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "users"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "walletAddresses"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "walletThresholds"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "wallets"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "webAuthnCredentials"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "withdrawalDelays"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "withdrawalLimits"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "withdrawalWhitelist"
+    },
+    {
+      "Tables_in_FenoDFTe3iiSMa7Tn3huSZ": "withdrawals"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_FenoDFTe3iiSMa7Tn3huSZ\n__drizzle_migrations\nachievements\nalerts\napiKeys\napiLogs\napiRequestLogs\nblockchainTransactions\ncoldWallets\ncopyTradingExecutions\ncopyTradingFollows\ncryptoPrices\ndepositAddresses\ndeposits\ndeviceFingerprints\nemailVerifications\nerrorLogs\nexchangeApiLogs\nfundingHistory\nfuturesContracts\nhotWallets\ninsuranceFund\nkycDocuments\nleaderboard\nliquidationQueue\nliquidityPools\nloginHistory\nmarginAccounts\nmasterWallets\nnetworks\nnotificationPreferences\norders\npasswordHistory\npasswordResets\npaymentGateways\npositions\npriceAlerts\nprofitSharing\npromoCodes\npromoUsage\nsecurityAuditLog\nsessions\nsocialFeed\nstakingPlans\nstakingPools\nstakingPositions\nstakingRewards\nsupportTickets\nsweepTransactions\nsystemLogs\nsystemMetrics\nticketReplies\ntraderProfiles\ntrades\ntransactions\nuserLiquidityPositions\nuserStakes\nusers\nwalletAddresses\nwalletThresholds\nwallets\nwebAuthnCredentials\nwithdrawalDelays\nwithdrawalLimits\nwithdrawalWhitelist\nwithdrawals\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

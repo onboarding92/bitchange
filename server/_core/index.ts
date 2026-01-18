@@ -10,6 +10,8 @@ import { createContext } from "./context";
 import { serveStatic } from "./static";
 import { upload } from "../upload";
 import path from "path";
+import morgan from "morgan";
+import { logger, loggerStream } from "./logger";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,6 +40,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // Configure cookie parser
   app.use(cookieParser());
+  
+  // HTTP request logging with Morgan
+  app.use(morgan('combined', { stream: loggerStream }));
   
   // API logging middleware
   const { apiLoggingMiddleware } = await import("../middleware/apiLogger");
@@ -80,7 +85,12 @@ async function startServer() {
   }
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    logger.info(`Server running on http://localhost:${port}/`);
+    
+    // Start monitoring system
+    import("./alerting").then(({ startMonitoring }) => {
+      startMonitoring();
+    }).catch(logger.error);
     
     // Start alerting system
     import("../alerting").then(({ startAlertingSystem }) => {
