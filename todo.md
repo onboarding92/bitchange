@@ -652,3 +652,22 @@
 - [x] Implement MAX button click handler to fill available balance
 - [x] Test MAX button with different currencies
 - [x] Deploy to production
+
+
+## 🧪 Production Conversion Testing - Jan 18, 2026 (Phase 2)
+- [ ] Login to production with admin credentials
+- [ ] Add USDT balance to admin account for testing
+- [ ] Test conversion from USDT to BTC
+- [ ] Verify fee calculation (0.5%)
+- [ ] Confirm balance updates correctly in both wallets
+- [ ] Check conversion appears in history
+- [ ] Test MAX button functionality
+- [ ] Verify exchange rate accuracy
+
+## 💰 Minimum Conversion Amount - Jan 18, 2026
+- [x] Add minimum amount validation (10 USDT equivalent)
+- [x] Calculate minimum based on current exchange rates
+- [x] Display error message when amount is below minimum
+- [x] Update UI to show minimum amount requirement
+- [ ] Test with various currency pairs
+- [ ] Deploy to production

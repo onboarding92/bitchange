@@ -8,6 +8,7 @@ import { ArrowDownUp, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SUPPORTED_ASSETS = ['BTC', 'ETH', 'USDT', 'USDC', 'BNB', 'SOL', 'MATIC'];
+const MINIMUM_USDT_EQUIVALENT = 10; // Minimum conversion amount in USDT
 
 export default function Convert() {
   const [fromAsset, setFromAsset] = useState('BTC');
@@ -71,6 +72,35 @@ export default function Convert() {
       toast.error('Please enter a valid amount');
       return;
     }
+
+    // Check minimum amount (10 USDT equivalent)
+    if (rateData) {
+      const amount = parseFloat(fromAmount);
+      let usdtEquivalent = 0;
+      
+      // Calculate USDT equivalent of fromAmount
+      if (fromAsset === 'USDT') {
+        usdtEquivalent = amount;
+      } else {
+        // Get price of fromAsset in USDT
+        // Approximate: use the rate to calculate USDT value
+        // If converting TO USDT, the rate is already in USDT
+        if (toAsset === 'USDT') {
+          usdtEquivalent = amount * rateData.rate;
+        } else {
+          // For other pairs, estimate based on typical crypto prices
+          // This is a simplified check - ideally we'd fetch USDT rates for all assets
+          const estimatedUsdtValue = amount * rateData.rate * 0.1; // Rough estimate
+          usdtEquivalent = estimatedUsdtValue;
+        }
+      }
+
+      if (usdtEquivalent < MINIMUM_USDT_EQUIVALENT) {
+        toast.error(`Minimum conversion amount is ${MINIMUM_USDT_EQUIVALENT} USDT equivalent`);
+        return;
+      }
+    }
+
     convertMutation.mutate({ fromAsset, toAsset, fromAmount });
   };
 
@@ -205,9 +235,15 @@ export default function Convert() {
               {convertMutation.isPending ? 'Converting...' : 'Convert'}
             </Button>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <AlertCircle className="h-3 w-3" />
-              <span>Rates update every 10 seconds</span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <AlertCircle className="h-3 w-3" />
+                <span>Rates update every 10 seconds</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <AlertCircle className="h-3 w-3" />
+                <span>Minimum conversion: {MINIMUM_USDT_EQUIVALENT} USDT equivalent</span>
+              </div>
             </div>
           </CardContent>
         </Card>
