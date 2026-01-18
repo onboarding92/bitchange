@@ -688,3 +688,10 @@
 - [ ] Remove "Home" link from sidebar (not needed when logged in) - will be done in next iteration
 - [x] Verify all links work correctly
 - [x] Deploy to production
+
+
+## 🐛 Sidebar Consistency Fix - Jan 18, 2026
+- [x] Verify DashboardLayout.tsx on VPS has all admin links
+- [x] Ensure sidebar shows consistently across all pages
+- [x] Test navigation on multiple pages (Dashboard, Support, Convert, etc.)
+- [x] Deploy correct version to production
