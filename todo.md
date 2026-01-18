@@ -695,3 +695,11 @@
 - [x] Ensure sidebar shows consistently across all pages
 - [x] Test navigation on multiple pages (Dashboard, Support, Convert, etc.)
 - [x] Deploy correct version to production
+
+
+## 🔍 Sidebar Admin Links Investigation - Jan 18, 2026
+- [ ] Check DashboardLayout.tsx rendering logic for admin links
+- [ ] Verify why only Support Tickets and Admin Panel show in ADMIN section
+- [ ] Fix missing links: Users, Deposit Management, Staking Management, KYC Review, Transaction Logs, Analytics, System Health
+- [ ] Deploy fix to production
+- [ ] Test on all pages (Dashboard, Convert, Support, Trading, etc.)
