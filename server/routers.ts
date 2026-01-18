@@ -1225,6 +1225,30 @@ export const appRouter = router({
           isStaff: false,
         });
 
+        // Send email notification to admin
+        try {
+          const { sendEmail } = await import("./email");
+          const adminEmail = process.env.OWNER_EMAIL || "admin@bitchangemoney.xyz";
+          await sendEmail({
+            to: adminEmail,
+            subject: `New Support Ticket #${ticket.insertId}: ${input.subject}`,
+            text: `New Support Ticket #${ticket.insertId} from ${ctx.user.email}: ${input.subject}`,
+            html: `
+              <h2>New Support Ticket</h2>
+              <p><strong>Ticket ID:</strong> #${ticket.insertId}</p>
+              <p><strong>User:</strong> ${ctx.user.email}</p>
+              <p><strong>Subject:</strong> ${input.subject}</p>
+              <p><strong>Category:</strong> ${input.category}</p>
+              <p><strong>Priority:</strong> ${input.priority}</p>
+              <p><strong>Message:</strong></p>
+              <p>${input.message}</p>
+              <p><a href="https://bitchangemoney.xyz/admin/support-tickets">View Ticket</a></p>
+            `,
+          });
+        } catch (error) {
+          console.error("Failed to send admin notification email:", error);
+        }
+
         return { ok: true };
       }),
 
@@ -1301,6 +1325,18 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
+        // Get ticket details
+        const [ticket] = await db.select().from(supportTickets)
+          .where(eq(supportTickets.id, input.ticketId))
+          .limit(1);
+
+        if (!ticket) throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found" });
+
+        // Get user details
+        const [user] = await db.select().from(users)
+          .where(eq(users.id, ticket.userId))
+          .limit(1);
+
         await db.insert(ticketMessages).values({
           ticketId: input.ticketId,
           userId: ctx.user.id,
@@ -1312,6 +1348,28 @@ export const appRouter = router({
         await db.update(supportTickets)
           .set({ updatedAt: new Date() })
           .where(eq(supportTickets.id, input.ticketId));
+
+        // Send email notification to user
+        if (user) {
+          try {
+            const { sendEmail } = await import("./email");
+            await sendEmail({
+              to: user.email,
+              subject: `Support Ticket #${input.ticketId} Update: ${ticket.subject}`,
+              text: `Support Ticket #${input.ticketId} has been updated by admin.`,
+              html: `
+                <h2>Support Ticket Update</h2>
+                <p><strong>Ticket ID:</strong> #${input.ticketId}</p>
+                <p><strong>Subject:</strong> ${ticket.subject}</p>
+                <p><strong>Admin Reply:</strong></p>
+                <p>${input.message}</p>
+                <p><a href="https://bitchangemoney.xyz/support">View Ticket</a></p>
+              `,
+            });
+          } catch (error) {
+            console.error("Failed to send user notification email:", error);
+          }
+        }
 
         return { ok: true };
       }),

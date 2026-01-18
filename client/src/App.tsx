@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import MobileNav from "./components/MobileNav";
 
 // Eager load critical pages (auth, home, 404)
 import Home from "./pages/Home";
@@ -110,6 +111,7 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
+          <MobileNav />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
