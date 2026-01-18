@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { ArrowDownUp, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { ArrowDownUp, TrendingUp, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import MobileNav from '../components/MobileNav';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 const SUPPORTED_ASSETS = ['BTC', 'ETH', 'USDT', 'USDC', 'BNB', 'SOL', 'MATIC'];
 const MINIMUM_USDT_EQUIVALENT = 10; // Minimum conversion amount in USDT
@@ -15,39 +17,48 @@ export default function Convert() {
   const [toAsset, setToAsset] = useState('USDT');
   const [fromAmount, setFromAmount] = useState('');
   const [toAmount, setToAmount] = useState('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: wallets } = trpc.wallet.list.useQuery();
   const { data: rateData, refetch: refetchRate } = trpc.conversion.getRate.useQuery(
     { fromAsset, toAsset },
     { enabled: fromAsset !== toAsset }
   );
+  const utils = trpc.useUtils();
   const { data: conversions } = trpc.conversion.myConversions.useQuery();
   const convertMutation = trpc.conversion.convert.useMutation({
     onSuccess: (data) => {
       toast.success(`Converted ${data.fromAmount} ${fromAsset} to ${data.toAmount} ${toAsset}`);
       setFromAmount('');
       setToAmount('');
+      // Invalidate queries to refresh data
+      utils.conversion.myConversions.invalidate();
+      utils.wallet.list.invalidate();
     },
     onError: (error) => {
       toast.error(error.message);
     },
   });
 
-  // Calculate toAmount when fromAmount or rate changes
+  // Calculate toAmount when fromAmount or rate changes (with debounce)
   useEffect(() => {
-    if (fromAmount && rateData) {
-      const amount = parseFloat(fromAmount);
-      if (!isNaN(amount) && amount > 0) {
-        const fee = amount * (rateData.feePercentage / 100);
-        const amountAfterFee = amount - fee;
-        const result = amountAfterFee * rateData.rate;
-        setToAmount(result.toFixed(8));
+    const timeoutId = setTimeout(() => {
+      if (fromAmount && rateData) {
+        const amount = parseFloat(fromAmount);
+        if (!isNaN(amount) && amount > 0) {
+          const fee = amount * (rateData.feePercentage / 100);
+          const amountAfterFee = amount - fee;
+          const result = amountAfterFee * rateData.rate;
+          setToAmount(result.toFixed(8));
+        } else {
+          setToAmount('');
+        }
       } else {
         setToAmount('');
       }
-    } else {
-      setToAmount('');
-    }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [fromAmount, rateData]);
 
   // Refresh rate every 10 seconds
@@ -101,6 +112,12 @@ export default function Convert() {
       }
     }
 
+    // Show confirmation dialog instead of immediate conversion
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmConvert = () => {
+    setShowConfirmDialog(false);
     convertMutation.mutate({ fromAsset, toAsset, fromAmount });
   };
 
@@ -114,7 +131,9 @@ export default function Convert() {
     : '0';
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <>
+      <MobileNav />
+      <div className="container mx-auto py-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Convert Crypto</h1>
         <p className="text-muted-foreground">Instantly convert between cryptocurrencies</p>
@@ -296,5 +315,59 @@ export default function Convert() {
         </Card>
       </div>
     </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-primary" />
+              Confirm Conversion
+            </DialogTitle>
+            <DialogDescription>
+              Please review the conversion details before confirming
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3 bg-accent/50 rounded-lg">
+                <span className="text-sm text-muted-foreground">From</span>
+                <span className="font-semibold">{fromAmount} {fromAsset}</span>
+              </div>
+              
+              <div className="flex justify-between items-center p-3 bg-accent/50 rounded-lg">
+                <span className="text-sm text-muted-foreground">To</span>
+                <span className="font-semibold">{toAmount} {toAsset}</span>
+              </div>
+              
+              <div className="flex justify-between items-center p-3 bg-accent/50 rounded-lg">
+                <span className="text-sm text-muted-foreground">Exchange Rate</span>
+                <span className="font-medium">1 {fromAsset} = {rateData?.rate.toFixed(8)} {toAsset}</span>
+              </div>
+              
+              <div className="flex justify-between items-center p-3 bg-accent/50 rounded-lg">
+                <span className="text-sm text-muted-foreground">Fee ({rateData?.feePercentage}%)</span>
+                <span className="font-medium">{fee} {fromAsset}</span>
+              </div>
+              
+              <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                <span className="text-sm font-semibold">You will receive</span>
+                <span className="font-bold text-primary">{toAmount} {toAsset}</span>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmConvert} disabled={convertMutation.isPending}>
+              {convertMutation.isPending ? 'Converting...' : 'Confirm Conversion'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

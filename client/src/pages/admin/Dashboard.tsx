@@ -24,6 +24,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import TicketStatsWidget from "../../components/TicketStatsWidget";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -165,6 +166,9 @@ export default function AdminDashboard() {
             </div>
           </Card>
         )}
+
+        {/* Support Tickets Widget */}
+        <TicketStatsWidget />
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart, Bell, Repeat, FileText, UserCheck, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart, Bell, Repeat } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -44,14 +44,10 @@ const menuItems = [
   { icon: Bell, label: "Price Alerts", path: "/alerts" },
   { icon: Gift, label: "Referrals", path: "/referrals" },
   { icon: Settings, label: "Admin Panel", path: "/admin/panel", adminOnly: true },
-  { icon: Users, label: "Users", path: "/admin/users", adminOnly: true },
   { icon: Wallet, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
   { icon: Lock, label: "Staking Management", path: "/admin/staking", adminOnly: true },
-  { icon: UserCheck, label: "KYC Review", path: "/admin/kyc-review", adminOnly: true },
-  { icon: FileText, label: "Transaction Logs", path: "/admin/transaction-logs", adminOnly: true },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", adminOnly: true },
   { icon: Activity, label: "System Health", path: "/admin/system-health", adminOnly: true },
-  { icon: LifeBuoy, label: "Support Tickets", path: "/admin/support-tickets", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
