@@ -734,3 +734,23 @@
 - [x] Add widget to admin dashboard
 - [x] Test widget functionality
 - [x] Deploy to production
+
+
+## 🚨 NAVIGATION MENU ISSUES - January 18, 2026 (14:40 GMT+1)
+
+### Critical UI Problems
+- [x] Remove hamburger menu from login/signup pages (shouldn't show navigation when not authenticated)
+- [x] Verify all admin links are visible in sidebar consistently across all pages (Users, Deposit Management, Staking Management, KYC Review, Transaction Logs, Analytics, System Health, Support Tickets)
+- [ ] Fix browser cache issues preventing updates from showing on mobile devices
+- [ ] Test navigation on mobile Safari (user's primary browser)
+
+### Deployment Issues
+- [ ] VPS SSH connection blocked (too many connection attempts)
+- [ ] Wait for SSH unblock or user manual deployment
+- [ ] Implement cache-busting strategy for JavaScript files
+- [ ] Add version query parameters to force browser refresh
+
+### User Experience Issues
+- [ ] Sidebar navigation confusing - too many rollbacks causing inconsistency
+- [ ] User frustrated with repeated deployment failures
+- [ ] Need stable version that works consistently

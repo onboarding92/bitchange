@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Menu, X, Home, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,6 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const [location] = useLocation();
+
+  // Hide navigation on auth pages (login, register, forgot password, etc.)
+  const isAuthPage = location.startsWith('/auth/');
+  if (isAuthPage) {
+    return null;
+  }
 
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
