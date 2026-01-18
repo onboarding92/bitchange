@@ -1262,6 +1262,79 @@ export const appRouter = router({
 
         return { ok: true };
       }),
+
+    // Admin procedures
+    getAllTickets: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(supportTickets)
+        .orderBy(desc(supportTickets.createdAt));
+    }),
+
+    getTicketDetails: adminProcedure
+      .input(z.object({ ticketId: z.number() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const [ticket] = await db.select().from(supportTickets)
+          .where(eq(supportTickets.id, input.ticketId))
+          .limit(1);
+
+        if (!ticket) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        const messages = await db.select().from(ticketMessages)
+          .where(eq(ticketMessages.ticketId, input.ticketId))
+          .orderBy(ticketMessages.createdAt);
+
+        return { ...ticket, messages };
+      }),
+
+    replyToTicket: adminProcedure
+      .input(z.object({
+        ticketId: z.number(),
+        message: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db.insert(ticketMessages).values({
+          ticketId: input.ticketId,
+          userId: ctx.user.id,
+          message: input.message,
+          isStaff: true,
+        });
+
+        // Update ticket updatedAt
+        await db.update(supportTickets)
+          .set({ updatedAt: new Date() })
+          .where(eq(supportTickets.id, input.ticketId));
+
+        return { ok: true };
+      }),
+
+    updateTicketStatus: adminProcedure
+      .input(z.object({
+        ticketId: z.number(),
+        status: z.enum(["open", "in_progress", "waiting_user", "resolved", "closed"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db.update(supportTickets)
+          .set({ 
+            status: input.status,
+            updatedAt: new Date(),
+            closedAt: input.status === "closed" ? new Date() : null,
+          })
+          .where(eq(supportTickets.id, input.ticketId));
+
+        return { ok: true };
+      }),
   }),
 
   admin: router({

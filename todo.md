@@ -690,3 +690,19 @@
 - [x] Optimize amount calculation with debounce (reduce lag)
 - [x] Test all improvements end-to-end
 - [x] Deploy to production
+
+
+## 🐛 Hamburger Menu Fix - Jan 18, 2026
+- [x] Debug why MobileNav is not visible in production
+- [x] Verify component is properly imported and rendered
+- [x] Simplified MobileNav implementation without Sheet dependency
+- [x] Deploy fix to production
+
+## 🎫 Admin Support Ticket Management - Jan 18, 2026
+- [x] Create admin page for viewing support tickets
+- [x] Display ticket list with status, user, subject, date
+- [x] Add ticket details view with full message history
+- [x] Implement reply functionality for admin
+- [x] Add ticket status update (open, in progress, closed)
+- [x] Added admin procedures to support router
+- [x] Deploy to production
