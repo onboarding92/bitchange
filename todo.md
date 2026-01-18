@@ -570,28 +570,38 @@
 - [ ] Document PM2 commands in SYSADMIN_GUIDE.md
 
 
-## 🧪 Production 2FA Testing - Jan 17, 2026
-- [ ] Create test user account with 2FA enabled
-- [ ] Test withdrawal flow with 2FA verification
-- [ ] Test disable 2FA flow with password + code
-- [ ] Verify error handling for invalid 2FA codes
-- [ ] Test 2FA timeout scenarios
-- [ ] Document test results
+## 🔄 Crypto Conversion Feature - Jan 17, 2026
+- [x] Create conversion page UI with currency selectors
+- [x] Add real-time conversion rate calculation
+- [x] Create backend endpoint for conversion execution
+- [x] Implement conversion fee calculation
+- [x] Add conversion history tracking
+- [x] Test conversion with multiple currency pairs
+- [x] Add conversion limits and validation
 
-## 🐛 Complete TypeScript Error Resolution - Jan 17, 2026
-- [ ] Fix Security.tsx error parameter type (line 72)
-- [ ] Fix Wallet.tsx safeToFixed undefined handling (line 160)
-- [ ] Fix DepositManagement.tsx status type (line 104)
-- [ ] Fix all remaining implicit 'any' types
-- [ ] Run full TypeScript check to verify zero errors
-- [ ] Update tsconfig.json if needed for stricter checks
+## 🎫 Ticketing System Verification - Jan 17, 2026
+- [ ] Check if ticketing routes exist in backend
+- [ ] Verify ticket creation functionality
+- [ ] Test ticket listing and filtering
+- [ ] Check admin ticket management interface
+- [ ] Verify ticket status updates
+- [ ] Test ticket messaging/replies
+- [ ] Fix any issues found
 
-## 📊 Monitoring Implementation - Jan 17, 2026
-- [x] Install and configure log aggregation tool (Winston/Pino)
-- [x] Create centralized logging middleware
-- [x] Implement error tracking and reporting
-- [x] Set up performance monitoring (response times, memory)
-- [x] Configure alerting system (email/webhook for critical errors)
-- [ ] Create monitoring dashboard or integration (deferred)
-- [x] Document monitoring setup in SYSADMIN_GUIDE.md
-- [ ] Test alerting with simulated errors (requires production deployment)
+## 💰 Deposit Management Testing - Jan 17, 2026
+- [ ] Test deposit creation flow
+- [ ] Verify deposit status updates (pending/completed/failed)
+- [ ] Check admin deposit approval workflow
+- [ ] Test deposit filtering and search
+- [ ] Verify deposit notifications
+- [ ] Check deposit history accuracy
+- [ ] Fix any issues found
+
+## 📊 Admin Staking Dashboard - Jan 17, 2026
+- [ ] Create staking users list view in admin panel
+- [ ] Show active staking positions per user
+- [ ] Display staking amounts and APR
+- [ ] Add staking duration and end date
+- [ ] Show total staked amount across platform
+- [ ] Add filtering by staking plan type
+- [ ] Export staking data to CSV

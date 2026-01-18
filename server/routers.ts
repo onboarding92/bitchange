@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices, conversions } from "../drizzle/schema";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -645,6 +645,111 @@ export const appRouter = router({
           .where(eq(stakingPositions.id, input.positionId));
 
         return { ok: true, reward: reward.toFixed(8) };
+      }),
+  }),
+
+  conversion: router({
+    // Get conversion rate between two assets
+    getRate: protectedProcedure
+      .input(z.object({
+        fromAsset: z.string(),
+        toAsset: z.string(),
+      }))
+      .query(async ({ input }) => {
+        const rate = await getPairPrice(`${input.fromAsset}/${input.toAsset}`);
+        if (!rate) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Exchange rate not available" });
+        }
+        const feePercentage = 0.5; // 0.5% conversion fee
+        return { rate, feePercentage };
+      }),
+
+    // Get conversion history
+    myConversions: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(conversions)
+        .where(eq(conversions.userId, ctx.user.id))
+        .orderBy(desc(conversions.createdAt))
+        .limit(100);
+    }),
+
+    // Execute conversion
+    convert: protectedProcedure
+      .input(z.object({
+        fromAsset: z.string(),
+        toAsset: z.string(),
+        fromAmount: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const fromAmount = parseFloat(input.fromAmount);
+        if (fromAmount <= 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid amount" });
+        }
+
+        // Get current exchange rate
+        const rate = await getPairPrice(`${input.fromAsset}/${input.toAsset}`);
+        if (!rate) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Exchange rate not available" });
+        }
+
+        // Calculate fee (0.5%)
+        const feePercentage = 0.5;
+        const fee = fromAmount * (feePercentage / 100);
+        const amountAfterFee = fromAmount - fee;
+        const toAmount = amountAfterFee * rate;
+
+        // Check if user has enough balance
+        const [fromWallet] = await db.select().from(wallets)
+          .where(and(
+            eq(wallets.userId, ctx.user.id),
+            eq(wallets.asset, input.fromAsset)
+          ))
+          .limit(1);
+
+        if (!fromWallet || parseFloat(fromWallet.balance) < fromAmount) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance" });
+        }
+
+        // Deduct from source wallet
+        await db.update(wallets)
+          .set({ balance: sql`${wallets.balance} - ${fromAmount.toString()}` })
+          .where(and(
+            eq(wallets.userId, ctx.user.id),
+            eq(wallets.asset, input.fromAsset)
+          ));
+
+        // Add to destination wallet
+        await db.update(wallets)
+          .set({ balance: sql`${wallets.balance} + ${toAmount.toString()}` })
+          .where(and(
+            eq(wallets.userId, ctx.user.id),
+            eq(wallets.asset, input.toAsset)
+          ));
+
+        // Record conversion
+        await db.insert(conversions).values({
+          userId: ctx.user.id,
+          fromAsset: input.fromAsset,
+          toAsset: input.toAsset,
+          fromAmount: fromAmount.toString(),
+          toAmount: toAmount.toString(),
+          rate: rate.toString(),
+          fee: fee.toString(),
+          feePercentage: feePercentage.toString(),
+          status: "completed",
+        });
+
+        return {
+          success: true,
+          fromAmount: fromAmount.toFixed(8),
+          toAmount: toAmount.toFixed(8),
+          rate: rate.toFixed(8),
+          fee: fee.toFixed(8),
+        };
       }),
   }),
 

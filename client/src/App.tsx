@@ -40,7 +40,9 @@ const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const DepositManagement = lazy(() => import("./pages/admin/DepositManagement"));
+const StakingManagement = lazy(() => import("./pages/admin/StakingManagement"));
 const Alerts = lazy(() => import("./pages/Alerts"));
+const Convert = lazy(() => import("./pages/Convert"));
 
 // Loading fallback component
 function PageLoader() {
@@ -77,6 +79,7 @@ function Router() {
         <Route path="/profile" component={Profile} />
         <Route path="/portfolio" component={Portfolio} />
         <Route path="/alerts" component={Alerts} />
+        <Route path="/convert" component={Convert} />
         <Route path="/settings" component={AccountSettings} />
         <Route path="/transactions" component={TransactionHistory} />
         <Route path="/referrals" component={ReferralDashboard} />
@@ -90,6 +93,7 @@ function Router() {
         <Route path="/admin/users" component={UsersManagement} />
         <Route path="/admin/kyc-review" component={KYCReview} />
         <Route path="/admin/deposits" component={DepositManagement} />
+        <Route path="/admin/staking" component={StakingManagement} />
         <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

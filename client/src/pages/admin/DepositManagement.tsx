@@ -99,7 +99,7 @@ export default function DepositManagement() {
     }
   };
 
-  const handleUpdateStatus = async (depositId: number, status: string) => {
+  const handleUpdateStatus = async (depositId: number, status: "pending" | "completed" | "failed") => {
     try {
       await updateStatusMutation.mutateAsync({ depositId, status });
       toast.success("Status Updated", {

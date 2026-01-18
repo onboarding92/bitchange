@@ -595,3 +595,20 @@ export const priceAlerts = mysqlTable("priceAlerts", {
 
 export type PriceAlert = typeof priceAlerts.$inferSelect;
 export type InsertPriceAlert = typeof priceAlerts.$inferInsert;
+
+export const conversions = mysqlTable("conversions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  fromAsset: varchar("fromAsset", { length: 20 }).notNull(),
+  toAsset: varchar("toAsset", { length: 20 }).notNull(),
+  fromAmount: decimal("fromAmount", { precision: 20, scale: 8 }).notNull(),
+  toAmount: decimal("toAmount", { precision: 20, scale: 8 }).notNull(),
+  rate: decimal("rate", { precision: 20, scale: 8 }).notNull(), // Exchange rate at time of conversion
+  fee: decimal("fee", { precision: 20, scale: 8 }).notNull(), // Fee charged (in fromAsset)
+  feePercentage: decimal("feePercentage", { precision: 5, scale: 2 }).default("0.5").notNull(), // Fee percentage (default 0.5%)
+  status: mysqlEnum("status", ["pending", "completed", "failed"]).default("completed").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Conversion = typeof conversions.$inferSelect;
+export type InsertConversion = typeof conversions.$inferInsert;

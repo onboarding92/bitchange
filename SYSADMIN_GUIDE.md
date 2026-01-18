@@ -764,58 +764,7 @@ sudo systemctl restart mysqld
 
 ## Monitoring & Logging
 
-### Winston Logging System
-
-BitChange Pro uses **Winston** for centralized logging with daily log rotation.
-
-**Log Files Location:**
-```bash
-# Application logs directory
-/root/bitchange-pro/logs/
-
-# Log files
-application-2026-01-17.log  # All logs (info, warn, error)
-error-2026-01-17.log         # Error logs only
-```
-
-**View Logs:**
-```bash
-# View real-time logs
-tail -f /root/bitchange-pro/logs/application-$(date +%Y-%m-%d).log
-
-# View error logs only
-tail -f /root/bitchange-pro/logs/error-$(date +%Y-%m-%d).log
-
-# Search for specific errors
-grep "ERROR" /root/bitchange-pro/logs/application-*.log
-
-# View last 100 lines
-tail -100 /root/bitchange-pro/logs/application-$(date +%Y-%m-%d).log
-```
-
-### Alerting System
-
-**Email Alerts Configuration:**
-
-The system sends automatic email alerts for:
-- Critical errors (10+ occurrences in 5 minutes)
-- High memory usage (>90% heap)
-- Performance degradation
-
-**Enable Alerts:**
-```bash
-# Add to .env file
-ALERTS_ENABLED=true
-ADMIN_EMAIL=your-email@example.com
-```
-
-**Test Alerting:**
-```bash
-# Trigger test alert (development)
-node -e "require('./server/_core/alerting').sendErrorAlert(new Error('Test alert'))"
-```
-
-### Application Logs (Docker)
+### Application Logs
 
 ```bash
 # View real-time application logs
