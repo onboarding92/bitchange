@@ -680,3 +680,13 @@
 - [x] Deploy to production VPS
 - [x] Verify conversion works end-to-end
 - [x] Create conversions table in production database
+
+
+## 🎯 Convert UX Improvements - Jan 18, 2026
+- [x] Add hamburger navigation menu in top left corner
+- [x] Implement confirmation dialog before conversion
+- [x] Show conversion summary in dialog (amount, fee, rate, final amount)
+- [x] Fix conversion history display (Recent Conversions section)
+- [x] Optimize amount calculation with debounce (reduce lag)
+- [x] Test all improvements end-to-end
+- [x] Deploy to production
