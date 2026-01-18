@@ -619,3 +619,24 @@
 - [x] Confirm balance updates correctly
 - [x] Test conversion history display
 - [x] Check rate refresh functionality
+
+
+## 🔄 VPS Server Restart - Jan 18, 2026
+- [ ] Restart Node.js process on VPS
+- [ ] Verify server is running
+- [ ] Check application accessibility
+
+## ⚙️ PM2 Configuration - Jan 18, 2026
+- [ ] Install PM2 globally on VPS
+- [ ] Configure PM2 ecosystem file
+- [ ] Start application with PM2
+- [ ] Enable PM2 startup script
+- [ ] Test PM2 auto-restart functionality
+
+## 🧪 Conversion Feature Testing - Jan 18, 2026
+- [ ] Access Convert page in production
+- [ ] Test currency pair selection
+- [ ] Verify real-time rate calculation
+- [ ] Test conversion execution
+- [ ] Verify balance updates
+- [ ] Check conversion history
