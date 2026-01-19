@@ -853,3 +853,17 @@
 - [x] Deploy fix to production VPS
 
 **FIXED**: Changed MobileNav link from `/price-alerts` to `/alerts` to match App.tsx route configuration
+
+
+## 💰 Staking Improvements - Jan 19, 2026 14:15
+- [x] Add "My Staking Positions" section to show user's active stakes (already exists)
+- [x] Display stake details: amount, APR, lock period, start date, end date, accumulated rewards
+- [x] Add backend function to get user's staking positions (already exists)
+- [x] Add statistics to each staking plan (participants count, total staked amount)
+- [x] Fix estimated rewards calculation (now shows daily rate for flexible plans)
+- [x] Calculate rewards correctly: flexible plans show per-day rate, locked plans show total
+- [x] Update Staking.tsx UI to show positions and statistics
+- [x] Test staking flow: create stake, view position, check rewards calculation
+- [ ] Deploy to production VPS (SSH connection issues, need to retry)
+
+**STATUS**: Code is ready and tested locally. VPS deployment pending due to SSH connection errors.

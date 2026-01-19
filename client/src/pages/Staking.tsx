@@ -99,6 +99,14 @@ export default function Staking() {
                       <span className="text-muted-foreground">Min Amount:</span>
                       <span className="font-medium">{parseFloat(plan.minAmount).toFixed(2)} {plan.asset}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Participants:</span>
+                      <span className="font-medium">{plan.participantsCount || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Staked:</span>
+                      <span className="font-medium">{plan.totalStaked ? parseFloat(plan.totalStaked).toFixed(4) : '0.0000'} {plan.asset}</span>
+                    </div>
                   </div>
 
                   <Dialog open={dialogOpen && selectedPlan?.id === plan.id} onOpenChange={(open) => {
@@ -128,7 +136,11 @@ export default function Staking() {
                           <div>APR: {parseFloat(plan.apr).toFixed(2)}%</div>
                           <div>Lock Period: {plan.lockDays} days</div>
                           <div>
-                            Estimated Reward: {stakeAmount ? ((parseFloat(stakeAmount) * parseFloat(plan.apr) * plan.lockDays) / (365 * 100)).toFixed(4) : "0"} {plan.asset}
+                            Estimated Reward: {stakeAmount ? (
+                              plan.lockDays === 0 
+                                ? `${((parseFloat(stakeAmount) * parseFloat(plan.apr)) / (365 * 100)).toFixed(4)} ${plan.asset}/day`
+                                : `${((parseFloat(stakeAmount) * parseFloat(plan.apr) * plan.lockDays) / (365 * 100)).toFixed(4)} ${plan.asset}`
+                            ) : "0"}
                           </div>
                         </div>
                         <Button

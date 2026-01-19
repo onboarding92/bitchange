@@ -535,7 +535,37 @@ export const appRouter = router({
     plans: publicProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];
-      return await db.select().from(stakingPlans).where(eq(stakingPlans.enabled, true));
+      
+      const plans = await db.select().from(stakingPlans).where(eq(stakingPlans.enabled, true));
+      
+      // Add statistics for each plan
+      const plansWithStats = await Promise.all(plans.map(async (plan) => {
+        // Count unique participants
+        const participants = await db.select({ userId: stakingPositions.userId })
+          .from(stakingPositions)
+          .where(eq(stakingPositions.planId, plan.id))
+          .groupBy(stakingPositions.userId);
+        
+        // Calculate total staked amount (only active positions)
+        const activePositions = await db.select()
+          .from(stakingPositions)
+          .where(
+            and(
+              eq(stakingPositions.planId, plan.id),
+              eq(stakingPositions.status, 'active')
+            )
+          );
+        
+        const totalStaked = activePositions.reduce((sum, pos) => sum + parseFloat(pos.amount), 0);
+        
+        return {
+          ...plan,
+          participantsCount: participants.length,
+          totalStaked: totalStaked.toFixed(8)
+        };
+      }));
+      
+      return plansWithStats;
     }),
 
     myPositions: protectedProcedure.query(async ({ ctx }) => {
