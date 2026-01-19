@@ -864,6 +864,17 @@
 - [x] Calculate rewards correctly: flexible plans show per-day rate, locked plans show total
 - [x] Update Staking.tsx UI to show positions and statistics
 - [x] Test staking flow: create stake, view position, check rewards calculation
-- [ ] Deploy to production VPS (SSH connection issues, need to retry)
+- [x] Deploy to production VPS
 
-**STATUS**: Code is ready and tested locally. VPS deployment pending due to SSH connection errors.
+**COMPLETED**: All features deployed and tested in production. Statistics showing correctly (Participants: 0, Total Staked: 0.0000). Estimated rewards calculation working: 100 BTC × 8.50% APR = 0.0233 BTC/day for flexible plans.
+
+
+## 🚨 URGENT: Production Site Down - Jan 19, 2026 14:22
+- [x] Investigate why site is not accessible (ERR_CONNECTION_CLOSED)
+- [x] Check Docker containers status on VPS
+- [x] Restart Docker containers if needed
+- [x] Verify all services are running (nginx, app, database)
+- [x] Test site accessibility after fix
+- [x] Rollback to previous checkpoint if needed
+
+**RESOLVED**: All Docker containers were stopped. Restarted with `docker compose up -d --build`. Site is now accessible at https://bitchangemoney.xyz/
