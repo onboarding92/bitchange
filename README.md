@@ -30,19 +30,23 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **Analytics Dashboard**: Advanced metrics with time range filters (7d, 30d, 90d, 1y)
 - **User Management Panel**: Search/filter users, edit roles, suspend accounts, manual balance adjustment
 - **Hot Wallet Management**: Create and manage master wallets, view balances, monitor address pools
-- **Transaction Logs**: Complete logs of all transactions with filters and CSV export
+- **Transaction Logs**: Complete logs of all transactions with filters, CSV export, and empty state handling
 - **Withdrawal Management**: Approve/reject withdrawal requests with admin notes
 - **KYC Verification**: Review and approve/reject KYC submissions with document preview
 - **Support Management**: View and respond to user tickets with priority handling
+- **Notification Badges**: Real-time counters on Support Tickets and KYC Review menu items (auto-refresh every 30s)
+- **Mobile Navigation**: Responsive hamburger menu with complete admin link access
 
 ### 🎨 Design & Performance
 - **Modern Dark Theme**: Elegant design with improved contrast and readability
 - **Responsive**: Mobile-first design that works seamlessly on all devices
+- **Mobile Navigation**: Hamburger menu hidden on auth pages, full admin access on dashboard
 - **Smooth Animations**: Professional transitions and micro-interactions
 - **Live Price Ticker**: Real-time crypto prices on homepage
 - **Interactive Charts**: Data visualization with Recharts library
 - **TradingView Integration**: Professional trading charts with real-time data
 - **Depth Charts**: Visual representation of order book liquidity
+- **Notification Badges**: Visual feedback for pending admin tasks
 - **⚡ Performance Optimized**: 95% bundle size reduction with code-splitting and lazy loading (1.3MB → 36KB initial load)
 
 ## 🛠️ Tech Stack
