@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE withdrawals \nMODIFY COLUMN status ENUM('pending', 'pending_approval', 'approved', 'rejected', 'completed', 'processing', 'failed') NOT NULL DEFAULT 'pending';\n\nALTER TABLE withdrawals \nADD COLUMN approvedBy INT NULL,\nADD COLUMN approvedAt TIMESTAMP NULL,\nADD COLUMN rejectionReason TEXT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute ALTER TABLE withdrawals \nMODIFY COLUMN status ENUM('pending', 'pending_approval', 'approved', 'rejected', 'completed', 'processing', 'failed') NOT NULL DEFAULT 'pending';\n\nALTER TABLE withdrawals \nADD COLUMN approvedBy INT NULL,\nADD COLUMN approvedAt TIMESTAMP NULL,\nADD COLUMN rejectionReason TEXT NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1457
+}

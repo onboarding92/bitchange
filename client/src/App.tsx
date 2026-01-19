@@ -43,6 +43,7 @@ const Portfolio = lazy(() => import("./pages/Portfolio"));
 const DepositManagement = lazy(() => import("./pages/admin/DepositManagement"));
 const StakingManagement = lazy(() => import("./pages/admin/StakingManagement"));
 const SupportTickets = lazy(() => import("./pages/admin/SupportTickets"));
+const WithdrawalApproval = lazy(() => import("./pages/admin/WithdrawalApproval"));
 const Alerts = lazy(() => import("./pages/Alerts"));
 const Convert = lazy(() => import("./pages/Convert"));
 
@@ -97,6 +98,7 @@ function Router() {
         <Route path="/admin/deposits" component={DepositManagement} />
         <Route path="/admin/staking" component={StakingManagement} />
         <Route path="/admin/support-tickets" component={SupportTickets} />
+        <Route path="/admin/withdrawal-approval" component={WithdrawalApproval} />
         <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

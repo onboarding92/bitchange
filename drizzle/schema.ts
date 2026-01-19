@@ -51,8 +51,11 @@ export const transactions = mysqlTable("transactions", {
   type: mysqlEnum("type", ["deposit", "withdrawal", "trade", "staking_reward", "promo", "internal_transfer", "penalty"]).notNull(),
   asset: varchar("asset", { length: 20 }).notNull(),
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
-  status: mysqlEnum("status", ["pending", "completed", "failed", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "pending_approval", "completed", "failed", "cancelled"]).default("pending").notNull(),
   reference: text("reference"),
+  approvedBy: int("approvedBy"), // Admin user ID who approved/rejected
+  approvedAt: timestamp("approvedAt"), // When was it approved/rejected
+  rejectionReason: text("rejectionReason"), // Reason for rejection
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -129,7 +132,10 @@ export const withdrawals = mysqlTable("withdrawals", {
   network: varchar("network", { length: 50 }).notNull(),
   address: varchar("address", { length: 255 }).notNull(),
   fee: decimal("fee", { precision: 20, scale: 8 }).default("0").notNull(),
-  status: mysqlEnum("status", ["pending", "approved", "rejected", "completed", "processing", "failed"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "pending_approval", "approved", "rejected", "completed", "processing", "failed"]).default("pending").notNull(),
+  approvedBy: int("approvedBy"), // Admin user ID who approved/rejected
+  approvedAt: timestamp("approvedAt"), // When was it approved/rejected
+  rejectionReason: text("rejectionReason"), // Reason for rejection
   adminNote: text("adminNote"),
   adminNotes: text("adminNotes"), // Alias for adminNote
   txHash: varchar("txHash", { length: 255 }),

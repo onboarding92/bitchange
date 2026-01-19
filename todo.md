@@ -965,3 +965,47 @@
 - [ ] Test early withdrawal penalty with locked position
 - [ ] Test auto-compound rewards distribution (wait 24h for job)
 - [ ] Deploy to production VPS
+
+
+## 🔐 Withdrawal Approval System - Jan 19, 2026 15:45
+- [ ] Add "pending_approval" status to withdrawals enum in schema
+- [ ] Add approvedBy and approvedAt fields to withdrawals table
+- [ ] Update withdrawal creation to set status="pending_approval" by default
+- [ ] Create admin withdrawal approval dashboard page
+- [ ] Add approve/reject actions in admin dashboard
+- [ ] Add email notification to admin when new withdrawal is created
+- [ ] Add email notification to user when withdrawal is approved
+- [ ] Add email notification to user when withdrawal is rejected
+- [ ] Update withdrawal endpoint to handle approval workflow
+- [ ] Test complete approval workflow
+- [ ] Deploy to production VPS
+
+
+## ✅ WITHDRAWAL APPROVAL SYSTEM - January 19, 2026 (09:51 GMT+1)
+
+### Implementation Complete
+- [x] Updated withdrawals table schema with approval fields (approvedBy, approvedAt, rejectionReason)
+- [x] Added "pending_approval" and "rejected" status to withdrawals enum
+- [x] Created admin.getPendingWithdrawals endpoint - fetches all withdrawals with status=pending_approval
+- [x] Created admin.approveWithdrawalRequest endpoint - approves withdrawal and sends email to user
+- [x] Created admin.rejectWithdrawalRequest endpoint - rejects withdrawal, refunds balance, sends email
+- [x] Created WithdrawalApproval.tsx admin page with approve/reject UI
+- [x] Added route /admin/withdrawal-approval to App.tsx
+- [x] Added "Withdrawal Approval" link to desktop sidebar (DashboardLayout.tsx)
+- [x] Added "Withdrawal Approval" link to mobile hamburger menu (MobileNav.tsx)
+- [x] Fixed TypeScript errors (toast import, mutation parameters)
+- [x] Database migration completed successfully
+
+### Features
+- Admin can view all pending withdrawal requests
+- Shows user info (name, email), amount, asset, address, network
+- Approve button - marks as completed, sends confirmation email
+- Reject button - opens dialog for rejection reason, refunds balance, sends email
+- Email notifications for both approval and rejection
+- Statistics cards showing pending count, total amount, unique users
+
+### Next Steps
+- [ ] Update withdrawal creation flow to set initial status as "pending_approval"
+- [ ] Add email notification to admins when new withdrawal request is created
+- [ ] Test complete flow in local environment
+- [ ] Deploy to production VPS

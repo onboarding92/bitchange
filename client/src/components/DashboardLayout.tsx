@@ -48,6 +48,7 @@ const menuItems = [
   { icon: Settings, label: "Admin Panel", path: "/admin/panel", adminOnly: true },
   { icon: Users, label: "Users", path: "/admin/users", adminOnly: true },
   { icon: Wallet, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
+  { icon: CheckCircle, label: "Withdrawal Approval", path: "/admin/withdrawal-approval", adminOnly: true },
   { icon: Lock, label: "Staking Management", path: "/admin/staking", adminOnly: true },
   { icon: UserCheck, label: "KYC Review", path: "/admin/kyc-review", adminOnly: true },
   { icon: FileText, label: "Transaction Logs", path: "/admin/logs", adminOnly: true },

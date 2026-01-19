@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE transactions \nMODIFY COLUMN status ENUM('pending', 'pending_approval', 'completed', 'failed', 'cancelled') NOT NULL DEFAULT 'pending',\nADD COLUMN approvedBy INT AFTER reference,\nADD COLUMN approvedAt TIMESTAMP NULL AFTER approvedBy,\nADD COLUMN rejectionReason TEXT NULL AFTER approvedAt;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute ALTER TABLE transactions \nMODIFY COLUMN status ENUM('pending', 'pending_approval', 'completed', 'failed', 'cancelled') NOT NULL DEFAULT 'pending',\nADD COLUMN approvedBy INT AFTER reference,\nADD COLUMN approvedAt TIMESTAMP NULL AFTER approvedBy,\nADD COLUMN rejectionReason TEXT NULL AFTER approvedAt;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'approvedby' in 'transactions'"
+  ]
+}

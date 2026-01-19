@@ -2719,6 +2719,155 @@ export const appRouter = router({
       const { getNotificationBadges } = await import("./notificationBadges");
       return await getNotificationBadges();
     }),
+
+    // Withdrawal Approval System
+    getPendingWithdrawals: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      
+      // Get all withdrawals with status=pending_approval
+      const pendingWithdrawals = await db
+        .select({
+          id: withdrawals.id,
+          userId: withdrawals.userId,
+          asset: withdrawals.asset,
+          amount: withdrawals.amount,
+          address: withdrawals.address,
+          network: withdrawals.network,
+          fee: withdrawals.fee,
+          createdAt: withdrawals.createdAt,
+          userName: users.name,
+          userEmail: users.email,
+        })
+        .from(withdrawals)
+        .leftJoin(users, eq(withdrawals.userId, users.id))
+        .where(eq(withdrawals.status, "pending_approval"))
+        .orderBy(desc(withdrawals.createdAt));
+
+      return pendingWithdrawals;
+    }),
+
+    approveWithdrawalRequest: adminProcedure
+      .input(z.object({ withdrawalId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Get withdrawal details
+        const [withdrawal] = await db.select().from(withdrawals)
+          .where(eq(withdrawals.id, input.withdrawalId));
+
+        if (!withdrawal) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Withdrawal not found" });
+        }
+
+        // Update withdrawal status to completed
+        await db.update(withdrawals)
+          .set({
+            status: "completed",
+            approvedBy: ctx.user.id,
+            approvedAt: new Date(),
+          })
+          .where(eq(withdrawals.id, input.withdrawalId));
+
+        // Send email notification to user
+        try {
+          const { sendEmail } = await import("./email");
+          const [user] = await db.select().from(users).where(eq(users.id, withdrawal.userId));
+          
+          if (user) {
+            await sendEmail({
+              to: user.email,
+              subject: "Withdrawal Approved",
+              text: `Your withdrawal of ${withdrawal.amount} ${withdrawal.asset} has been approved and processed.`,
+              html: `
+                <h2>Your withdrawal has been approved</h2>
+                <p>Your withdrawal request has been approved and processed.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                  <li>Amount: ${withdrawal.amount} ${withdrawal.asset}</li>
+                  <li>Address: ${withdrawal.address}</li>
+                  <li>Network: ${withdrawal.network}</li>
+                  <li>Approved at: ${new Date().toLocaleString()}</li>
+                </ul>
+                <p>The funds will arrive in your wallet shortly.</p>
+              `,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to send withdrawal approval email:", error);
+        }
+
+        return { success: true };
+      }),
+
+    rejectWithdrawalRequest: adminProcedure
+      .input(z.object({ 
+        withdrawalId: z.number(),
+        reason: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        // Get withdrawal details
+        const [withdrawal] = await db.select().from(withdrawals)
+          .where(eq(withdrawals.id, input.withdrawalId));
+
+        if (!withdrawal) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Withdrawal not found" });
+        }
+
+        // Update withdrawal status to rejected
+        await db.update(withdrawals)
+          .set({
+            status: "rejected",
+            approvedBy: ctx.user.id,
+            approvedAt: new Date(),
+            rejectionReason: input.reason,
+          })
+          .where(eq(withdrawals.id, input.withdrawalId));
+
+        // Refund the amount to user's wallet
+        await db.update(wallets)
+          .set({
+            balance: sql`${wallets.balance} + ${withdrawal.amount}`,
+          })
+          .where(and(
+            eq(wallets.userId, withdrawal.userId),
+            eq(wallets.asset, withdrawal.asset)
+          ));
+
+        // Send email notification to user
+        try {
+          const { sendEmail } = await import("./email");
+          const [user] = await db.select().from(users).where(eq(users.id, withdrawal.userId));
+          
+          if (user) {
+            await sendEmail({
+              to: user.email,
+              subject: "Withdrawal Rejected",
+              text: `Your withdrawal of ${withdrawal.amount} ${withdrawal.asset} has been rejected. Reason: ${input.reason}`,
+              html: `
+                <h2>Your withdrawal has been rejected</h2>
+                <p>Your withdrawal request has been rejected and the funds have been returned to your wallet.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                  <li>Amount: ${withdrawal.amount} ${withdrawal.asset}</li>
+                  <li>Address: ${withdrawal.address}</li>
+                  <li>Network: ${withdrawal.network}</li>
+                  <li>Reason: ${input.reason}</li>
+                </ul>
+                <p>If you have any questions, please contact support.</p>
+              `,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to send withdrawal rejection email:", error);
+        }
+
+        return { success: true };
+      }),
   }),
 
   trade: router({

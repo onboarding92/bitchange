@@ -39,6 +39,7 @@ export default function MobileNav() {
     { href: '/admin/panel', label: 'Admin Panel', icon: Shield },
     { href: '/admin/users', label: 'Users', icon: Users },
     { href: '/admin/deposits', label: 'Deposit Management', icon: Wallet },
+    { href: '/admin/withdrawal-approval', label: 'Withdrawal Approval', icon: CheckCircle },
     { href: '/admin/staking', label: 'Staking Management', icon: Lock },
     { href: '/admin/kyc-review', label: 'KYC Review', icon: UserCheck },
     { href: '/admin/logs', label: 'Transaction Logs', icon: FileText },
