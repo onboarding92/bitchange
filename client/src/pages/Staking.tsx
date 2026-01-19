@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Lock, TrendingUp, Clock, Coins } from "lucide-react";
+import { StakingRewardsChart } from "@/components/StakingRewardsChart";
 
 export default function Staking() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -163,7 +164,7 @@ export default function Staking() {
         {activePositions.length > 0 && (
           <div>
             <h2 className="text-2xl font-semibold mb-4">Active Positions</h2>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-8">
               {activePositions.map((position) => {
                 const plan = plans?.find(p => p.id === position.planId);
                 const reward = plan ? calculateReward(position, plan) : 0;
@@ -171,57 +172,62 @@ export default function Staking() {
                 const isLocked = maturesAt ? new Date() < maturesAt : false;
 
                 return (
-                  <Card key={position.id} className="glass border-accent/20">
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span>{plan?.name || "Staking"}</span>
-                        <span className="text-sm font-normal text-muted-foreground">{plan?.asset}</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Staked Amount:</span>
-                          <span className="font-medium">{parseFloat(position.amount).toFixed(4)} {plan?.asset}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Current Reward:</span>
-                          <span className="font-medium text-green-500">+{reward.toFixed(4)} {plan?.asset}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">APR:</span>
-                          <span className="font-medium">{plan ? parseFloat(plan.apr).toFixed(2) : "0"}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Started:</span>
-                          <span className="font-medium">{new Date(position.startedAt).toLocaleDateString()}</span>
-                        </div>
-                        {maturesAt && (
+                  <div key={position.id} className="space-y-4">
+                    <Card className="glass border-accent/20">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>{plan?.name || "Staking"}</span>
+                          <span className="text-sm font-normal text-muted-foreground">{plan?.asset}</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Matures:</span>
-                            <span className="font-medium">{maturesAt.toLocaleDateString()}</span>
+                            <span className="text-muted-foreground">Staked Amount:</span>
+                            <span className="font-medium">{parseFloat(position.amount).toFixed(4)} {plan?.asset}</span>
                           </div>
-                        )}
-                      </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Current Reward:</span>
+                            <span className="font-medium text-green-500">+{reward.toFixed(4)} {plan?.asset}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">APR:</span>
+                            <span className="font-medium">{plan ? parseFloat(plan.apr).toFixed(2) : "0"}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Started:</span>
+                            <span className="font-medium">{new Date(position.startedAt).toLocaleDateString()}</span>
+                          </div>
+                          {maturesAt && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Matures:</span>
+                              <span className="font-medium">{maturesAt.toLocaleDateString()}</span>
+                            </div>
+                          )}
+                        </div>
 
-                      <Button
-                        className="w-full"
-                        variant={isLocked ? "outline" : "default"}
-                        onClick={() => unstakeMutation.mutate({ positionId: position.id })}
-                        disabled={isLocked || unstakeMutation.isPending}
-                      >
-                        {isLocked ? (
-                          <>
-                            <Clock className="mr-2 h-4 w-4" /> Locked
-                          </>
-                        ) : (
-                          <>
-                            <TrendingUp className="mr-2 h-4 w-4" /> Unstake & Claim
-                          </>
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
+                        <Button
+                          className="w-full"
+                          variant={isLocked ? "outline" : "default"}
+                          onClick={() => unstakeMutation.mutate({ positionId: position.id })}
+                          disabled={isLocked || unstakeMutation.isPending}
+                        >
+                          {isLocked ? (
+                            <>
+                              <Clock className="mr-2 h-4 w-4" /> Locked
+                            </>
+                          ) : (
+                            <>
+                              <TrendingUp className="mr-2 h-4 w-4" /> Unstake & Claim
+                            </>
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Rewards History Chart */}
+                    <StakingRewardsChart positionId={position.id} asset={plan?.asset || ""} />
+                  </div>
                 );
               })}
             </div>

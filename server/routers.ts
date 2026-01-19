@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices, conversions } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices, conversions, stakingRewardsHistory } from "../drizzle/schema";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -680,6 +680,29 @@ export const appRouter = router({
           .where(eq(stakingPositions.id, input.positionId));
 
         return { ok: true, reward: reward.toFixed(8) };
+      }),
+
+    rewardsHistory: protectedProcedure
+      .input(z.object({ positionId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return [];
+
+        // Verify position belongs to user
+        const [position] = await db.select().from(stakingPositions)
+          .where(eq(stakingPositions.id, input.positionId))
+          .limit(1);
+
+        if (!position || position.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        // Get rewards history for this position
+        const history = await db.select().from(stakingRewardsHistory)
+          .where(eq(stakingRewardsHistory.positionId, input.positionId))
+          .orderBy(stakingRewardsHistory.distributedAt);
+
+        return history;
       }),
   }),
 
