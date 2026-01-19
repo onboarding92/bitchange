@@ -36,9 +36,11 @@ A modern, full-featured cryptocurrency exchange platform built with React 19, Ty
 - **Support Management**: View and respond to user tickets with priority handling
 
 ### 🎨 Design & Performance
+- **Global Search**: Quick navigation with Cmd/Ctrl+K keyboard shortcut to search all pages and features
 - **Modern Dark Theme**: Elegant design with improved contrast and readability
 - **Responsive**: Mobile-first design that works seamlessly on all devices
-- **Smooth Animations**: Professional transitions and micro-interactions
+- **Smooth Animations**: Professional transitions, loading skeletons, and micro-interactions throughout the app
+- **Enhanced UI**: Hover effects on cards, scale animations on buttons, staggered list animations
 - **Live Price Ticker**: Real-time crypto prices on homepage
 - **Interactive Charts**: Data visualization with Recharts library
 - **TradingView Integration**: Professional trading charts with real-time data
