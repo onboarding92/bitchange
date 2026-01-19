@@ -1,7 +1,7 @@
 import { eq, and, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2";
-import { InsertUser, users, wallets } from "../drizzle/schema";
+import { InsertUser, users, wallets, supportTickets, kycDocuments } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { SUPPORTED_ASSETS } from "@shared/const";
 
@@ -61,5 +61,40 @@ export async function initializeUserWallets(userId: number) {
 
   if (newWallets.length > 0) {
     await db.insert(wallets).values(newWallets);
+  }
+}
+
+// Notification badge counts
+export async function countPendingTickets(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  try {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(supportTickets)
+      .where(sql`${supportTickets.status} IN ('open', 'in_progress')`);
+    
+    return Number(result[0]?.count || 0);
+  } catch (error) {
+    console.error("[countPendingTickets] Error:", error);
+    return 0;
+  }
+}
+
+export async function countPendingKyc(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  try {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(kycDocuments)
+      .where(eq(kycDocuments.status, "pending"));
+    
+    return Number(result[0]?.count || 0);
+  } catch (error) {
+    console.error("[countPendingKyc] Error:", error);
+    return 0;
   }
 }

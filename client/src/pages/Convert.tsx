@@ -133,7 +133,7 @@ export default function Convert() {
   return (
     <>
       <MobileNav />
-      <div className="container mx-auto py-8 space-y-6">
+      <div className="container mx-auto py-8 space-y-6 pt-20 md:pt-8">
       <div>
         <h1 className="text-3xl font-bold">Convert Crypto</h1>
         <p className="text-muted-foreground">Instantly convert between cryptocurrencies</p>

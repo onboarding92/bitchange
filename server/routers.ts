@@ -2625,6 +2625,12 @@ export const appRouter = router({
 
         return { success: true };
       }),
+
+    // Notification Badges
+    notificationBadges: adminProcedure.query(async () => {
+      const { getNotificationBadges } = await import("./notificationBadges");
+      return await getNotificationBadges();
+    }),
   }),
 
   trade: router({

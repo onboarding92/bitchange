@@ -129,48 +129,48 @@ export default function UsersManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
+    <div className="container mx-auto py-8 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <UsersIcon className="w-8 h-8 text-blue-400" />
-            <h1 className="text-3xl font-bold text-white">User Management</h1>
+            <UsersIcon className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-foreground">User Management</h1>
           </div>
           <Button
             onClick={exportToCSV}
             variant="outline"
-            className="border-slate-600 hover:bg-slate-700"
+            className="border-border hover:bg-secondary"
           >
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
         </div>
 
-        <Card className="bg-slate-800/90 border-slate-700 p-6">
+        <Card className="bg-card/90 border-border p-6">
           <div className="flex gap-4 mb-6">
             <div className="flex-1">
               <Input
                 placeholder="Search by email or name..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
+                className="bg-secondary border-border text-foreground"
               />
             </div>
             <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v === "all" ? undefined : v)}>
-              <SelectTrigger className="w-40 bg-slate-700 border-slate-600 text-white">
+              <SelectTrigger className="w-40 bg-secondary border-border text-foreground">
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="bg-card border-border">
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="user">User</SelectItem>
               </SelectContent>
             </Select>
             <Select value={kycFilter} onValueChange={(v: any) => setKycFilter(v === "all" ? undefined : v)}>
-              <SelectTrigger className="w-40 bg-slate-700 border-slate-600 text-white">
+              <SelectTrigger className="w-40 bg-secondary border-border text-foreground">
                 <SelectValue placeholder="KYC Status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="bg-card border-border">
                 <SelectItem value="all">All KYC</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
@@ -187,34 +187,34 @@ export default function UsersManagement() {
           </div>
 
           {isLoading ? (
-            <div className="text-center text-slate-400 py-8">Loading...</div>
+            <div className="text-center text-muted-foreground py-8">Loading...</div>
           ) : !data?.users || data.users.length === 0 ? (
-            <div className="text-center text-slate-400 py-8">No users found</div>
+            <div className="text-center text-muted-foreground py-8">No users found</div>
           ) : (
             <>
-              <div className="text-slate-400 text-sm mb-4">
+              <div className="text-muted-foreground text-sm mb-4">
                 Showing {data.users.length} of {data.total} users
               </div>
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-700">
-                    <TableHead className="text-slate-300">ID</TableHead>
-                    <TableHead className="text-slate-300">Email</TableHead>
-                    <TableHead className="text-slate-300">Name</TableHead>
-                    <TableHead className="text-slate-300">Role</TableHead>
-                    <TableHead className="text-slate-300">KYC</TableHead>
-                    <TableHead className="text-slate-300">Status</TableHead>
-                    <TableHead className="text-slate-300">Total Balance (USDT)</TableHead>
-                    <TableHead className="text-slate-300">Created</TableHead>
-                    <TableHead className="text-slate-300">Actions</TableHead>
+                  <TableRow className="border-border">
+                    <TableHead className="text-muted-foreground">ID</TableHead>
+                    <TableHead className="text-muted-foreground">Email</TableHead>
+                    <TableHead className="text-muted-foreground">Name</TableHead>
+                    <TableHead className="text-muted-foreground">Role</TableHead>
+                    <TableHead className="text-muted-foreground">KYC</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground">Total Balance (USDT)</TableHead>
+                    <TableHead className="text-muted-foreground">Created</TableHead>
+                    <TableHead className="text-muted-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {data.users.map((user: any) => (
-                    <TableRow key={user.id} className="border-slate-700">
-                      <TableCell className="text-white">{user.id}</TableCell>
-                      <TableCell className="text-white">{user.email}</TableCell>
-                      <TableCell className="text-slate-300">{user.name || "N/A"}</TableCell>
+                    <TableRow key={user.id} className="border-border">
+                      <TableCell className="text-foreground">{user.id}</TableCell>
+                      <TableCell className="text-foreground">{user.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.name || "N/A"}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded text-xs font-semibold ${
                           user.role === "admin" 
@@ -244,10 +244,10 @@ export default function UsersManagement() {
                           {user.accountStatus || "active"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-green-400 font-semibold">
+                      <TableCell className="text-green-600 font-semibold">
                         ${(user as any).totalBalanceUSDT || "0.00"}
                       </TableCell>
-                      <TableCell className="text-slate-400 text-sm">
+                      <TableCell className="text-muted-foreground text-sm">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
@@ -262,7 +262,7 @@ export default function UsersManagement() {
                               setEditAccountStatus(user.accountStatus || "active");
                               setShowEditDialog(true);
                             }}
-                            className="border-slate-600 hover:bg-slate-700"
+                            className="border-border hover:bg-secondary"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -273,7 +273,7 @@ export default function UsersManagement() {
                               setSelectedUser(user);
                               setShowBalanceDialog(true);
                             }}
-                            className="border-slate-600 hover:bg-slate-700"
+                            className="border-border hover:bg-secondary"
                           >
                             <DollarSign className="w-4 h-4" />
                           </Button>
@@ -284,7 +284,7 @@ export default function UsersManagement() {
                               setSelectedUser(user);
                               setShowActivityDialog(true);
                             }}
-                            className="border-slate-600 hover:bg-slate-700"
+                            className="border-border hover:bg-secondary"
                           >
                             <Activity className="w-4 h-4" />
                           </Button>
@@ -300,30 +300,30 @@ export default function UsersManagement() {
 
         {/* Edit User Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="bg-slate-800 border-slate-700">
+          <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle className="text-white">Edit User: {selectedUser?.email}</DialogTitle>
+              <DialogTitle className="text-foreground">Edit User: {selectedUser?.email}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label className="text-slate-300">Role</Label>
+                <Label className="text-muted-foreground">Role</Label>
                 <Select value={editRole} onValueChange={(v: any) => setEditRole(v)}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-secondary border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-card border-border">
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-slate-300">KYC Status</Label>
+                <Label className="text-muted-foreground">KYC Status</Label>
                 <Select value={editKycStatus} onValueChange={(v: any) => setEditKycStatus(v)}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-secondary border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-card border-border">
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
@@ -331,12 +331,12 @@ export default function UsersManagement() {
                 </Select>
               </div>
               <div>
-                <Label className="text-slate-300">Account Status</Label>
+                <Label className="text-muted-foreground">Account Status</Label>
                 <Select value={editAccountStatus} onValueChange={(v: any) => setEditAccountStatus(v)}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-secondary border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-card border-border">
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="suspended">Suspended</SelectItem>
                   </SelectContent>
@@ -355,18 +355,18 @@ export default function UsersManagement() {
 
         {/* Adjust Balance Dialog */}
         <Dialog open={showBalanceDialog} onOpenChange={setShowBalanceDialog}>
-          <DialogContent className="bg-slate-800 border-slate-700">
+          <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle className="text-white">Adjust Balance: {selectedUser?.email}</DialogTitle>
+              <DialogTitle className="text-foreground">Adjust Balance: {selectedUser?.email}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label className="text-slate-300">Asset</Label>
+                <Label className="text-muted-foreground">Asset</Label>
                 <Select value={balanceAsset} onValueChange={setBalanceAsset}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-secondary border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-card border-border">
                     <SelectItem value="USDT">USDT</SelectItem>
                     <SelectItem value="BTC">BTC</SelectItem>
                     <SelectItem value="ETH">ETH</SelectItem>
@@ -375,35 +375,35 @@ export default function UsersManagement() {
                 </Select>
               </div>
               <div>
-                <Label className="text-slate-300">Type</Label>
+                <Label className="text-muted-foreground">Type</Label>
                 <Select value={balanceType} onValueChange={(v: any) => setBalanceType(v)}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-secondary border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-card border-border">
                     <SelectItem value="add">Add</SelectItem>
                     <SelectItem value="subtract">Subtract</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-slate-300">Amount</Label>
+                <Label className="text-muted-foreground">Amount</Label>
                 <Input
                   type="number"
                   step="0.00000001"
                   value={balanceAmount}
                   onChange={(e) => setBalanceAmount(e.target.value)}
                   placeholder="0.00"
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-secondary border-border text-foreground"
                 />
               </div>
               <div>
-                <Label className="text-slate-300">Reason</Label>
+                <Label className="text-muted-foreground">Reason</Label>
                 <Input
                   value={balanceReason}
                   onChange={(e) => setBalanceReason(e.target.value)}
                   placeholder="Manual adjustment reason..."
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-secondary border-border text-foreground"
                 />
               </div>
               <Button
@@ -419,22 +419,22 @@ export default function UsersManagement() {
 
         {/* User Activity Dialog */}
         <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
-          <DialogContent className="bg-slate-800 border-slate-700 max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="bg-card border-border max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-white">User Activity: {selectedUser?.email}</DialogTitle>
+              <DialogTitle className="text-foreground">User Activity: {selectedUser?.email}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               {activity?.deposits && activity.deposits.length > 0 && (
                 <div>
-                  <h4 className="text-white font-semibold mb-2">Recent Deposits</h4>
+                  <h4 className="text-foreground font-semibold mb-2">Recent Deposits</h4>
                   <div className="space-y-2">
                     {activity.deposits.slice(0, 5).map((d: any) => (
-                      <div key={d.id} className="bg-slate-700 p-3 rounded text-sm">
-                        <div className="flex justify-between text-white">
+                      <div key={d.id} className="bg-secondary p-3 rounded text-sm">
+                        <div className="flex justify-between text-foreground">
                           <span>{d.asset}</span>
-                          <span className="text-green-400">+{parseFloat(d.amount).toFixed(8)}</span>
+                          <span className="text-green-600">+{parseFloat(d.amount).toFixed(8)}</span>
                         </div>
-                        <div className="text-slate-400 text-xs mt-1">
+                        <div className="text-muted-foreground text-xs mt-1">
                           {new Date(d.createdAt).toLocaleString()} • {d.status}
                         </div>
                       </div>
@@ -445,15 +445,15 @@ export default function UsersManagement() {
 
               {activity?.withdrawals && activity.withdrawals.length > 0 && (
                 <div>
-                  <h4 className="text-white font-semibold mb-2">Recent Withdrawals</h4>
+                  <h4 className="text-foreground font-semibold mb-2">Recent Withdrawals</h4>
                   <div className="space-y-2">
                     {activity.withdrawals.slice(0, 5).map((w: any) => (
-                      <div key={w.id} className="bg-slate-700 p-3 rounded text-sm">
-                        <div className="flex justify-between text-white">
+                      <div key={w.id} className="bg-secondary p-3 rounded text-sm">
+                        <div className="flex justify-between text-foreground">
                           <span>{w.asset}</span>
-                          <span className="text-red-400">-{parseFloat(w.amount).toFixed(8)}</span>
+                          <span className="text-red-600">-{parseFloat(w.amount).toFixed(8)}</span>
                         </div>
-                        <div className="text-slate-400 text-xs mt-1">
+                        <div className="text-muted-foreground text-xs mt-1">
                           {new Date(w.createdAt).toLocaleString()} • {w.status}
                         </div>
                       </div>
@@ -464,17 +464,17 @@ export default function UsersManagement() {
 
               {activity?.logins && activity.logins.length > 0 && (
                 <div>
-                  <h4 className="text-white font-semibold mb-2">Recent Logins</h4>
+                  <h4 className="text-foreground font-semibold mb-2">Recent Logins</h4>
                   <div className="space-y-2">
                     {activity.logins.slice(0, 5).map((l: any) => (
-                      <div key={l.id} className="bg-slate-700 p-3 rounded text-sm">
-                        <div className="flex justify-between text-white">
+                      <div key={l.id} className="bg-secondary p-3 rounded text-sm">
+                        <div className="flex justify-between text-foreground">
                           <span>{l.ipAddress}</span>
-                          <span className={l.success ? "text-green-400" : "text-red-400"}>
+                          <span className={l.success ? "text-green-600" : "text-red-600"}>
                             {l.success ? "Success" : "Failed"}
                           </span>
                         </div>
-                        <div className="text-slate-400 text-xs mt-1">
+                        <div className="text-muted-foreground text-xs mt-1">
                           {new Date(l.createdAt).toLocaleString()} • {l.method}
                         </div>
                       </div>

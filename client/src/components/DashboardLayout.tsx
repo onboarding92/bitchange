@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -49,10 +50,10 @@ const menuItems = [
   { icon: Wallet, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
   { icon: Lock, label: "Staking Management", path: "/admin/staking", adminOnly: true },
   { icon: UserCheck, label: "KYC Review", path: "/admin/kyc-review", adminOnly: true },
-  { icon: FileText, label: "Transaction Logs", path: "/admin/transaction-logs", adminOnly: true },
+  { icon: FileText, label: "Transaction Logs", path: "/admin/logs", adminOnly: true },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", adminOnly: true },
   { icon: Activity, label: "System Health", path: "/admin/system-health", adminOnly: true },
-  { icon: LifeBuoy, label: "Support Tickets", path: "/admin/support-tickets", adminOnly: true },
+  { icon: LifeBuoy, label: "Support Tickets", path: "/admin/support", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -135,6 +136,13 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  
+  // Notification badges with proper error handling
+  const { data: badges } = trpc.admin.notificationBadges.useQuery(undefined, {
+    enabled: user?.role === "admin",
+    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: false,
+  });
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
@@ -208,16 +216,26 @@ function DashboardLayoutContent({
                 const isActive = location === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
+                     <SidebarMenuButton
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
+                      className={`h-10 transition-all font-normal relative`}
                     >
                       <item.icon
                         className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
                       />
                       <span>{item.label}</span>
+                      {badges && item.path === "/admin/support" && badges.pendingTickets > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
+                          {badges.pendingTickets > 99 ? "99+" : badges.pendingTickets}
+                        </span>
+                      )}
+                      {badges && item.path === "/admin/kyc-review" && badges.pendingKyc > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
+                          {badges.pendingKyc > 99 ? "99+" : badges.pendingKyc}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

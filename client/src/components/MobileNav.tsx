@@ -3,11 +3,19 @@ import { Link, useLocation } from 'wouter';
 import { Menu, X, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield, Users, Wallet, Lock, UserCheck, FileText, BarChart3, Activity } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const [location] = useLocation();
+  
+  // Notification badges with proper error handling
+  const { data: badges } = trpc.admin.notificationBadges.useQuery(undefined, {
+    enabled: user?.role === "admin",
+    refetchInterval: 30000,
+    retry: false,
+  });
 
   // Hide navigation on auth pages (login, register, forgot password, etc.)
   const isAuthPage = location.startsWith('/auth/');
@@ -33,10 +41,10 @@ export default function MobileNav() {
     { href: '/admin/deposits', label: 'Deposit Management', icon: Wallet },
     { href: '/admin/staking', label: 'Staking Management', icon: Lock },
     { href: '/admin/kyc-review', label: 'KYC Review', icon: UserCheck },
-    { href: '/admin/transaction-logs', label: 'Transaction Logs', icon: FileText },
+    { href: '/admin/logs', label: 'Transaction Logs', icon: FileText },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/system-health', label: 'System Health', icon: Activity },
-    { href: '/admin/support-tickets', label: 'Support Tickets', icon: LifeBuoy },
+    { href: '/admin/support', label: 'Support Tickets', icon: LifeBuoy },
   ];
 
   return (
@@ -46,7 +54,7 @@ export default function MobileNav() {
         variant="ghost"
         size="icon"
         onClick={() => setOpen(!open)}
-        className="fixed top-4 left-4 z-50 bg-background/80 backdrop-blur-sm border border-border hover:bg-accent"
+        className="fixed top-4 left-4 z-[100] bg-background/80 backdrop-blur-sm border border-border hover:bg-accent"
         aria-label="Toggle navigation menu"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -99,11 +107,21 @@ export default function MobileNav() {
                   <Link key={item.href} href={item.href}>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start gap-3"
+                      className="w-full justify-start gap-3 relative"
                       onClick={() => setOpen(false)}
                     >
                       <item.icon className="h-4 w-4" />
                       {item.label}
+                      {badges && item.href === "/admin/support" && badges.pendingTickets > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
+                          {badges.pendingTickets > 99 ? "99+" : badges.pendingTickets}
+                        </span>
+                      )}
+                      {badges && item.href === "/admin/kyc-review" && badges.pendingKyc > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
+                          {badges.pendingKyc > 99 ? "99+" : badges.pendingKyc}
+                        </span>
+                      )}
                     </Button>
                   </Link>
                 ))}
