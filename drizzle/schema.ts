@@ -612,3 +612,15 @@ export const conversions = mysqlTable("conversions", {
 
 export type Conversion = typeof conversions.$inferSelect;
 export type InsertConversion = typeof conversions.$inferInsert;
+
+export const stakingRewardsHistory = mysqlTable("stakingRewardsHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  positionId: int("positionId").notNull(),
+  userId: int("userId").notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  distributedAt: timestamp("distributedAt").defaultNow().notNull(),
+});
+
+export type StakingRewardsHistory = typeof stakingRewardsHistory.$inferSelect;
+export type InsertStakingRewardsHistory = typeof stakingRewardsHistory.$inferInsert;

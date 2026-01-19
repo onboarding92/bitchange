@@ -99,6 +99,11 @@ async function startServer() {
           import("../priceAlertJob").then(({ startPriceAlertJob }) => {
             startPriceAlertJob();
           }).catch(console.error);
+          
+          // Start staking rewards distribution job
+          import("../stakingRewardsJob").then(({ startStakingRewardsJob }) => {
+            startStakingRewardsJob();
+          }).catch(console.error);
         }
       });
     }).catch(console.error);

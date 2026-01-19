@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS stakingRewardsHistory (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  positionId INT NOT NULL,\n  userId INT NOT NULL,\n  amount DECIMAL(20, 8) NOT NULL,\n  asset VARCHAR(20) NOT NULL,\n  distributedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  INDEX idx_position (positionId),\n  INDEX idx_user (userId),\n  INDEX idx_distributed (distributedAt)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute CREATE TABLE IF NOT EXISTS stakingRewardsHistory (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  positionId INT NOT NULL,\n  userId INT NOT NULL,\n  amount DECIMAL(20, 8) NOT NULL,\n  asset VARCHAR(20) NOT NULL,\n  distributedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  INDEX idx_position (positionId),\n  INDEX idx_user (userId),\n  INDEX idx_distributed (distributedAt)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 533
+}

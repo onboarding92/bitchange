@@ -890,3 +890,27 @@
 **BUG FOUND**: Participants count was including ALL users (even those who withdrew), not just users with active positions. Fixed by adding `eq(stakingPositions.status, 'active')` filter.
 
 **DEPLOYMENT ISSUE**: Docker rebuild used cached server files. Need to copy updated server/routers.ts to VPS and rebuild with `--no-cache` flag. SSH connection has intermittent issues.
+
+
+## 🚀 Staking Statistics Fix Deployment - Jan 19, 2026 14:45
+- [ ] Retry deployment to VPS with updated server files
+- [ ] Rebuild Docker with --no-cache flag
+- [ ] Verify statistics show correct participant count and total staked
+- [ ] Test with user's active USDT stake (should show 1 participant, 100 USDT)
+
+## ⏰ Staking Rewards Distribution Job - Jan 19, 2026 14:45
+- [x] Create automated job that runs daily to distribute rewards
+- [x] Calculate daily rewards for each active position: amount × (APR / 365)
+- [x] Update rewards field in staking_positions table
+- [x] Add job scheduling (runs every 24 hours)
+- [x] Log reward distributions for audit trail
+- [ ] Test job execution and verify rewards accumulate correctly
+
+## 📊 Staking History Chart - Jan 19, 2026 14:45
+- [x] Design rewards history data structure (timestamp, amount, position_id)
+- [x] Create database table for reward history tracking (stakingRewardsHistory)
+- [x] Update rewards job to log history entries
+- [ ] Implement backend endpoint to fetch reward history data
+- [ ] Add chart component to Staking page showing rewards over time
+- [ ] Display chart for each active staking position
+- [ ] Show cumulative rewards trend with daily breakdown
