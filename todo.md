@@ -816,3 +816,29 @@
 - [x] Implement badges in MobileNav component (mobile hamburger menu)
 - [ ] Test badges on both desktop and mobile views
 - [ ] Deploy to production VPS
+
+
+## 🚀 Production Deployment & Testing - Jan 19, 2026 13:15
+- [ ] Deploy notification badges to production VPS (188.245.99.239)
+- [ ] Copy built dist/ files to VPS
+- [ ] Restart Docker containers
+- [ ] Verify badges appear on production site
+- [ ] Test badge counts with real support tickets
+- [ ] Test badge counts with real KYC submissions
+- [ ] Verify auto-refresh works (30 second interval)
+
+## 📧 Email Notifications for Admins - Jan 19, 2026 13:15
+- [ ] Add email notification when new support ticket is created
+- [ ] Add email notification when new KYC submission is received
+- [ ] Test email delivery to admin
+- [ ] Verify email content includes relevant details (ticket ID, user info, etc.)
+- [ ] Deploy email notification feature to production
+
+
+## 📧 Email Notifications for Admin - Jan 19, 2026 13:00
+- [x] Create email notification service for new support tickets
+- [x] Create email notification service for new KYC submissions
+- [x] Add email trigger when support ticket is created
+- [x] Add email trigger when KYC document is submitted
+- [x] Test email delivery to admin email
+- [x] Deploy to production VPS

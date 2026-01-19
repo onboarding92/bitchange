@@ -1066,6 +1066,20 @@ export const appRouter = router({
           status: "pending",
         });
 
+        // Send email notification to admin
+        try {
+          const { sendAdminNewKycNotification } = await import("./email");
+          const adminEmail = process.env.OWNER_EMAIL || "admin@bitchangemoney.xyz";
+          await sendAdminNewKycNotification({
+            adminEmail,
+            userId: ctx.user.id,
+            userEmail: ctx.user.email,
+            userName: `${input.firstName} ${input.lastName}`,
+          });
+        } catch (error) {
+          console.error("Failed to send admin KYC notification email:", error);
+        }
+
         return { ok: true };
       }),
 
@@ -1227,23 +1241,15 @@ export const appRouter = router({
 
         // Send email notification to admin
         try {
-          const { sendEmail } = await import("./email");
+          const { sendAdminNewTicketNotification } = await import("./email");
           const adminEmail = process.env.OWNER_EMAIL || "admin@bitchangemoney.xyz";
-          await sendEmail({
-            to: adminEmail,
-            subject: `New Support Ticket #${ticket.insertId}: ${input.subject}`,
-            text: `New Support Ticket #${ticket.insertId} from ${ctx.user.email}: ${input.subject}`,
-            html: `
-              <h2>New Support Ticket</h2>
-              <p><strong>Ticket ID:</strong> #${ticket.insertId}</p>
-              <p><strong>User:</strong> ${ctx.user.email}</p>
-              <p><strong>Subject:</strong> ${input.subject}</p>
-              <p><strong>Category:</strong> ${input.category}</p>
-              <p><strong>Priority:</strong> ${input.priority}</p>
-              <p><strong>Message:</strong></p>
-              <p>${input.message}</p>
-              <p><a href="https://bitchangemoney.xyz/admin/support-tickets">View Ticket</a></p>
-            `,
+          await sendAdminNewTicketNotification({
+            adminEmail,
+            ticketId: ticket.insertId as number,
+            userEmail: ctx.user.email,
+            userName: ctx.user.name || ctx.user.email,
+            subject: input.subject,
+            priority: input.priority,
           });
         } catch (error) {
           console.error("Failed to send admin notification email:", error);

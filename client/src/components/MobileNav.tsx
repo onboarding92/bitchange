@@ -7,12 +7,12 @@ import { trpc } from '@/lib/trpc';
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [location] = useLocation();
   
   // Notification badges with proper error handling
   const { data: badges } = trpc.admin.notificationBadges.useQuery(undefined, {
-    enabled: user?.role === "admin",
+    enabled: !loading && user?.role === "admin",
     refetchInterval: 30000,
     retry: false,
   });
@@ -44,7 +44,7 @@ export default function MobileNav() {
     { href: '/admin/logs', label: 'Transaction Logs', icon: FileText },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/system-health', label: 'System Health', icon: Activity },
-    { href: '/admin/support', label: 'Support Tickets', icon: LifeBuoy },
+    { href: '/admin/support-tickets', label: 'Support Tickets', icon: LifeBuoy },
   ];
 
   return (
@@ -112,7 +112,7 @@ export default function MobileNav() {
                     >
                       <item.icon className="h-4 w-4" />
                       {item.label}
-                      {badges && item.href === "/admin/support" && badges.pendingTickets > 0 && (
+                      {badges && item.href === "/admin/support-tickets" && badges.pendingTickets > 0 && (
                         <span className="ml-auto inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
                           {badges.pendingTickets > 99 ? "99+" : badges.pendingTickets}
                         </span>

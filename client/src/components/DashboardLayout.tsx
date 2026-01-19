@@ -53,7 +53,7 @@ const menuItems = [
   { icon: FileText, label: "Transaction Logs", path: "/admin/logs", adminOnly: true },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", adminOnly: true },
   { icon: Activity, label: "System Health", path: "/admin/system-health", adminOnly: true },
-  { icon: LifeBuoy, label: "Support Tickets", path: "/admin/support", adminOnly: true },
+  { icon: LifeBuoy, label: "Support Tickets", path: "/admin/support-tickets", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -130,7 +130,7 @@ function DashboardLayoutContent({
   children,
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -139,7 +139,7 @@ function DashboardLayoutContent({
   
   // Notification badges with proper error handling
   const { data: badges } = trpc.admin.notificationBadges.useQuery(undefined, {
-    enabled: user?.role === "admin",
+    enabled: !loading && user?.role === "admin",
     refetchInterval: 30000, // Refresh every 30 seconds
     retry: false,
   });

@@ -331,3 +331,108 @@ BitChange Compliance Team`;
     html: isApproved ? htmlApproved : htmlRejected,
   });
 }
+
+/**
+ * Notify admin of new support ticket
+ */
+export async function sendAdminNewTicketNotification(params: {
+  adminEmail: string;
+  ticketId: number;
+  userEmail: string;
+  userName: string;
+  subject: string;
+  priority: string;
+}) {
+  const emailSubject = `[BitChange] New Support Ticket #${params.ticketId} - ${params.priority.toUpperCase()} Priority`;
+  
+  const text = `New Support Ticket Received
+
+Ticket ID: #${params.ticketId}
+From: ${params.userName} (${params.userEmail})
+Priority: ${params.priority.toUpperCase()}
+Subject: ${params.subject}
+
+Please log in to the admin panel to view and respond to this ticket.
+
+BitChange Support System`;
+
+  const html = `
+    <h2>🎫 New Support Ticket Received</h2>
+    <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Ticket ID:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">#${params.ticketId}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">From:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(params.userName)} (${escapeHtml(params.userEmail)})</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Priority:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>${params.priority.toUpperCase()}</strong></td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Subject:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(params.subject)}</td>
+      </tr>
+    </table>
+    <p style="margin-top: 20px;">Please log in to the admin panel to view and respond to this ticket.</p>
+    <p>Best regards,<br/>BitChange Support System</p>
+  `;
+
+  return sendEmail({
+    to: params.adminEmail,
+    subject: emailSubject,
+    text,
+    html,
+  });
+}
+
+/**
+ * Notify admin of new KYC submission
+ */
+export async function sendAdminNewKycNotification(params: {
+  adminEmail: string;
+  userId: number;
+  userEmail: string;
+  userName: string;
+}) {
+  const emailSubject = `[BitChange] New KYC Submission - User #${params.userId}`;
+  
+  const text = `New KYC Submission Received
+
+User ID: #${params.userId}
+Name: ${params.userName}
+Email: ${params.userEmail}
+
+Please log in to the admin panel to review this KYC submission.
+
+BitChange Compliance System`;
+
+  const html = `
+    <h2>📋 New KYC Submission Received</h2>
+    <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">User ID:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">#${params.userId}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Name:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(params.userName)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Email:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(params.userEmail)}</td>
+      </tr>
+    </table>
+    <p style="margin-top: 20px;">Please log in to the admin panel to review this KYC submission.</p>
+    <p>Best regards,<br/>BitChange Compliance System</p>
+  `;
+
+  return sendEmail({
+    to: params.adminEmail,
+    subject: emailSubject,
+    text,
+    html,
+  });
+}
