@@ -540,10 +540,15 @@ export const appRouter = router({
       
       // Add statistics for each plan
       const plansWithStats = await Promise.all(plans.map(async (plan) => {
-        // Count unique participants
+        // Count unique participants (only with active positions)
         const participants = await db.select({ userId: stakingPositions.userId })
           .from(stakingPositions)
-          .where(eq(stakingPositions.planId, plan.id))
+          .where(
+            and(
+              eq(stakingPositions.planId, plan.id),
+              eq(stakingPositions.status, 'active')
+            )
+          )
           .groupBy(stakingPositions.userId);
         
         // Calculate total staked amount (only active positions)

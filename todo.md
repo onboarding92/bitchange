@@ -878,3 +878,15 @@
 - [x] Rollback to previous checkpoint if needed
 
 **RESOLVED**: All Docker containers were stopped. Restarted with `docker compose up -d --build`. Site is now accessible at https://bitchangemoney.xyz/
+
+
+## 🐛 Staking Statistics Not Updating - Jan 19, 2026 14:30
+- [x] Investigate why participants count doesn't update after creating stake
+- [x] Investigate why total staked amount doesn't update after creating stake
+- [x] Fix participants count query to filter only active positions
+- [x] Test statistics with active stake in production
+- [ ] Deploy fix to production VPS (SSH connection issues preventing file copy)
+
+**BUG FOUND**: Participants count was including ALL users (even those who withdrew), not just users with active positions. Fixed by adding `eq(stakingPositions.status, 'active')` filter.
+
+**DEPLOYMENT ISSUE**: Docker rebuild used cached server files. Need to copy updated server/routers.ts to VPS and rebuild with `--no-cache` flag. SSH connection has intermittent issues.
