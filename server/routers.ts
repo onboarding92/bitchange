@@ -966,15 +966,52 @@ export const appRouter = router({
           .set({ locked: sql`${wallets.locked} + ${totalRequired.toString()}` })
           .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, input.asset)));
 
-        await db.insert(withdrawals).values({
+        const [insertResult] = await db.insert(withdrawals).values({
           userId: ctx.user.id,
           asset: input.asset,
           amount: input.amount,
           network: input.network,
           address: input.address,
           fee: network.withdrawalFee,
-          status: "pending",
+          status: "pending_approval",
         });
+
+        // Send email notification to admin
+        try {
+          const { sendEmail } = await import("./email");
+          await sendEmail({
+            to: "admin@bitchangemoney.xyz",
+            subject: "New Withdrawal Request Pending Approval",
+            text: `A new withdrawal request requires your approval. User: ${user.email}, Amount: ${input.amount} ${input.asset}, Network: ${input.network}`,
+            html: `
+              <h2>New Withdrawal Request</h2>
+              <p>A new withdrawal request requires your approval.</p>
+              <p><strong>Details:</strong></p>
+              <ul>
+                <li>User: ${user.name || 'N/A'} (${user.email})</li>
+                <li>Amount: ${input.amount} ${input.asset}</li>
+                <li>Network: ${input.network}</li>
+                <li>Address: ${input.address}</li>
+                <li>Fee: ${network.withdrawalFee} ${input.asset}</li>
+                <li>Total: ${totalRequired} ${input.asset}</li>
+              </ul>
+              <p>Please review and approve/reject this request in the admin panel.</p>
+            `,
+          });
+        } catch (error) {
+          console.error("Failed to send admin notification email:", error);
+        }
+
+        // Send in-app notification to owner
+        try {
+          const { notifyOwner } = await import("./_core/notification");
+          await notifyOwner({
+            title: "New Withdrawal Request",
+            content: `User ${user.email} requested withdrawal of ${input.amount} ${input.asset} via ${input.network}. Please review in admin panel.`,
+          });
+        } catch (error) {
+          console.error("Failed to send in-app notification:", error);
+        }
 
         return { ok: true, fee: network.withdrawalFee };
       }),
@@ -1888,7 +1925,7 @@ export const appRouter = router({
           .where(and(eq(wallets.userId, withdrawal.userId), eq(wallets.asset, withdrawal.asset)));
 
         await db.update(withdrawals)
-          .set({ status: "completed", processedAt: new Date() })
+          .set({ status: "completed" })
           .where(eq(withdrawals.id, input.id));
 
         return { ok: true };
@@ -1916,7 +1953,7 @@ export const appRouter = router({
           .where(and(eq(wallets.userId, withdrawal.userId), eq(wallets.asset, withdrawal.asset)));
 
         await db.update(withdrawals)
-          .set({ status: "rejected", processedAt: new Date() })
+          .set({ status: "rejected" })
           .where(eq(withdrawals.id, input.id));
 
         return { ok: true };

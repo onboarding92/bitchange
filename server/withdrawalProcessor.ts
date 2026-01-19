@@ -182,8 +182,6 @@ export async function processWithdrawal(withdrawalId: number): Promise<{ success
       await db.update(withdrawals)
         .set({
           status: "completed",
-          txHash: result.txHash,
-          completedAt: new Date(),
         })
         .where(eq(withdrawals.id, withdrawalId));
 
@@ -222,7 +220,6 @@ export async function processWithdrawal(withdrawalId: number): Promise<{ success
       await db.update(withdrawals)
         .set({
           status: "failed",
-          adminNotes: result.error || "Unknown error",
         })
         .where(eq(withdrawals.id, withdrawalId));
 
@@ -250,7 +247,6 @@ export async function processWithdrawal(withdrawalId: number): Promise<{ success
     await db.update(withdrawals)
       .set({
         status: "failed",
-        adminNotes: error.message || "Unknown error",
       })
       .where(eq(withdrawals.id, withdrawalId));
 

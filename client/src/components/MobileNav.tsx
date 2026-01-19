@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Menu, X, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield, Users, Wallet, Lock, UserCheck, FileText, BarChart3, Activity } from 'lucide-react';
+import { Menu, X, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield, Users, Wallet, Lock, UserCheck, FileText, BarChart3, Activity, CheckCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { trpc } from '@/lib/trpc';

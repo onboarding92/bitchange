@@ -136,12 +136,7 @@ export const withdrawals = mysqlTable("withdrawals", {
   approvedBy: int("approvedBy"), // Admin user ID who approved/rejected
   approvedAt: timestamp("approvedAt"), // When was it approved/rejected
   rejectionReason: text("rejectionReason"), // Reason for rejection
-  adminNote: text("adminNote"),
-  adminNotes: text("adminNotes"), // Alias for adminNote
-  txHash: varchar("txHash", { length: 255 }),
-  completedAt: timestamp("completedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  processedAt: timestamp("processedAt"),
 });
 
 export const kycDocuments = mysqlTable("kycDocuments", {

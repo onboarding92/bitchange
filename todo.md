@@ -1009,3 +1009,15 @@
 - [ ] Add email notification to admins when new withdrawal request is created
 - [ ] Test complete flow in local environment
 - [ ] Deploy to production VPS
+
+
+## 🔔 WITHDRAWAL NOTIFICATION ENHANCEMENTS - January 19, 2026 (10:00 GMT+1)
+
+### User Request: Complete Notification System
+- [x] Add in-app notification for admins when new withdrawal request is created
+- [x] Modify withdrawal.create endpoint to set initial status as "pending_approval"
+- [x] Send email to admin@bitchangemoney.xyz when new withdrawal request is created
+- [x] Test complete flow: user creates withdrawal → admin receives notification → admin approves/rejects (4/4 tests passed)
+- [x] Fix schema inconsistencies (removed txHash, adminNotes, completedAt, processedAt)
+- [x] Update routers.ts and withdrawalProcessor.ts to match schema
+- [ ] Deploy to production VPS (188.245.99.239)
