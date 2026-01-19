@@ -30,7 +30,7 @@ export default function MobileNav() {
     { href: '/deposit', label: 'Deposit', icon: ArrowDownCircle },
     { href: '/withdrawal', label: 'Withdrawal', icon: ArrowUpCircle },
     { href: '/staking', label: 'Staking', icon: CreditCard },
-    { href: '/price-alerts', label: 'Price Alerts', icon: Bell },
+    { href: '/alerts', label: 'Price Alerts', icon: Bell },
     { href: '/portfolio', label: 'Portfolio', icon: User },
     { href: '/support', label: 'Support', icon: LifeBuoy },
   ];

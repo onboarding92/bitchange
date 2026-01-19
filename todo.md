@@ -842,3 +842,14 @@
 - [x] Add email trigger when KYC document is submitted
 - [x] Test email delivery to admin email
 - [x] Deploy to production VPS
+
+
+## 🐛 Price Alerts Page Fix - Jan 19, 2026 13:15
+- [x] Check if Price Alerts page exists
+- [x] Verify Price Alerts route in App.tsx
+- [x] Fix sidebar link from /price-alerts to /alerts in DashboardLayout
+- [x] Fix mobile menu link from /price-alerts to /alerts in MobileNav
+- [x] Test Price Alerts page accessibility after fix
+- [x] Deploy fix to production VPS
+
+**FIXED**: Changed MobileNav link from `/price-alerts` to `/alerts` to match App.tsx route configuration
