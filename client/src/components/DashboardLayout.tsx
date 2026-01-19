@@ -23,11 +23,12 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart, Bell, Repeat, FileText, UserCheck, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Lock, Wallet, ArrowDownUp, ArrowUpRight, Shield, MessageSquare, Settings, User, Mail, UserCircle, History, Gift, BarChart3, Activity, PieChart, Bell, Repeat, FileText, UserCheck, LifeBuoy, Search } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { NotificationBell } from './NotificationBell';
+import { SearchCommand } from './SearchCommand';
 import { Button } from "./ui/button";
 
 const menuItems = [
@@ -133,6 +134,7 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
@@ -303,10 +305,25 @@ function DashboardLayoutContent({
               </div>
             )}
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-2"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search className="h-4 w-4" />
+              <span className="hidden sm:inline">Search</span>
+              <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-xs font-medium sm:flex">
+                ⌘K
+              </kbd>
+            </Button>
+            <NotificationBell />
+          </div>
         </div>
         <main className="flex-1 p-4">{children}</main>
       </SidebarInset>
+      <SearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
