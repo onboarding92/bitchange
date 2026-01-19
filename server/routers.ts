@@ -3264,6 +3264,16 @@ export const appRouter = router({
       const { getRevenueMetrics } = await import("./businessMetrics");
       return await getRevenueMetrics();
     }),
+
+    // Notification badges for admin menu
+    notificationBadges: protectedProcedure.query(async ({ ctx }) => {
+      // Only return badges for admin users
+      if (ctx.user.role !== "admin") {
+        return { pendingTickets: 0, pendingKyc: 0 };
+      }
+      const { getNotificationBadges } = await import("./notificationBadges");
+      return await getNotificationBadges();
+    }),
   }),
 });
 

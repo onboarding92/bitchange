@@ -1,4 +1,5 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -48,7 +49,7 @@ const menuItems = [
   { icon: Wallet, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
   { icon: Lock, label: "Staking Management", path: "/admin/staking", adminOnly: true },
   { icon: UserCheck, label: "KYC Review", path: "/admin/kyc-review", adminOnly: true },
-  { icon: FileText, label: "Transaction Logs", path: "/admin/transaction-logs", adminOnly: true },
+  { icon: FileText, label: "Transaction Logs", path: "/admin/logs", adminOnly: true },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics", adminOnly: true },
   { icon: Activity, label: "System Health", path: "/admin/system-health", adminOnly: true },
   { icon: LifeBuoy, label: "Support Tickets", path: "/admin/support-tickets", adminOnly: true },
@@ -69,6 +70,12 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
+  
+  // Fetch notification badges for admin users
+  const { data: badges } = trpc.admin.notificationBadges.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -204,6 +211,15 @@ function DashboardLayoutContent({
             <SidebarMenu className="px-2 py-1">
               {menuItems.filter(item => !item.adminOnly || user?.role === 'admin').map(item => {
                 const isActive = location === item.path;
+                
+                // Show badge for Support Tickets and KYC Review
+                let badgeCount = 0;
+                if (item.path === '/admin/support-tickets' && badges?.pendingTickets) {
+                  badgeCount = badges.pendingTickets;
+                } else if (item.path === '/admin/kyc-review' && badges?.pendingKyc) {
+                  badgeCount = badges.pendingKyc;
+                }
+                
                 return (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
@@ -215,7 +231,12 @@ function DashboardLayoutContent({
                       <item.icon
                         className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
                       />
-                      <span>{item.label}</span>
+                      <span className="flex-1">{item.label}</span>
+                      {badgeCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                          {badgeCount > 99 ? '99+' : badgeCount}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

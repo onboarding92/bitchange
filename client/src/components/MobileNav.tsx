@@ -3,11 +3,18 @@ import { Link, useLocation } from 'wouter';
 import { Menu, X, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield, Users, Wallet, Lock, UserCheck, FileText, BarChart3, Activity } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const [location] = useLocation();
+  
+  // Fetch notification badges for admin users
+  const { data: badges } = trpc.admin.notificationBadges.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
 
   // Hide navigation on auth pages (login, register, forgot password, etc.)
   const isAuthPage = location.startsWith('/auth/');
@@ -33,7 +40,7 @@ export default function MobileNav() {
     { href: '/admin/deposits', label: 'Deposit Management', icon: Wallet },
     { href: '/admin/staking', label: 'Staking Management', icon: Lock },
     { href: '/admin/kyc-review', label: 'KYC Review', icon: UserCheck },
-    { href: '/admin/transaction-logs', label: 'Transaction Logs', icon: FileText },
+    { href: '/admin/logs', label: 'Transaction Logs', icon: FileText },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/system-health', label: 'System Health', icon: Activity },
     { href: '/admin/support-tickets', label: 'Support Tickets', icon: LifeBuoy },
@@ -95,18 +102,33 @@ export default function MobileNav() {
               <>
                 <div className="my-2 border-t border-border" />
                 <p className="px-2 text-xs font-semibold text-muted-foreground">ADMIN</p>
-                {adminNavItems.map((item) => (
-                  <Link key={item.href} href={item.href}>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-3"
-                      onClick={() => setOpen(false)}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </Button>
-                  </Link>
-                ))}
+                {adminNavItems.map((item) => {
+                  // Show badge for Support Tickets and KYC Review
+                  let badgeCount = 0;
+                  if (item.href === '/admin/support-tickets' && badges?.pendingTickets) {
+                    badgeCount = badges.pendingTickets;
+                  } else if (item.href === '/admin/kyc-review' && badges?.pendingKyc) {
+                    badgeCount = badges.pendingKyc;
+                  }
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-3 relative"
+                        onClick={() => setOpen(false)}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span className="flex-1 text-left">{item.label}</span>
+                        {badgeCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                            {badgeCount > 99 ? '99+' : badgeCount}
+                          </span>
+                        )}
+                      </Button>
+                    </Link>
+                  );
+                })}
               </>
             )}
           </nav>

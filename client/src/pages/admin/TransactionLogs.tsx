@@ -112,6 +112,12 @@ export default function TransactionLogs() {
             <TabsContent value="all" className="space-y-6">
               {isLoading ? (
                 <div className="text-center text-slate-400 py-8">Loading...</div>
+              ) : !logs || ((!logs.deposits || logs.deposits.length === 0) && (!logs.withdrawals || logs.withdrawals.length === 0) && (!logs.trades || logs.trades.length === 0) && (!logs.logins || logs.logins.length === 0)) ? (
+                <div className="text-center text-slate-400 py-12">
+                  <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-semibold mb-2">No transactions found</p>
+                  <p className="text-sm">There are no transactions to display. Try adjusting your filters or check back later.</p>
+                </div>
               ) : (
                 <>
                   {logs?.deposits && logs.deposits.length > 0 && (
