@@ -585,6 +585,7 @@ export const appRouter = router({
       .input(z.object({
         planId: z.number().int().positive(),
         amount: z.string(),
+        autoCompound: z.boolean().optional().default(false),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -626,6 +627,7 @@ export const appRouter = router({
           amount: input.amount,
           rewards: "0",
           status: "active",
+          autoCompound: input.autoCompound,
           maturesAt,
         });
 
@@ -651,9 +653,13 @@ export const appRouter = router({
         }
 
         const now = new Date();
+        const isEarlyWithdrawal = position.maturesAt && now < position.maturesAt;
+        let penaltyAmount = 0;
 
-        if (position.maturesAt && now < position.maturesAt) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Position is still locked" });
+        // Allow early withdrawal for locked positions, but apply 5% penalty
+        if (isEarlyWithdrawal) {
+          const principal = parseFloat(position.amount);
+          penaltyAmount = principal * 0.05; // 5% penalty
         }
 
         const [plan] = await db.select().from(stakingPlans)
@@ -669,7 +675,8 @@ export const appRouter = router({
         const principal = parseFloat(position.amount);
         const apr = parseFloat(plan.apr);
         const reward = (principal * apr * daysPassed) / (365 * 100);
-        const total = principal + reward;
+        const amountAfterPenalty = principal - penaltyAmount;
+        const total = amountAfterPenalty + reward;
 
         await db.update(wallets)
           .set({ balance: sql`${wallets.balance} + ${total.toString()}` })
@@ -679,7 +686,24 @@ export const appRouter = router({
           .set({ status: "withdrawn", rewards: reward.toFixed(8), withdrawnAt: now })
           .where(eq(stakingPositions.id, input.positionId));
 
-        return { ok: true, reward: reward.toFixed(8) };
+        // Log penalty transaction if early withdrawal
+        if (penaltyAmount > 0) {
+          await db.insert(transactions).values({
+            userId: ctx.user.id,
+            type: "penalty",
+            asset: plan.asset,
+            amount: penaltyAmount.toFixed(8),
+            status: "completed",
+            createdAt: now,
+          });
+        }
+
+        return { 
+          ok: true, 
+          reward: reward.toFixed(8),
+          penalty: penaltyAmount > 0 ? penaltyAmount.toFixed(8) : undefined,
+          isEarlyWithdrawal 
+        };
       }),
 
     rewardsHistory: protectedProcedure

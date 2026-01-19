@@ -930,3 +930,38 @@
 - Statistics showing correctly: USDT Flexible has 1 participant, 100 USDT staked
 - Active position visible with accumulating rewards (+0.0005 USDT)
 - Chart component integrated (will populate after first rewards job run)
+
+
+## ⚠️ Early Withdrawal Penalty - Jan 19, 2026 15:15
+- [x] Add penalty calculation logic to unstake endpoint
+- [x] Check if position is locked and maturity date not reached
+- [x] Calculate 5% penalty on staked amount for early withdrawal
+- [x] Deduct penalty from amount returned to user
+- [x] Log penalty transaction for audit trail
+- [ ] Update UI to show warning before early withdrawal
+- [ ] Display penalty amount in confirmation dialog
+- [ ] Test penalty calculation with locked positions
+
+## 🔄 Auto-Compound Feature - Jan 19, 2026 15:15
+- [ ] Add autoCompound boolean field to stakingPositions table schema
+- [ ] Update stake creation dialog to include auto-compound toggle
+- [ ] Modify rewards distribution job to check autoCompound flag
+- [ ] If autoCompound=true, add rewards to staked amount instead of separate field
+- [ ] Update UI to show auto-compound status on active positions
+- [ ] Add toggle to enable/disable auto-compound on existing positions
+- [ ] Test auto-compound with rewards job
+- [ ] Deploy both features to production VPS
+
+
+## ⚠️ Early Withdrawal Penalty & Auto-Compound - Jan 19, 2026 15:30
+- [x] Add penalty type to transactions enum in schema
+- [x] Implement 5% penalty for early withdrawal from locked positions
+- [x] Add penalty transaction logging
+- [x] Add autoCompound field to stakingPositions table
+- [x] Add auto-compound toggle in stake creation dialog
+- [x] Update stake endpoint to accept autoCompound parameter
+- [x] Modify rewards job to handle auto-compounding (add to amount vs rewards)
+- [ ] Update UI to show auto-compound status badge on active positions
+- [ ] Test early withdrawal penalty with locked position
+- [ ] Test auto-compound rewards distribution (wait 24h for job)
+- [ ] Deploy to production VPS

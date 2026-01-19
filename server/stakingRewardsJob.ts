@@ -56,16 +56,36 @@ export async function distributeStakingRewards() {
         // Calculate daily reward: amount × (APR / 100) / 365
         const dailyReward = (stakedAmount * (apr / 100)) / 365;
 
-        // Update rewards by adding daily reward
-        const currentReward = parseFloat(position.rewards || "0");
-        const newReward = currentReward + dailyReward;
+        // Check if auto-compound is enabled
+        if (position.autoCompound) {
+          // Auto-compound: add reward to staked amount
+          const newAmount = stakedAmount + dailyReward;
+          await db
+            .update(stakingPositions)
+            .set({
+              amount: newAmount.toFixed(8),
+            })
+            .where(eq(stakingPositions.id, position.id));
+          
+          console.log(
+            `[StakingRewardsJob] Position ${position.id} (AUTO-COMPOUND): +${dailyReward.toFixed(8)} ${plan[0].asset} → new amount: ${newAmount.toFixed(8)}`
+          );
+        } else {
+          // Regular: accumulate rewards separately
+          const currentReward = parseFloat(position.rewards || "0");
+          const newReward = currentReward + dailyReward;
 
-        await db
-          .update(stakingPositions)
-          .set({
-            rewards: newReward.toFixed(8),
-          })
-          .where(eq(stakingPositions.id, position.id));
+          await db
+            .update(stakingPositions)
+            .set({
+              rewards: newReward.toFixed(8),
+            })
+            .where(eq(stakingPositions.id, position.id));
+          
+          console.log(
+            `[StakingRewardsJob] Position ${position.id}: +${dailyReward.toFixed(8)} ${plan[0].asset} (total rewards: ${newReward.toFixed(8)})`
+          );
+        }
 
         // Log reward distribution in history table
         await db.insert(stakingRewardsHistory).values({
@@ -74,10 +94,6 @@ export async function distributeStakingRewards() {
           amount: dailyReward.toFixed(8),
           asset: plan[0].asset,
         });
-
-        console.log(
-          `[StakingRewardsJob] Position ${position.id}: +${dailyReward.toFixed(8)} ${plan[0].asset} (total: ${newReward.toFixed(8)})`
-        );
 
         successCount++;
       } catch (error: any) {

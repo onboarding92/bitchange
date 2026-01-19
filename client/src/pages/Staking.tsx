@@ -13,6 +13,7 @@ import { StakingRewardsChart } from "@/components/StakingRewardsChart";
 export default function Staking() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [stakeAmount, setStakeAmount] = useState("");
+  const [autoCompound, setAutoCompound] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: plans } = trpc.staking.plans.useQuery();
@@ -48,6 +49,7 @@ export default function Staking() {
     stakeMutation.mutate({
       planId: selectedPlan.id,
       amount: stakeAmount,
+      autoCompound,
     });
   };
 
@@ -133,6 +135,16 @@ export default function Staking() {
                             onChange={(e) => setStakeAmount(e.target.value)}
                           />
                         </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="auto-compound">Auto-Compound Rewards</Label>
+                          <input
+                            id="auto-compound"
+                            type="checkbox"
+                            checked={autoCompound}
+                            onChange={(e) => setAutoCompound(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                        </div>
                         <div className="text-sm text-muted-foreground space-y-1">
                           <div>APR: {parseFloat(plan.apr).toFixed(2)}%</div>
                           <div>Lock Period: {plan.lockDays} days</div>
@@ -143,6 +155,7 @@ export default function Staking() {
                                 : `${((parseFloat(stakeAmount) * parseFloat(plan.apr) * plan.lockDays) / (365 * 100)).toFixed(4)} ${plan.asset}`
                             ) : "0"}
                           </div>
+                          {autoCompound && <div className="text-primary">✓ Rewards will be automatically reinvested</div>}
                         </div>
                         <Button
                           className="w-full"

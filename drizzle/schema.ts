@@ -48,7 +48,7 @@ export type Wallet = typeof wallets.$inferSelect;
 export const transactions = mysqlTable("transactions", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  type: mysqlEnum("type", ["deposit", "withdrawal", "trade", "staking_reward", "promo", "internal_transfer"]).notNull(),
+  type: mysqlEnum("type", ["deposit", "withdrawal", "trade", "staking_reward", "promo", "internal_transfer", "penalty"]).notNull(),
   asset: varchar("asset", { length: 20 }).notNull(),
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
   status: mysqlEnum("status", ["pending", "completed", "failed", "cancelled"]).default("pending").notNull(),
@@ -100,6 +100,7 @@ export const stakingPositions = mysqlTable("stakingPositions", {
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
   rewards: decimal("rewards", { precision: 20, scale: 8 }).default("0").notNull(),
   status: mysqlEnum("status", ["active", "withdrawn"]).default("active").notNull(),
+  autoCompound: boolean("autoCompound").default(false).notNull(),
   startedAt: timestamp("startedAt").defaultNow().notNull(),
   maturesAt: timestamp("maturesAt"),
   withdrawnAt: timestamp("withdrawnAt"),
