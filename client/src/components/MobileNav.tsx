@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Menu, X, Home, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield } from 'lucide-react';
+import { Menu, X, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield, Users, Wallet, Lock, UserCheck, FileText, BarChart3, Activity } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -16,7 +16,6 @@ export default function MobileNav() {
   }
 
   const navItems = [
-    { href: '/', label: 'Home', icon: Home },
     { href: '/dashboard', label: 'Dashboard', icon: TrendingUp },
     { href: '/convert', label: 'Convert', icon: Repeat },
     { href: '/trading', label: 'Trading', icon: TrendingUp },
@@ -29,8 +28,15 @@ export default function MobileNav() {
   ];
 
   const adminNavItems = [
-    { href: '/admin/support-tickets', label: 'Support Tickets', icon: LifeBuoy },
     { href: '/admin/panel', label: 'Admin Panel', icon: Shield },
+    { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/deposits', label: 'Deposit Management', icon: Wallet },
+    { href: '/admin/staking', label: 'Staking Management', icon: Lock },
+    { href: '/admin/kyc-review', label: 'KYC Review', icon: UserCheck },
+    { href: '/admin/transaction-logs', label: 'Transaction Logs', icon: FileText },
+    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/admin/system-health', label: 'System Health', icon: Activity },
+    { href: '/admin/support-tickets', label: 'Support Tickets', icon: LifeBuoy },
   ];
 
   return (

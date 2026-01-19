@@ -754,3 +754,18 @@
 - [ ] Sidebar navigation confusing - too many rollbacks causing inconsistency
 - [ ] User frustrated with repeated deployment failures
 - [ ] Need stable version that works consistently
+
+
+## Mobile Navigation Menu Issues - January 19, 2026
+
+### Missing Admin Links in Mobile Menu (MobileNav.tsx)
+- [x] Add Users link to mobile admin menu
+- [x] Add Deposit Management link to mobile admin menu
+- [x] Add Staking Management link to mobile admin menu
+- [x] Add KYC Review link to mobile admin menu
+- [x] Add Transaction Logs link to mobile admin menu
+- [x] Add Analytics link to mobile admin menu
+- [x] Add System Health link to mobile admin menu
+
+### UI Improvements
+- [x] Remove "Home" link from navigation for authenticated users (not needed when logged in)
