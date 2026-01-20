@@ -1,8 +1,7 @@
 import { eq, and, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2";
-import { users, wallets, supportTickets, kycDocuments, withdrawals } from "../drizzle/schema";
-import type { InsertUser } from "../drizzle/schema";
+import { InsertUser, users, wallets, supportTickets, kycDocuments } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { SUPPORTED_ASSETS } from "@shared/const";
 
@@ -96,23 +95,6 @@ export async function countPendingKyc(): Promise<number> {
     return Number(result[0]?.count || 0);
   } catch (error) {
     console.error("[countPendingKyc] Error:", error);
-    return 0;
-  }
-}
-
-export async function countPendingWithdrawals(): Promise<number> {
-  const db = await getDb();
-  if (!db) return 0;
-  
-  try {
-    const result = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(withdrawals)
-      .where(eq(withdrawals.status, "pending_approval"));
-    
-    return Number(result[0]?.count || 0);
-  } catch (error) {
-    console.error("[countPendingWithdrawals] Error:", error);
     return 0;
   }
 }

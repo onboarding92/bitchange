@@ -49,7 +49,6 @@ const menuItems = [
   { icon: Users, label: "Users", path: "/admin/users", adminOnly: true },
   { icon: Wallet, label: "Deposit Management", path: "/admin/deposits", adminOnly: true },
   { icon: CheckCircle, label: "Withdrawal Approval", path: "/admin/withdrawal-approval", adminOnly: true },
-  { icon: BarChart3, label: "Withdrawal Statistics", path: "/admin/withdrawal-statistics", adminOnly: true },
   { icon: Lock, label: "Staking Management", path: "/admin/staking", adminOnly: true },
   { icon: UserCheck, label: "KYC Review", path: "/admin/kyc-review", adminOnly: true },
   { icon: FileText, label: "Transaction Logs", path: "/admin/logs", adminOnly: true },
@@ -238,11 +237,6 @@ function DashboardLayoutContent({
                           {badges.pendingKyc > 99 ? "99+" : badges.pendingKyc}
                         </span>
                       )}
-                      {badges && item.path === "/admin/withdrawal-approval" && badges.pendingWithdrawals > 0 && (
-                        <span className="ml-auto inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
-                          {badges.pendingWithdrawals > 99 ? "99+" : badges.pendingWithdrawals}
-                        </span>
-                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -319,6 +313,7 @@ function DashboardLayoutContent({
       <SidebarInset>
         <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
           <div className="flex items-center gap-2">
+            <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
             {isMobile && (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1">

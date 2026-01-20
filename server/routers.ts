@@ -1888,7 +1888,7 @@ export const appRouter = router({
       const db = await getDb();
       if (!db) return { totalUsers: 0, pendingWithdrawals: 0, pendingKyc: 0 };
       const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
-      const [withdrawalCount] = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "pending_approval"));
+      const [withdrawalCount] = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "pending"));
       return { totalUsers: userCount?.count ?? 0, pendingWithdrawals: withdrawalCount?.count ?? 0, pendingKyc: 0 };
     }),
 
@@ -2904,94 +2904,6 @@ export const appRouter = router({
         }
 
         return { success: true };
-      }),
-
-    // Withdrawal Statistics
-    withdrawalStatistics: adminProcedure
-      .input(z.object({ period: z.enum(["today", "week", "month", "year", "all"]) }))
-      .query(async ({ input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-
-        // Calculate date range
-        const now = new Date();
-        let startDate: Date;
-        switch (input.period) {
-          case "today":
-            startDate = new Date(now.setHours(0, 0, 0, 0));
-            break;
-          case "week":
-            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case "month":
-            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-          case "year":
-            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-            break;
-          case "all":
-            startDate = new Date(0); // Unix epoch
-            break;
-        }
-
-        // Get all withdrawals in period
-        const allWithdrawals = await db.select().from(withdrawals)
-          .where(sql`${withdrawals.createdAt} >= ${startDate}`);
-
-        // Calculate status breakdown
-        const statusBreakdown = {
-          pending_approval: allWithdrawals.filter(w => w.status === "pending_approval").length,
-          completed: allWithdrawals.filter(w => w.status === "completed").length,
-          rejected: allWithdrawals.filter(w => w.status === "rejected").length,
-          failed: allWithdrawals.filter(w => w.status === "failed").length,
-        };
-
-        // Calculate total volume (USD equivalent - simplified, using amount as USD)
-        const totalVolume = allWithdrawals.reduce((sum, w) => sum + parseFloat(w.amount), 0);
-
-        // Calculate average processing time (hours)
-        const completedWithApproval = allWithdrawals.filter(w => 
-          w.status === "completed" && w.approvedAt && w.createdAt
-        );
-        const avgProcessingTime = completedWithApproval.length > 0
-          ? (completedWithApproval.reduce((sum, w) => {
-              const created = new Date(w.createdAt).getTime();
-              const approved = new Date(w.approvedAt!).getTime();
-              return sum + (approved - created) / (1000 * 60 * 60); // Convert to hours
-            }, 0) / completedWithApproval.length).toFixed(1)
-          : "0.0";
-
-        // Top assets
-        const assetCounts = allWithdrawals.reduce((acc, w) => {
-          acc[w.asset] = (acc[w.asset] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-        const topAssets = Object.entries(assetCounts)
-          .map(([asset, count]) => ({ asset, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
-
-        // Daily trend (last 30 days or less depending on period)
-        const daysToShow = input.period === "today" ? 1 : input.period === "week" ? 7 : input.period === "month" ? 30 : 30;
-        const dailyTrend: { date: string; count: number }[] = [];
-        for (let i = daysToShow - 1; i >= 0; i--) {
-          const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-          const dateStr = date.toISOString().split('T')[0];
-          const count = allWithdrawals.filter(w => {
-            const wDate = new Date(w.createdAt).toISOString().split('T')[0];
-            return wDate === dateStr;
-          }).length;
-          dailyTrend.push({ date: dateStr, count });
-        }
-
-        return {
-          totalWithdrawals: allWithdrawals.length,
-          totalVolume,
-          statusBreakdown,
-          avgProcessingTime,
-          topAssets,
-          dailyTrend: input.period === "all" ? [] : dailyTrend,
-        };
       }),
   }),
 
