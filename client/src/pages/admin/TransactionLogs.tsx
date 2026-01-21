@@ -57,8 +57,11 @@ export default function TransactionLogs() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">Transaction Logs</h1>
+            <FileText className="w-8 h-8 text-blue-600" />
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Transaction Logs</h1>
+              <p className="text-muted-foreground mt-1">Monitor and audit all platform transactions</p>
+            </div>
           </div>
           <Button
             onClick={() => refetch()}

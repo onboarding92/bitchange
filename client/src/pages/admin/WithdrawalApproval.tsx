@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle, XCircle, Clock, AlertCircle, Banknote } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -84,11 +84,16 @@ export default function WithdrawalApproval() {
 
   return (
     <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Withdrawal Approval</h1>
-        <p className="text-muted-foreground mt-2">
-          Review and approve pending withdrawal requests
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Banknote className="w-8 h-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Withdrawal Approval</h1>
+            <p className="text-muted-foreground mt-1">
+              Review and approve pending withdrawal requests
+            </p>
+          </div>
+        </div>
       </div>
 
       <Card className="p-6">

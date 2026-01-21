@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Textarea } from "../../components/ui/textarea";
-import { CheckCircle, XCircle, Eye, Clock, FileText } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Clock, FileText, ShieldCheck } from "lucide-react";
 
 export default function KYCReview() {
   const { data: pendingKYCs, isLoading, refetch } = trpc.kyc.getPending.useQuery();
@@ -57,11 +57,16 @@ export default function KYCReview() {
 
   return (
     <div className="container py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">KYC Review</h1>
-        <p className="text-muted-foreground mt-2">
-          Review and approve/reject user KYC submissions
-        </p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="w-8 h-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">KYC Review</h1>
+            <p className="text-muted-foreground mt-1">
+              Review and approve/reject user KYC submissions
+            </p>
+          </div>
+        </div>
       </div>
 
       {!pendingKYCs || pendingKYCs.length === 0 ? (

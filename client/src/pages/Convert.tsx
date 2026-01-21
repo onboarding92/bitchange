@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { ArrowDownUp, TrendingUp, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { ArrowDownUp, TrendingUp, Clock, AlertCircle, CheckCircle, Repeat } from 'lucide-react';
 import { toast } from 'sonner';
 import MobileNav from '../components/MobileNav';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
@@ -134,10 +134,15 @@ export default function Convert() {
     <>
       <MobileNav />
       <div className="container mx-auto py-8 space-y-6 pt-20 md:pt-8">
-      <div>
-        <h1 className="text-3xl font-bold">Convert Crypto</h1>
-        <p className="text-muted-foreground">Instantly convert between cryptocurrencies</p>
-      </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Repeat className="w-8 h-8 text-blue-600" />
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Convert Crypto</h1>
+              <p className="text-muted-foreground mt-1">Instantly convert between cryptocurrencies</p>
+            </div>
+          </div>
+        </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Conversion Form */}

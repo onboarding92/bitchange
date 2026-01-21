@@ -7,7 +7,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { MessageSquare, Clock, User, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { MessageSquare, Clock, User, AlertCircle, CheckCircle, XCircle, HeadphonesIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SupportTickets() {
@@ -97,9 +97,12 @@ export default function SupportTickets() {
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Support Tickets</h1>
-          <p className="text-muted-foreground">Manage and respond to user support requests</p>
+        <div className="flex items-center gap-3">
+          <HeadphonesIcon className="w-8 h-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Support Tickets</h1>
+            <p className="text-muted-foreground mt-1">Manage and respond to user support requests</p>
+          </div>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
