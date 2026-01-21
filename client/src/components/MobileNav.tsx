@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Menu, X, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield, Users, Wallet, Lock, UserCheck, FileText, BarChart3, Activity, CheckCircle } from 'lucide-react';
+import { Menu, X, TrendingUp, Repeat, CreditCard, ArrowUpCircle, ArrowDownCircle, Bell, User, LifeBuoy, Shield, Users, Wallet, Lock, UserCheck, FileText, BarChart3, Activity, CheckCircle, Gift } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -17,9 +17,9 @@ export default function MobileNav() {
     retry: false,
   });
 
-  // Hide navigation on auth pages (login, register, forgot password, etc.)
+  // Hide navigation on auth pages and when not logged in
   const isAuthPage = location.startsWith('/auth/');
-  if (isAuthPage) {
+  if (isAuthPage || !user) {
     return null;
   }
 
@@ -32,6 +32,7 @@ export default function MobileNav() {
     { href: '/staking', label: 'Staking', icon: CreditCard },
     { href: '/alerts', label: 'Price Alerts', icon: Bell },
     { href: '/portfolio', label: 'Portfolio', icon: User },
+    { href: '/referrals', label: 'Referrals', icon: Gift },
     { href: '/support', label: 'Support', icon: LifeBuoy },
   ];
 
@@ -75,7 +76,7 @@ export default function MobileNav() {
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex flex-col gap-4 p-6 mt-16 overflow-y-auto h-full">
+        <div className="flex flex-col gap-4 p-6 mt-16 overflow-y-auto h-full pb-24">
           <div className="flex items-center gap-2 px-2 mb-4">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold">BC</span>

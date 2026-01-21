@@ -1021,3 +1021,14 @@
 - [x] Fix schema inconsistencies (removed txHash, adminNotes, completedAt, processedAt)
 - [x] Update routers.ts and withdrawalProcessor.ts to match schema
 - [ ] Deploy to production VPS (188.245.99.239)
+
+
+## 🔧 MENU & REFERRALS FIXES - January 20, 2026 (20:50 GMT+1)
+
+### User Report: Hamburger menu still has issues + Referrals button missing
+- [x] Fix mobile hamburger menu scroll (added pb-24 padding)
+- [x] Fix desktop hamburger menu duplicates (CheckCircle import fixed)
+- [x] Remove hamburger menu from landing page (hide when !user)
+- [x] Restore missing Referrals button in menu (added to MobileNav)
+- [x] Deploy all fixes to VPS (image: 6a9c34264)
+- [x] Test complete flow (HTTP 200, container healthy)
