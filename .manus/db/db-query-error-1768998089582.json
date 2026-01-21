@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE `notifications` MODIFY COLUMN `type` ENUM('deposit', 'withdrawal', 'kyc', 'trade', 'system', 'staking') NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute ALTER TABLE `notifications` MODIFY COLUMN `type` ENUM('deposit', 'withdrawal', 'kyc', 'trade', 'system', 'staking') NOT NULL;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'fenodfte3iisma7tn3husz.notifications' doesn't exist"
+  ]
+}

@@ -11,6 +11,7 @@ import { Lock, TrendingUp, Clock, Coins, Filter } from "lucide-react";
 import { StakingRewardsChart } from "@/components/StakingRewardsChart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StakingCalculator } from "@/components/StakingCalculator";
+import { AprHistoryChart } from "@/components/AprHistoryChart";
 
 export default function Staking() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -102,7 +103,10 @@ export default function Staking() {
 
         {/* Staking Calculator */}
         {plans && plans.length > 0 && (
-          <StakingCalculator plans={plans} />
+          <>
+            <StakingCalculator plans={plans} />
+            <AprHistoryChart assets={Array.from(new Set(plans.map(p => p.asset)))} />
+          </>
         )}
 
         {/* Available Plans */}

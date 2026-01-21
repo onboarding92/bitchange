@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `stakingAprHistory` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `planId` int NOT NULL,\n  `asset` varchar(20) NOT NULL,\n  `apr` decimal(5, 2) NOT NULL,\n  `recordedAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `stakingAprHistory_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute CREATE TABLE IF NOT EXISTS `stakingAprHistory` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `planId` int NOT NULL,\n  `asset` varchar(20) NOT NULL,\n  `apr` decimal(5, 2) NOT NULL,\n  `recordedAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `stakingAprHistory_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 525
+}

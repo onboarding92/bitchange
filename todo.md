@@ -1086,3 +1086,25 @@
 - [x] Fix button "X" overlapping page title "Staking" at top (moved to top-right corner)
 - [x] Fix navigation bar not fully scrollable - last items (Analytics, System Health) cut off (increased pb to pb-40)
 - [x] Increase bottom padding beyond pb-32 (current fix insufficient) (now pb-40)
+
+
+## 🚀 Advanced Staking Features - Jan 21, 2026
+
+### Calculator Enhancements
+- [x] Add auto-compound toggle to calculator
+- [x] Show comparison between simple and compound interest
+- [x] Display compound frequency options (daily, weekly, monthly)
+
+### Historical Data & Analytics
+- [x] Create stakingHistory table in database (stakingAprHistory)
+- [x] Implement APR history tracking system (aprTrackingJob.ts)
+- [x] Build line chart component for APR trends (AprHistoryChart.tsx)
+- [x] Add chart to staking page showing historical APR by asset
+
+### Notification System
+- [x] Create stakingNotifications table (using existing notifications table with 'staking' type)
+- [x] Implement notification preferences system (email-based with cooldown)
+- [x] Add cron job for position maturity notifications (stakingNotificationJob.ts)
+- [x] Add cron job for reward credit notifications (large rewards alert)
+- [x] Add cron job for high-APR opportunity alerts (APR > 15%)
+- [ ] Create notification settings page (future enhancement)

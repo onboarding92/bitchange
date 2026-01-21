@@ -253,7 +253,7 @@ export const passwordHistory = mysqlTable("passwordHistory", {
 export const notifications = mysqlTable("notifications", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  type: mysqlEnum("type", ["deposit", "withdrawal", "kyc", "trade", "system"]).notNull(),
+  type: mysqlEnum("type", ["deposit", "withdrawal", "kyc", "trade", "system", "staking"]).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
   isRead: boolean("isRead").default(false).notNull(),
@@ -626,3 +626,14 @@ export const stakingRewardsHistory = mysqlTable("stakingRewardsHistory", {
 
 export type StakingRewardsHistory = typeof stakingRewardsHistory.$inferSelect;
 export type InsertStakingRewardsHistory = typeof stakingRewardsHistory.$inferInsert;
+
+export const stakingAprHistory = mysqlTable("stakingAprHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  planId: int("planId").notNull(),
+  asset: varchar("asset", { length: 20 }).notNull(),
+  apr: decimal("apr", { precision: 5, scale: 2 }).notNull(),
+  recordedAt: timestamp("recordedAt").defaultNow().notNull(),
+});
+
+export type StakingAprHistory = typeof stakingAprHistory.$inferSelect;
+export type InsertStakingAprHistory = typeof stakingAprHistory.$inferInsert;

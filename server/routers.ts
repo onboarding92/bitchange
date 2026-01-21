@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices, conversions, stakingRewardsHistory } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices, conversions, stakingRewardsHistory, stakingAprHistory } from "../drizzle/schema";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -725,6 +725,31 @@ export const appRouter = router({
         const history = await db.select().from(stakingRewardsHistory)
           .where(eq(stakingRewardsHistory.positionId, input.positionId))
           .orderBy(stakingRewardsHistory.distributedAt);
+
+        return history;
+      }),
+
+    aprHistory: publicProcedure
+      .input(z.object({ 
+        asset: z.string().optional(),
+        days: z.number().int().positive().default(30),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - input.days);
+
+        const conditions = [gte(stakingAprHistory.recordedAt, cutoffDate)];
+        if (input.asset) {
+          conditions.push(eq(stakingAprHistory.asset, input.asset));
+        }
+
+        const history = await db.select()
+          .from(stakingAprHistory)
+          .where(and(...conditions))
+          .orderBy(stakingAprHistory.recordedAt);
 
         return history;
       }),

@@ -104,6 +104,16 @@ async function startServer() {
           import("../stakingRewardsJob").then(({ startStakingRewardsJob }) => {
             startStakingRewardsJob();
           }).catch(console.error);
+          
+          // Start APR tracking job
+          import("../aprTrackingJob").then(({ startAprTrackingJob }) => {
+            startAprTrackingJob();
+          }).catch(console.error);
+          
+          // Start staking notification job
+          import("../stakingNotificationJob").then(({ startStakingNotificationJob }) => {
+            startStakingNotificationJob();
+          }).catch(console.error);
         }
       });
     }).catch(console.error);
