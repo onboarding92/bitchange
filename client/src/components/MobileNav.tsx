@@ -51,12 +51,12 @@ export default function MobileNav() {
 
   return (
     <>
-      {/* Hamburger Button */}
+      {/* Hamburger Button - Only visible on mobile */}
       <Button
         variant="ghost"
         size="icon"
         onClick={() => setOpen(!open)}
-        className="fixed top-4 left-4 z-[100] bg-background/80 backdrop-blur-sm border border-border hover:bg-accent"
+        className="md:hidden fixed top-4 left-4 z-[100] bg-background/80 backdrop-blur-sm border border-border hover:bg-accent"
         aria-label="Toggle navigation menu"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -70,9 +70,9 @@ export default function MobileNav() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Only visible on mobile */}
       <div
-        className={`fixed top-0 left-0 h-full w-[280px] bg-background border-r border-border z-40 transform transition-transform duration-300 ${
+        className={`md:hidden fixed top-0 left-0 h-full w-[280px] bg-background border-r border-border z-40 transform transition-transform duration-300 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

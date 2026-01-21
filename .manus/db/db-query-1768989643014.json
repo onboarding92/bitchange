@@ -1,0 +1,190 @@
+{
+  "query": "SELECT * FROM stakingPlans;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SELECT * FROM stakingPlans;",
+  "rows": [
+    {
+      "id": "1",
+      "asset": "BTC",
+      "name": "Bitcoin Flexible",
+      "apr": "5.00",
+      "lockDays": "0",
+      "minAmount": "0.00100000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "2",
+      "asset": "BTC",
+      "name": "Bitcoin 30 Days",
+      "apr": "8.00",
+      "lockDays": "30",
+      "minAmount": "0.00100000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "3",
+      "asset": "BTC",
+      "name": "Bitcoin 90 Days",
+      "apr": "12.00",
+      "lockDays": "90",
+      "minAmount": "0.00100000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "4",
+      "asset": "ETH",
+      "name": "Ethereum Flexible",
+      "apr": "6.00",
+      "lockDays": "0",
+      "minAmount": "0.01000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "5",
+      "asset": "ETH",
+      "name": "Ethereum 30 Days",
+      "apr": "10.00",
+      "lockDays": "30",
+      "minAmount": "0.01000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "6",
+      "asset": "ETH",
+      "name": "Ethereum 90 Days",
+      "apr": "15.00",
+      "lockDays": "90",
+      "minAmount": "0.01000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "7",
+      "asset": "USDT",
+      "name": "USDT Flexible",
+      "apr": "4.00",
+      "lockDays": "0",
+      "minAmount": "100.00000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "8",
+      "asset": "USDT",
+      "name": "USDT 30 Days",
+      "apr": "7.00",
+      "lockDays": "30",
+      "minAmount": "100.00000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "9",
+      "asset": "USDT",
+      "name": "USDT 90 Days",
+      "apr": "10.00",
+      "lockDays": "90",
+      "minAmount": "100.00000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:08"
+    },
+    {
+      "id": "10",
+      "asset": "BTC",
+      "name": "Bitcoin Flexible",
+      "apr": "5.00",
+      "lockDays": "0",
+      "minAmount": "0.00100000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "11",
+      "asset": "BTC",
+      "name": "Bitcoin 30 Days",
+      "apr": "8.00",
+      "lockDays": "30",
+      "minAmount": "0.00100000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "12",
+      "asset": "BTC",
+      "name": "Bitcoin 90 Days",
+      "apr": "12.00",
+      "lockDays": "90",
+      "minAmount": "0.00100000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "13",
+      "asset": "ETH",
+      "name": "Ethereum Flexible",
+      "apr": "6.00",
+      "lockDays": "0",
+      "minAmount": "0.01000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "14",
+      "asset": "ETH",
+      "name": "Ethereum 30 Days",
+      "apr": "10.00",
+      "lockDays": "30",
+      "minAmount": "0.01000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "15",
+      "asset": "ETH",
+      "name": "Ethereum 90 Days",
+      "apr": "15.00",
+      "lockDays": "90",
+      "minAmount": "0.01000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "16",
+      "asset": "USDT",
+      "name": "USDT Flexible",
+      "apr": "4.00",
+      "lockDays": "0",
+      "minAmount": "100.00000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "17",
+      "asset": "USDT",
+      "name": "USDT 30 Days",
+      "apr": "7.00",
+      "lockDays": "30",
+      "minAmount": "100.00000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    },
+    {
+      "id": "18",
+      "asset": "USDT",
+      "name": "USDT 90 Days",
+      "apr": "10.00",
+      "lockDays": "90",
+      "minAmount": "100.00000000",
+      "enabled": "1",
+      "createdAt": "2025-12-17 12:44:15"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tasset\tname\tapr\tlockDays\tminAmount\tenabled\tcreatedAt\n1\tBTC\tBitcoin Flexible\t5.00\t0\t0.00100000\t1\t2025-12-17 12:44:08\n2\tBTC\tBitcoin 30 Days\t8.00\t30\t0.00100000\t1\t2025-12-17 12:44:08\n3\tBTC\tBitcoin 90 Days\t12.00\t90\t0.00100000\t1\t2025-12-17 12:44:08\n4\tETH\tEthereum Flexible\t6.00\t0\t0.01000000\t1\t2025-12-17 12:44:08\n5\tETH\tEthereum 30 Days\t10.00\t30\t0.01000000\t1\t2025-12-17 12:44:08\n6\tETH\tEthereum 90 Days\t15.00\t90\t0.01000000\t1\t2025-12-17 12:44:08\n7\tUSDT\tUSDT Flexible\t4.00\t0\t100.00000000\t1\t2025-12-17 12:44:08\n8\tUSDT\tUSDT 30 Days\t7.00\t30\t100.00000000\t1\t2025-12-17 12:44:08\n9\tUSDT\tUSDT 90 Days\t10.00\t90\t100.00000000\t1\t2025-12-17 12:44:08\n10\tBTC\tBitcoin Flexible\t5.00\t0\t0.00100000\t1\t2025-12-17 12:44:15\n11\tBTC\tBitcoin 30 Days\t8.00\t30\t0.00100000\t1\t2025-12-17 12:44:15\n12\tBTC\tBitcoin 90 Days\t12.00\t90\t0.00100000\t1\t2025-12-17 12:44:15\n13\tETH\tEthereum Flexible\t6.00\t0\t0.01000000\t1\t2025-12-17 12:44:15\n14\tETH\tEthereum 30 Days\t10.00\t30\t0.01000000\t1\t2025-12-17 12:44:15\n15\tETH\tEthereum 90 Days\t15.00\t90\t0.01000000\t1\t2025-12-17 12:44:15\n16\tUSDT\tUSDT Flexible\t4.00\t0\t100.00000000\t1\t2025-12-17 12:44:15\n17\tUSDT\tUSDT 30 Days\t7.00\t30\t100.00000000\t1\t2025-12-17 12:44:15\n18\tUSDT\tUSDT 90 Days\t10.00\t90\t100.00000000\t1\t2025-12-17 12:44:15\n",
+  "stderr": "",
+  "execution_time_ms": 373
+}

@@ -1032,3 +1032,22 @@
 - [x] Restore missing Referrals button in menu (added to MobileNav)
 - [x] Deploy all fixes to VPS (image: 6a9c34264)
 - [x] Test complete flow (HTTP 200, container healthy)
+
+
+## 🔍 STAKING PLANS MISSING - January 21, 2026 (10:00 GMT+1)
+
+### User Report: All staking plans disappeared
+- [x] Check stakingPlans table in database (18 plans found)
+- [x] Verify if plans were deleted or if it's a display issue (enabled = 0)
+- [x] Restore staking plans if deleted (UPDATE stakingPlans SET enabled = 1)
+- [x] Applied fix to production VPS
+- [x] Verify staking functionality (plans should now be visible)
+
+
+## 🖥️ DESKTOP MENU OVERLAY - January 21, 2026 (10:15 GMT+1)
+
+### User Report: Desktop shows MobileNav + Sidebar + extra button (3 overlapping menus)
+- [x] Hide MobileNav on desktop screens (added md:hidden to button and sidebar)
+- [x] Verified only desktop sidebar shows on large screens
+- [x] Deploy to VPS (image: 5db83d4bbaa4, container healthy)
+- [x] Staking plans enabled (18 plans with enabled=1)
