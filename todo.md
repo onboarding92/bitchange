@@ -1065,3 +1065,24 @@
 - [ ] Verify staking plans are visible
 - [ ] Verify desktop has only one sidebar button
 - [ ] Verify mobile sidebar scrolls to bottom
+
+
+## 🔧 UI FIXES & STAKING ENHANCEMENTS - Jan 21, 2026
+
+### UI Fixes (Deployment Issue)
+- [ ] Rebuild Docker without cache to apply UI changes (duplicate button removal, mobile padding)
+- [ ] Verify duplicate SidebarTrigger removed from desktop
+- [ ] Verify mobile sidebar padding increased to pb-32
+
+### Staking Enhancements
+- [x] Add staking plan filters by asset type (BTC, ETH, USDT, BNB, SOL)
+- [x] Add staking plan filters by lock period (Flexible, 30D, 90D)
+- [x] Implement staking rewards calculator with preview
+- [x] Create dashboard staking summary widget (total staked, active positions, pending rewards)
+
+## 🚨 CRITICAL Mobile UI Issues - Jan 21, 2026
+
+### Mobile Navigation Problems
+- [x] Fix button "X" overlapping page title "Staking" at top (moved to top-right corner)
+- [x] Fix navigation bar not fully scrollable - last items (Analytics, System Health) cut off (increased pb to pb-40)
+- [x] Increase bottom padding beyond pb-32 (current fix insufficient) (now pb-40)

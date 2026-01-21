@@ -6,6 +6,7 @@ import { Wallet, TrendingUp, Lock, ArrowDownRight } from "lucide-react";
 import { Link } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ASSET_NAMES } from "@shared/const";
+import { StakingSummaryWidget } from "@/components/StakingSummaryWidget";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -22,7 +23,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Here's your portfolio overview</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-4 animate-in fade-in duration-500">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 animate-in fade-in duration-500">
           <Card className="glass border-primary/20 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground">Total Balance</CardTitle>
@@ -45,6 +46,11 @@ export default function Dashboard() {
               <div className="text-2xl font-bold capitalize">{user?.kycStatus || "Pending"}</div>
             </CardContent>
           </Card>
+          
+          {/* Staking Summary Widget */}
+          <div className="md:col-span-2">
+            <StakingSummaryWidget />
+          </div>
         </div>
 
         <Card className="glass hover:shadow-lg transition-shadow duration-300">

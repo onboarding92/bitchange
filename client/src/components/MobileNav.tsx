@@ -56,7 +56,7 @@ export default function MobileNav() {
         variant="ghost"
         size="icon"
         onClick={() => setOpen(!open)}
-        className="md:hidden fixed top-4 left-4 z-[100] bg-background/80 backdrop-blur-sm border border-border hover:bg-accent"
+        className="md:hidden fixed top-3 right-3 z-[100] bg-background/80 backdrop-blur-sm border border-border hover:bg-accent shadow-lg"
         aria-label="Toggle navigation menu"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -76,7 +76,7 @@ export default function MobileNav() {
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex flex-col gap-4 p-6 mt-16 overflow-y-auto h-full pb-32">
+        <div className="flex flex-col gap-4 p-6 pt-4 overflow-y-auto h-full pb-40">
           <div className="flex items-center gap-2 px-2 mb-4">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold">BC</span>

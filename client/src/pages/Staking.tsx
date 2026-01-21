@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +7,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Lock, TrendingUp, Clock, Coins } from "lucide-react";
+import { Lock, TrendingUp, Clock, Coins, Filter } from "lucide-react";
 import { StakingRewardsChart } from "@/components/StakingRewardsChart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { StakingCalculator } from "@/components/StakingCalculator";
 
 export default function Staking() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [stakeAmount, setStakeAmount] = useState("");
   const [autoCompound, setAutoCompound] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [filterAsset, setFilterAsset] = useState<string>("all");
+  const [filterLockPeriod, setFilterLockPeriod] = useState<string>("all");
 
   const { data: plans } = trpc.staking.plans.useQuery();
   const { data: positions, refetch: refetchPositions } = trpc.staking.myPositions.useQuery();
@@ -56,6 +60,29 @@ export default function Staking() {
   const activePositions = positions?.filter(p => p.status === "active") || [];
   const completedPositions = positions?.filter(p => p.status === "withdrawn") || [];
 
+  // Extract unique assets and lock periods from plans
+  const availableAssets = useMemo(() => {
+    if (!plans) return [];
+    const assets = [...new Set(plans.map(p => p.asset))];
+    return assets.sort();
+  }, [plans]);
+
+  const availableLockPeriods = useMemo(() => {
+    if (!plans) return [];
+    const periods = [...new Set(plans.map(p => p.lockDays))];
+    return periods.sort((a, b) => a - b);
+  }, [plans]);
+
+  // Filter plans based on selected filters
+  const filteredPlans = useMemo(() => {
+    if (!plans) return [];
+    return plans.filter(plan => {
+      const assetMatch = filterAsset === "all" || plan.asset === filterAsset;
+      const lockMatch = filterLockPeriod === "all" || plan.lockDays.toString() === filterLockPeriod;
+      return assetMatch && lockMatch;
+    });
+  }, [plans, filterAsset, filterLockPeriod]);
+
   const calculateReward = (position: any, plan: any) => {
     const now = new Date();
     const started = new Date(position.startedAt);
@@ -73,11 +100,61 @@ export default function Staking() {
           <p className="text-muted-foreground">Earn passive income by staking your crypto</p>
         </div>
 
+        {/* Staking Calculator */}
+        {plans && plans.length > 0 && (
+          <StakingCalculator plans={plans} />
+        )}
+
         {/* Available Plans */}
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Available Plans</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold">Available Plans</h2>
+            <div className="flex items-center gap-3">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={filterAsset} onValueChange={setFilterAsset}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Asset" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assets</SelectItem>
+                  {availableAssets.map(asset => (
+                    <SelectItem key={asset} value={asset}>{asset}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterLockPeriod} onValueChange={setFilterLockPeriod}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Lock Period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Periods</SelectItem>
+                  {availableLockPeriods.map(days => (
+                    <SelectItem key={days} value={days.toString()}>
+                      {days === 0 ? "Flexible" : `${days} Days`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {(filterAsset !== "all" || filterLockPeriod !== "all") && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setFilterAsset("all");
+                    setFilterLockPeriod("all");
+                  }}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {plans?.map((plan) => (
+            {filteredPlans.length === 0 ? (
+              <div className="col-span-3 text-center py-12 text-muted-foreground">
+                No staking plans match your filters. Try adjusting your selection.
+              </div>
+            ) : filteredPlans.map((plan) => (
               <Card key={plan.id} className="glass border-primary/20 hover:border-primary/40 transition-all">
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">
@@ -171,6 +248,11 @@ export default function Staking() {
               </Card>
             ))}
           </div>
+          {filteredPlans.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-4">
+              Showing {filteredPlans.length} of {plans?.length || 0} plans
+            </p>
+          )}
         </div>
 
         {/* Active Positions */}
