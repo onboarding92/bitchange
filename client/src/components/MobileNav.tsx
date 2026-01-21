@@ -76,7 +76,7 @@ export default function MobileNav() {
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex flex-col gap-4 p-6 mt-16 overflow-y-auto h-full pb-24">
+        <div className="flex flex-col gap-4 p-6 mt-16 overflow-y-auto h-full pb-32">
           <div className="flex items-center gap-2 px-2 mb-4">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold">BC</span>

@@ -1051,3 +1051,17 @@
 - [x] Verified only desktop sidebar shows on large screens
 - [x] Deploy to VPS (image: 5db83d4bbaa4, container healthy)
 - [x] Staking plans enabled (18 plans with enabled=1)
+
+
+## 🐛 REMAINING ISSUES - January 21, 2026 (10:20 GMT+1)
+
+### User Report: Staking not visible, desktop duplicate buttons, mobile sidebar too long
+- [ ] Investigate why staking plans don't show despite enabled=1 in database
+- [ ] Check if staking endpoint is filtering correctly
+- [ ] Test staking page locally to see error messages
+- [ ] Remove duplicate desktop sidebar buttons (find and remove extra SidebarTrigger)
+- [ ] Increase mobile sidebar padding bottom (change from pb-24 to pb-32 or more)
+- [ ] Deploy all fixes to VPS
+- [ ] Verify staking plans are visible
+- [ ] Verify desktop has only one sidebar button
+- [ ] Verify mobile sidebar scrolls to bottom
