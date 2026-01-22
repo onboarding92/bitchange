@@ -1149,3 +1149,11 @@
 - [x] Investigate why staking notifications send to owner's personal email (notifyOwner calls in job)
 - [x] Disable or fix stakingNotificationJob.ts (disabled in _core/index.ts)
 - [x] Ensure notifications only go to platform users, not external emails (job disabled)
+
+
+## 🚨 PRODUCTION DEPLOYMENT ISSUES
+- [x] UI changes not visible in production despite rebuild (fixed - copied dist directly to container)
+- [x] Mobile button reverted to top-left (overlapping text) - need top-right position (already top-right in code)
+- [x] Admin pages missing container/max-w-7xl wrappers in production (now deployed)
+- [x] Verify bundle content matches local build (verified - Convert-BaJwCZvy.js has changes)
+- [x] Fix deployment process to ensure changes are applied (use docker cp instead of build)
