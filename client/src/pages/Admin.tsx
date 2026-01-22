@@ -284,14 +284,14 @@ export default function Admin() {
                 <div>
                   <p className="text-sm font-medium mb-2">Front Side</p>
                   <div className="border rounded-lg p-4 bg-muted">
-                    <img src={selectedKyc.frontImageUrl} alt="Front" className="w-full" />
+                    <img src={selectedKyc.frontImageUrl} alt="Front" className="w-full" loading="lazy" />
                   </div>
                 </div>
                 {selectedKyc.backImageUrl && (
                   <div>
                     <p className="text-sm font-medium mb-2">Back Side</p>
                     <div className="border rounded-lg p-4 bg-muted">
-                      <img src={selectedKyc.backImageUrl} alt="Back" className="w-full" />
+                      <img src={selectedKyc.backImageUrl} alt="Back" className="w-full" loading="lazy" />
                     </div>
                   </div>
                 )}

@@ -1895,6 +1895,38 @@ export const appRouter = router({
       .groupBy(sql`DATE(${trades.createdAt})`)
       .orderBy(sql`DATE(${trades.createdAt})`);
 
+      // Deposit trends (based on selected time range)
+      const depositTrends = await db.select({
+        date: sql<string>`DATE(${deposits.createdAt})`,
+        count: sql<number>`count(*)`,
+        amount: sql<string>`COALESCE(SUM(CAST(${deposits.amount} AS DECIMAL(20,8))), 0)`
+      })
+      .from(deposits)
+      .where(sql`${deposits.createdAt} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY) AND ${deposits.status} = 'completed'`)
+      .groupBy(sql`DATE(${deposits.createdAt})`)
+      .orderBy(sql`DATE(${deposits.createdAt})`);
+
+      // Withdrawal trends (based on selected time range)
+      const withdrawalTrends = await db.select({
+        date: sql<string>`DATE(${withdrawals.createdAt})`,
+        count: sql<number>`count(*)`,
+        amount: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS DECIMAL(20,8))), 0)`
+      })
+      .from(withdrawals)
+      .where(sql`${withdrawals.createdAt} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY) AND ${withdrawals.status} = 'completed'`)
+      .groupBy(sql`DATE(${withdrawals.createdAt})`)
+      .orderBy(sql`DATE(${withdrawals.createdAt})`);
+
+      // Active users by day
+      const activeUsersByDay = await db.select({
+        date: sql<string>`DATE(${users.lastSignedIn})`,
+        count: sql<number>`count(*)`
+      })
+      .from(users)
+      .where(sql`${users.lastSignedIn} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY)`)
+      .groupBy(sql`DATE(${users.lastSignedIn})`)
+      .orderBy(sql`DATE(${users.lastSignedIn})`);
+
       return {
         totalUsers: userCount?.count ?? 0,
         activeUsers: activeCount?.count ?? 0,
@@ -1906,6 +1938,9 @@ export const appRouter = router({
         totalRevenue: "0", // Calculate from fees
         userGrowth: userGrowthData,
         volumeChart: volumeData,
+        depositTrends,
+        withdrawalTrends,
+        activeUsersByDay,
       };
       }),
 
@@ -2274,6 +2309,12 @@ export const appRouter = router({
         type: z.enum(["all", "deposits", "withdrawals", "trades", "logins"]).optional(),
         userId: z.number().optional(),
         limit: z.number().default(100),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+        amountMin: z.number().optional(),
+        amountMax: z.number().optional(),
+        asset: z.string().optional(),
+        status: z.string().optional(),
       }))
       .query(async ({ input }) => {
         const db = await getDb();

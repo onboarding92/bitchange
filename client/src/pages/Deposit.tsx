@@ -198,7 +198,7 @@ export default function Deposit() {
                   </div>
                   {qrCodeUrl && (
                     <div className="flex justify-center pt-4">
-                      <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 rounded-lg" />
+                      <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 rounded-lg" loading="lazy" />
                     </div>
                   )}
                 </div>

@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, Clock, Shield, DollarSign, Activity, Calendar } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Users, TrendingUp, Clock, Shield, DollarSign, Activity, Calendar, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart, ComposedChart } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -122,6 +122,18 @@ export default function AdminAnalytics() {
     },
   ];
 
+  // Combine deposit and withdrawal data for comparison chart
+  const depositWithdrawalData = stats.depositTrends?.map((deposit: any) => {
+    const withdrawal = stats.withdrawalTrends?.find((w: any) => w.date === deposit.date);
+    return {
+      date: deposit.date,
+      deposits: parseFloat(deposit.amount),
+      withdrawals: withdrawal ? parseFloat(withdrawal.amount) : 0,
+      depositCount: deposit.count,
+      withdrawalCount: withdrawal?.count || 0,
+    };
+  }) || [];
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -193,7 +205,7 @@ export default function AdminAnalytics() {
         })}
       </div>
 
-      {/* Charts */}
+      {/* Charts - Row 1: User Growth and Active Users */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Growth Chart */}
         <Card className="border-border/50">
@@ -206,7 +218,61 @@ export default function AdminAnalytics() {
           <CardContent>
             {stats.userGrowth.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={stats.userGrowth}>
+                <AreaChart data={stats.userGrowth}>
+                  <defs>
+                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="count" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    fill="url(#colorUsers)"
+                    name="New Users"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No user growth data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Active Users Chart */}
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle>Active Users Trend</CardTitle>
+            <CardDescription>
+              Daily active users ({timeRange === "7d" ? "Last 7 days" : timeRange === "30d" ? "Last 30 days" : timeRange === "90d" ? "Last 90 days" : "Last year"})
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.activeUsersByDay && stats.activeUsersByDay.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={stats.activeUsersByDay}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis 
                     dataKey="date" 
@@ -229,70 +295,163 @@ export default function AdminAnalytics() {
                   <Line 
                     type="monotone" 
                     dataKey="count" 
-                    stroke="hsl(var(--primary))" 
+                    stroke="#10b981" 
                     strokeWidth={2}
-                    name="New Users"
-                    dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                    name="Active Users"
+                    dot={{ fill: "#10b981", r: 4 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                No user growth data available
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Trading Volume Chart */}
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Trading Volume</CardTitle>
-            <CardDescription>
-              Daily trading volume ({timeRange === "7d" ? "Last 7 days" : timeRange === "30d" ? "Last 30 days" : timeRange === "90d" ? "Last 90 days" : "Last year"})
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.volumeChart.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={stats.volumeChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis 
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    labelStyle={{ color: "hsl(var(--popover-foreground))" }}
-                    formatter={(value: string) => [`$${parseFloat(value).toFixed(2)}`, "Volume"]}
-                  />
-                  <Legend />
-                  <Bar 
-                    dataKey="volume" 
-                    fill="hsl(var(--primary))" 
-                    name="Volume (USD)"
-                    radius={[8, 8, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                No trading volume data available
+                No active users data available
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Charts - Row 2: Deposits vs Withdrawals */}
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ArrowDownCircle className="h-5 w-5 text-green-500" />
+            Deposits vs
+            <ArrowUpCircle className="h-5 w-5 text-red-500" />
+            Withdrawals
+          </CardTitle>
+          <CardDescription>
+            Daily completed deposits and withdrawals comparison ({timeRange === "7d" ? "Last 7 days" : timeRange === "30d" ? "Last 30 days" : timeRange === "90d" ? "Last 90 days" : "Last year"})
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {depositWithdrawalData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={350}>
+              <ComposedChart data={depositWithdrawalData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
+                <YAxis 
+                  yAxisId="left"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  label={{ value: 'Amount (USD)', angle: -90, position: 'insideLeft' }}
+                />
+                <YAxis 
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  label={{ value: 'Count', angle: 90, position: 'insideRight' }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  formatter={(value: any, name: string) => {
+                    if (name.includes('Count')) {
+                      return [value, name];
+                    }
+                    return [`$${parseFloat(value).toFixed(2)}`, name];
+                  }}
+                />
+                <Legend />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="deposits" 
+                  fill="#10b981" 
+                  name="Deposits (USD)"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="withdrawals" 
+                  fill="#ef4444" 
+                  name="Withdrawals (USD)"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="depositCount" 
+                  stroke="#059669" 
+                  strokeWidth={2}
+                  name="Deposit Count"
+                  dot={{ fill: "#059669", r: 3 }}
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="withdrawalCount" 
+                  stroke="#dc2626" 
+                  strokeWidth={2}
+                  name="Withdrawal Count"
+                  dot={{ fill: "#dc2626", r: 3 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[350px] flex items-center justify-center text-muted-foreground">
+              No deposit/withdrawal data available
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Charts - Row 3: Trading Volume */}
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle>Trading Volume</CardTitle>
+          <CardDescription>
+            Daily trading volume ({timeRange === "7d" ? "Last 7 days" : timeRange === "30d" ? "Last 30 days" : timeRange === "90d" ? "Last 90 days" : "Last year"})
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {stats.volumeChart.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={stats.volumeChart}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
+                <YAxis 
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  formatter={(value: string) => [`$${parseFloat(value).toFixed(2)}`, "Volume"]}
+                />
+                <Legend />
+                <Bar 
+                  dataKey="volume" 
+                  fill="hsl(var(--primary))" 
+                  name="Volume (USD)"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              No trading volume data available
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Info Banner */}
       <Card className="border-blue-500/20 bg-blue-500/5">
