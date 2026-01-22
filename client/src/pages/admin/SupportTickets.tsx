@@ -96,6 +96,7 @@ export default function SupportTickets() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <HeadphonesIcon className="w-8 h-8 text-blue-600" />
@@ -275,6 +276,7 @@ export default function SupportTickets() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

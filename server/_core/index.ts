@@ -110,10 +110,10 @@ async function startServer() {
             startAprTrackingJob();
           }).catch(console.error);
           
-          // Start staking notification job
-          import("../stakingNotificationJob").then(({ startStakingNotificationJob }) => {
-            startStakingNotificationJob();
-          }).catch(console.error);
+          // Staking notification job disabled to prevent unwanted emails
+          // import("../stakingNotificationJob").then(({ startStakingNotificationJob }) => {
+          //   startStakingNotificationJob();
+          // }).catch(console.error);
         }
       });
     }).catch(console.error);

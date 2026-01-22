@@ -1132,3 +1132,20 @@
 - [x] Re-apply TransactionLogs.tsx description
 - [x] Re-apply SupportTickets.tsx header with HeadphonesIcon
 - [x] Rebuild frontend and deploy to VPS
+
+
+## 🚨 CRITICAL UI & Email Issues
+### UI Inconsistencies (User Report)
+- [x] Audit User Management page - Already correct (container + max-w-7xl)
+- [x] Audit Withdrawal Approval page - Fixed (added container + max-w-7xl)
+- [x] Audit KYC Review page - Fixed (added container + max-w-7xl)
+- [x] Audit Transaction Logs page - Already correct
+- [x] Audit Support Tickets page - Fixed (added max-w-7xl)
+- [x] Audit Convert page - Fixed (added max-w-7xl)
+- [x] Identify what "parte sopra" (top part) is missing - container + max-w-7xl wrappers
+- [x] Standardize all pages to match reference design
+
+### Email Notification Issues
+- [x] Investigate why staking notifications send to owner's personal email (notifyOwner calls in job)
+- [x] Disable or fix stakingNotificationJob.ts (disabled in _core/index.ts)
+- [x] Ensure notifications only go to platform users, not external emails (job disabled)
