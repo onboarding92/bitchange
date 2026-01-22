@@ -1157,3 +1157,11 @@
 - [x] Admin pages missing container/max-w-7xl wrappers in production (now deployed)
 - [x] Verify bundle content matches local build (verified - Convert-BaJwCZvy.js has changes)
 - [x] Fix deployment process to ensure changes are applied (use docker cp instead of build)
+
+
+## 🚨 CRITICAL - Sidebar Missing in Production
+- [ ] Investigate why DashboardLayout sidebar is not rendering on any page
+- [ ] Check if App.tsx routing configuration is correct
+- [ ] Verify DashboardLayout component is being used
+- [ ] Check if bundle includes DashboardLayout code
+- [ ] Fix and deploy sidebar restoration

@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Textarea } from "../../components/ui/textarea";
 import { CheckCircle, XCircle, Eye, Clock, FileText, ShieldCheck } from "lucide-react";
+import DashboardLayout from "../../components/DashboardLayout";
 
 export default function KYCReview() {
   const { data: pendingKYCs, isLoading, refetch } = trpc.kyc.getPending.useQuery();
@@ -56,7 +57,8 @@ export default function KYCReview() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <DashboardLayout>
+      <div className="container mx-auto py-8 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -298,5 +300,6 @@ export default function KYCReview() {
       </Dialog>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

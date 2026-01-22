@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, RefreshCw, Download, Search } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function TransactionLogs() {
   const [logType, setLogType] = useState<"all" | "deposits" | "withdrawals" | "trades" | "logins">("all");
@@ -53,7 +54,8 @@ export default function TransactionLogs() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <DashboardLayout>
+      <div className="container mx-auto py-8 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -317,5 +319,6 @@ export default function TransactionLogs() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

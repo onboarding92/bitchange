@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function WithdrawalApproval() {
 
@@ -83,7 +84,8 @@ export default function WithdrawalApproval() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <DashboardLayout>
+      <div className="container mx-auto py-8 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -211,5 +213,6 @@ export default function WithdrawalApproval() {
       </Dialog>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

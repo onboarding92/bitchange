@@ -9,6 +9,7 @@ import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { MessageSquare, Clock, User, AlertCircle, CheckCircle, XCircle, HeadphonesIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import DashboardLayout from '../../components/DashboardLayout';
 
 export default function SupportTickets() {
   const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
@@ -95,7 +96,8 @@ export default function SupportTickets() {
   );
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <DashboardLayout>
+      <div className="container mx-auto py-8 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -278,5 +280,6 @@ export default function SupportTickets() {
       </Dialog>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

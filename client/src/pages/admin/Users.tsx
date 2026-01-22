@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Users as UsersIcon, Search, Edit, DollarSign, Activity, Download } from "lucide-react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function UsersManagement() {
   const [search, setSearch] = useState("");
@@ -129,7 +130,8 @@ export default function UsersManagement() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <DashboardLayout>
+      <div className="container mx-auto py-8 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -487,5 +489,6 @@ export default function UsersManagement() {
         </Dialog>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

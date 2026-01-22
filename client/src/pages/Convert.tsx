@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ArrowDownUp, TrendingUp, Clock, AlertCircle, CheckCircle, Repeat } from 'lucide-react';
 import { toast } from 'sonner';
 import MobileNav from '../components/MobileNav';
+import DashboardLayout from '../components/DashboardLayout';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 const SUPPORTED_ASSETS = ['BTC', 'ETH', 'USDT', 'USDC', 'BNB', 'SOL', 'MATIC'];
@@ -131,8 +132,7 @@ export default function Convert() {
     : '0';
 
   return (
-    <>
-      <MobileNav />
+    <DashboardLayout>
       <div className="container mx-auto py-8 space-y-6 pt-20 md:pt-8">
         <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
@@ -375,6 +375,6 @@ export default function Convert() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </DashboardLayout>
   );
 }
