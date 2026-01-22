@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import TicketStatsWidget from "../../components/TicketStatsWidget";
+import DashboardLayout from "../../components/DashboardLayout";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -77,6 +78,7 @@ export default function AdminDashboard() {
   }
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
@@ -286,5 +288,6 @@ export default function AdminDashboard() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

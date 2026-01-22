@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast as showToast } from "sonner";
 import { Shield, Copy, Download, Check } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Setup2FA() {
   const [, setLocation] = useLocation();
@@ -71,6 +72,7 @@ export default function Setup2FA() {
   };
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl p-8 bg-slate-800/90 border-slate-700">
         <div className="flex items-center gap-3 mb-6">
@@ -212,5 +214,6 @@ export default function Setup2FA() {
         )}
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

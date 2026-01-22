@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowUpDown, TrendingUp, TrendingDown, Clock } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Trade() {
   const [selectedPair, setSelectedPair] = useState("BTC/USDT");
@@ -95,6 +96,7 @@ export default function Trade() {
   const spreadPercent = (spread / parseFloat(bestAsk)) * 100;
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto">
         {/* Header */}
@@ -406,5 +408,6 @@ export default function Trade() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

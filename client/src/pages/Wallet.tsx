@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { ArrowDownCircle, ArrowUpCircle, Copy, QrCode, RefreshCw } from "lucide-react";
 import { TwoFactorVerifyDialog } from "@/components/TwoFactorVerifyDialog";
 import { useAuth } from "@/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const SUPPORTED_ASSETS = [
   { symbol: "BTC", name: "Bitcoin", network: "Bitcoin" },
@@ -132,6 +133,7 @@ export default function Wallet() {
   const currentBalance = parseFloat(wallets?.find((w) => w.asset === selectedAsset.symbol)?.balance || "0");
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
@@ -434,5 +436,6 @@ export default function Wallet() {
         isLoading={createWithdrawal.isPending}
       />
     </div>
+    </DashboardLayout>
   );
 }

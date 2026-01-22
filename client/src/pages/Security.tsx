@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Shield, Smartphone, Key, CheckCircle, XCircle, Lock, Mail } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Security() {
   const [verificationCode, setVerificationCode] = useState("");
@@ -114,6 +115,7 @@ export default function Security() {
   };
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
@@ -442,5 +444,6 @@ export default function Security() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

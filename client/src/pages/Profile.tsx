@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2, Save, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ export default function Profile() {
   }
 
   return (
+    <DashboardLayout>
     <div className="container max-w-4xl py-8">
       <Button
         variant="ghost"
@@ -179,5 +181,6 @@ export default function Profile() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

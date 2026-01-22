@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Percent, Calendar } from 'lucide-react';
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Analytics() {
   const [timeframe, setTimeframe] = useState<'7d' | '30d'>('7d');
@@ -26,6 +27,7 @@ export default function Analytics() {
   };
 
   return (
+    <DashboardLayout>
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -261,5 +263,6 @@ export default function Analytics() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

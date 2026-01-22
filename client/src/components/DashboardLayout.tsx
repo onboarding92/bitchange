@@ -211,7 +211,7 @@ function DashboardLayoutContent({
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
+          <SidebarContent>
             <SidebarMenu className="px-2 py-1">
               {menuItems.filter(item => !item.adminOnly || user?.role === 'admin').map(item => {
                 const isActive = location === item.path;
@@ -324,6 +324,7 @@ function DashboardLayoutContent({
             )}
           </div>
           <div className="flex items-center gap-2">
+            {isMobile && <SidebarTrigger />}
             <Button
               variant="outline"
               size="sm"

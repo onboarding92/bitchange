@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Wallet, Plus, RefreshCw, Eye } from "lucide-react";
 import { toast } from "sonner";
+import DashboardLayout from "../../components/DashboardLayout";
 
 export default function HotWallets() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -62,6 +63,7 @@ export default function HotWallets() {
   };
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
@@ -205,5 +207,6 @@ export default function HotWallets() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 }
