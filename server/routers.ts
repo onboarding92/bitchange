@@ -533,44 +533,55 @@ export const appRouter = router({
 
   staking: router({
     plans: publicProcedure.query(async () => {
-      const db = await getDb();
-      if (!db) return [];
-      
-      const plans = await db.select().from(stakingPlans).where(eq(stakingPlans.enabled, true));
-      
-      // Add statistics for each plan
-      const plansWithStats = await Promise.all(plans.map(async (plan) => {
-        // Count unique participants (only with active positions)
-        const participants = await db.select({ userId: stakingPositions.userId })
-          .from(stakingPositions)
-          .where(
-            and(
-              eq(stakingPositions.planId, plan.id),
-              eq(stakingPositions.status, 'active')
+      try {
+        const db = await getDb();
+        if (!db) {
+          console.error('[Staking] Database not available');
+          return [];
+        }
+        
+        console.log('[Staking] Fetching enabled plans...');
+        const plans = await db.select().from(stakingPlans).where(eq(stakingPlans.enabled, true));
+        console.log(`[Staking] Found ${plans.length} enabled plans`);
+        
+        // Add statistics for each plan
+        const plansWithStats = await Promise.all(plans.map(async (plan) => {
+          // Count unique participants (only with active positions)
+          const participants = await db.select({ userId: stakingPositions.userId })
+            .from(stakingPositions)
+            .where(
+              and(
+                eq(stakingPositions.planId, plan.id),
+                eq(stakingPositions.status, 'active')
+              )
             )
-          )
-          .groupBy(stakingPositions.userId);
+            .groupBy(stakingPositions.userId);
+          
+          // Calculate total staked amount (only active positions)
+          const activePositions = await db.select()
+            .from(stakingPositions)
+            .where(
+              and(
+                eq(stakingPositions.planId, plan.id),
+                eq(stakingPositions.status, 'active')
+              )
+            );
+          
+          const totalStaked = activePositions.reduce((sum, pos) => sum + parseFloat(pos.amount), 0);
+          
+          return {
+            ...plan,
+            participantsCount: participants.length,
+            totalStaked: totalStaked.toFixed(8)
+          };
+        }));
         
-        // Calculate total staked amount (only active positions)
-        const activePositions = await db.select()
-          .from(stakingPositions)
-          .where(
-            and(
-              eq(stakingPositions.planId, plan.id),
-              eq(stakingPositions.status, 'active')
-            )
-          );
-        
-        const totalStaked = activePositions.reduce((sum, pos) => sum + parseFloat(pos.amount), 0);
-        
-        return {
-          ...plan,
-          participantsCount: participants.length,
-          totalStaked: totalStaked.toFixed(8)
-        };
-      }));
-      
-      return plansWithStats;
+        console.log(`[Staking] Returning ${plansWithStats.length} plans with stats`);
+        return plansWithStats;
+      } catch (error) {
+        console.error('[Staking] Error fetching plans:', error);
+        throw error;
+      }
     }),
 
     myPositions: protectedProcedure.query(async ({ ctx }) => {
