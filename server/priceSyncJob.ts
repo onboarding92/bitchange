@@ -138,13 +138,13 @@ export function startPriceSyncJob() {
     return;
   }
 
-  console.log("[PriceSyncJob] Starting price sync job (every 2 minutes)");
+  console.log("[PriceSyncJob] Starting price sync job (every 5 minutes)");
   
   // Run immediately on start
   syncCryptoPrices();
   
-  // Then run every 2 minutes
-  syncInterval = setInterval(syncCryptoPrices, 2 * 60 * 1000);
+  // Then run every 5 minutes (reduced from 2min to avoid rate limiting)
+  syncInterval = setInterval(syncCryptoPrices, 5 * 60 * 1000);
 }
 
 export function stopPriceSyncJob() {

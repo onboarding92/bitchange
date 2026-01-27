@@ -12,7 +12,7 @@ import { sendWelcomeEmail, sendLoginAlertEmail } from "./email";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { getDb, initializeUserWallets } from "./db";
-import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices, conversions, stakingRewardsHistory, stakingAprHistory } from "../drizzle/schema";
+import { wallets, orders, trades, stakingPlans, stakingPositions, deposits, withdrawals, kycDocuments, supportTickets, ticketMessages, promoCodes, promoUsage, transactions, users, systemLogs, walletAddresses, notifications, networks, cryptoPrices, conversions } from "../drizzle/schema";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { getCryptoPrice, getAllCryptoPrices, getPairPrice } from "./cryptoPrices";
@@ -540,15 +540,10 @@ export const appRouter = router({
       
       // Add statistics for each plan
       const plansWithStats = await Promise.all(plans.map(async (plan) => {
-        // Count unique participants (only with active positions)
+        // Count unique participants
         const participants = await db.select({ userId: stakingPositions.userId })
           .from(stakingPositions)
-          .where(
-            and(
-              eq(stakingPositions.planId, plan.id),
-              eq(stakingPositions.status, 'active')
-            )
-          )
+          .where(eq(stakingPositions.planId, plan.id))
           .groupBy(stakingPositions.userId);
         
         // Calculate total staked amount (only active positions)
@@ -585,7 +580,6 @@ export const appRouter = router({
       .input(z.object({
         planId: z.number().int().positive(),
         amount: z.string(),
-        autoCompound: z.boolean().optional().default(false),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -627,7 +621,6 @@ export const appRouter = router({
           amount: input.amount,
           rewards: "0",
           status: "active",
-          autoCompound: input.autoCompound,
           maturesAt,
         });
 
@@ -653,13 +646,9 @@ export const appRouter = router({
         }
 
         const now = new Date();
-        const isEarlyWithdrawal = position.maturesAt && now < position.maturesAt;
-        let penaltyAmount = 0;
 
-        // Allow early withdrawal for locked positions, but apply 5% penalty
-        if (isEarlyWithdrawal) {
-          const principal = parseFloat(position.amount);
-          penaltyAmount = principal * 0.05; // 5% penalty
+        if (position.maturesAt && now < position.maturesAt) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Position is still locked" });
         }
 
         const [plan] = await db.select().from(stakingPlans)
@@ -675,8 +664,7 @@ export const appRouter = router({
         const principal = parseFloat(position.amount);
         const apr = parseFloat(plan.apr);
         const reward = (principal * apr * daysPassed) / (365 * 100);
-        const amountAfterPenalty = principal - penaltyAmount;
-        const total = amountAfterPenalty + reward;
+        const total = principal + reward;
 
         await db.update(wallets)
           .set({ balance: sql`${wallets.balance} + ${total.toString()}` })
@@ -686,72 +674,7 @@ export const appRouter = router({
           .set({ status: "withdrawn", rewards: reward.toFixed(8), withdrawnAt: now })
           .where(eq(stakingPositions.id, input.positionId));
 
-        // Log penalty transaction if early withdrawal
-        if (penaltyAmount > 0) {
-          await db.insert(transactions).values({
-            userId: ctx.user.id,
-            type: "penalty",
-            asset: plan.asset,
-            amount: penaltyAmount.toFixed(8),
-            status: "completed",
-            createdAt: now,
-          });
-        }
-
-        return { 
-          ok: true, 
-          reward: reward.toFixed(8),
-          penalty: penaltyAmount > 0 ? penaltyAmount.toFixed(8) : undefined,
-          isEarlyWithdrawal 
-        };
-      }),
-
-    rewardsHistory: protectedProcedure
-      .input(z.object({ positionId: z.number().int().positive() }))
-      .query(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) return [];
-
-        // Verify position belongs to user
-        const [position] = await db.select().from(stakingPositions)
-          .where(eq(stakingPositions.id, input.positionId))
-          .limit(1);
-
-        if (!position || position.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "NOT_FOUND" });
-        }
-
-        // Get rewards history for this position
-        const history = await db.select().from(stakingRewardsHistory)
-          .where(eq(stakingRewardsHistory.positionId, input.positionId))
-          .orderBy(stakingRewardsHistory.distributedAt);
-
-        return history;
-      }),
-
-    aprHistory: publicProcedure
-      .input(z.object({ 
-        asset: z.string().optional(),
-        days: z.number().int().positive().default(30),
-      }))
-      .query(async ({ input }) => {
-        const db = await getDb();
-        if (!db) return [];
-
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - input.days);
-
-        const conditions = [gte(stakingAprHistory.recordedAt, cutoffDate)];
-        if (input.asset) {
-          conditions.push(eq(stakingAprHistory.asset, input.asset));
-        }
-
-        const history = await db.select()
-          .from(stakingAprHistory)
-          .where(and(...conditions))
-          .orderBy(stakingAprHistory.recordedAt);
-
-        return history;
+        return { ok: true, reward: reward.toFixed(8) };
       }),
   }),
 
@@ -894,19 +817,6 @@ export const appRouter = router({
               isRead: false,
             });
           }
-
-          // Send email notification to admin
-          try {
-            const { sendEmail } = await import("./email");
-            await sendEmail({
-              to: "Sistemavincente02@libero.it",
-              subject: `🔔 New Deposit: ${input.amount} ${input.asset}`,
-              text: `New deposit request received:\n\nUser: ${user?.email || ctx.user.email}\nAsset: ${input.asset}\nAmount: ${input.amount}\nMethod: ${input.method}\nNetwork: ${input.network || "N/A"}\n\nPlease review in admin panel.`,
-              html: `<h2>🔔 New Deposit Request</h2><p>A new deposit has been initiated:</p><ul><li><strong>User:</strong> ${user?.email || ctx.user.email}</li><li><strong>Asset:</strong> ${input.asset}</li><li><strong>Amount:</strong> ${input.amount}</li><li><strong>Method:</strong> ${input.method}</li><li><strong>Network:</strong> ${input.network || "N/A"}</li></ul><p>Please review in the admin panel.</p>`
-            });
-          } catch (emailError) {
-            console.error("Failed to send deposit email to admin:", emailError);
-          }
         } catch (error) {
           console.error("Failed to send deposit notification:", error);
           // Don't fail the deposit if notification fails
@@ -1004,52 +914,15 @@ export const appRouter = router({
           .set({ locked: sql`${wallets.locked} + ${totalRequired.toString()}` })
           .where(and(eq(wallets.userId, ctx.user.id), eq(wallets.asset, input.asset)));
 
-        const [insertResult] = await db.insert(withdrawals).values({
+        await db.insert(withdrawals).values({
           userId: ctx.user.id,
           asset: input.asset,
           amount: input.amount,
           network: input.network,
           address: input.address,
           fee: network.withdrawalFee,
-          status: "pending_approval",
+          status: "pending",
         });
-
-        // Send email notification to admin
-        try {
-          const { sendEmail } = await import("./email");
-          await sendEmail({
-            to: "Sistemavincente02@libero.it",
-            subject: "🔔 New Withdrawal Request Pending Approval",
-            text: `A new withdrawal request requires your approval. User: ${user.email}, Amount: ${input.amount} ${input.asset}, Network: ${input.network}`,
-            html: `
-              <h2>New Withdrawal Request</h2>
-              <p>A new withdrawal request requires your approval.</p>
-              <p><strong>Details:</strong></p>
-              <ul>
-                <li>User: ${user.name || 'N/A'} (${user.email})</li>
-                <li>Amount: ${input.amount} ${input.asset}</li>
-                <li>Network: ${input.network}</li>
-                <li>Address: ${input.address}</li>
-                <li>Fee: ${network.withdrawalFee} ${input.asset}</li>
-                <li>Total: ${totalRequired} ${input.asset}</li>
-              </ul>
-              <p>Please review and approve/reject this request in the admin panel.</p>
-            `,
-          });
-        } catch (error) {
-          console.error("Failed to send admin notification email:", error);
-        }
-
-        // Send in-app notification to owner
-        try {
-          const { notifyOwner } = await import("./_core/notification");
-          await notifyOwner({
-            title: "New Withdrawal Request",
-            content: `User ${user.email} requested withdrawal of ${input.amount} ${input.asset} via ${input.network}. Please review in admin panel.`,
-          });
-        } catch (error) {
-          console.error("Failed to send in-app notification:", error);
-        }
 
         return { ok: true, fee: network.withdrawalFee };
       }),
@@ -1908,38 +1781,6 @@ export const appRouter = router({
       .groupBy(sql`DATE(${trades.createdAt})`)
       .orderBy(sql`DATE(${trades.createdAt})`);
 
-      // Deposit trends (based on selected time range)
-      const depositTrends = await db.select({
-        date: sql<string>`DATE(${deposits.createdAt})`,
-        count: sql<number>`count(*)`,
-        amount: sql<string>`COALESCE(SUM(CAST(${deposits.amount} AS DECIMAL(20,8))), 0)`
-      })
-      .from(deposits)
-      .where(sql`${deposits.createdAt} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY) AND ${deposits.status} = 'completed'`)
-      .groupBy(sql`DATE(${deposits.createdAt})`)
-      .orderBy(sql`DATE(${deposits.createdAt})`);
-
-      // Withdrawal trends (based on selected time range)
-      const withdrawalTrends = await db.select({
-        date: sql<string>`DATE(${withdrawals.createdAt})`,
-        count: sql<number>`count(*)`,
-        amount: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS DECIMAL(20,8))), 0)`
-      })
-      .from(withdrawals)
-      .where(sql`${withdrawals.createdAt} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY) AND ${withdrawals.status} = 'completed'`)
-      .groupBy(sql`DATE(${withdrawals.createdAt})`)
-      .orderBy(sql`DATE(${withdrawals.createdAt})`);
-
-      // Active users by day
-      const activeUsersByDay = await db.select({
-        date: sql<string>`DATE(${users.lastSignedIn})`,
-        count: sql<number>`count(*)`
-      })
-      .from(users)
-      .where(sql`${users.lastSignedIn} >= DATE_SUB(NOW(), INTERVAL ${sql.raw(daysAgo.toString())} DAY)`)
-      .groupBy(sql`DATE(${users.lastSignedIn})`)
-      .orderBy(sql`DATE(${users.lastSignedIn})`);
-
       return {
         totalUsers: userCount?.count ?? 0,
         activeUsers: activeCount?.count ?? 0,
@@ -1951,9 +1792,6 @@ export const appRouter = router({
         totalRevenue: "0", // Calculate from fees
         userGrowth: userGrowthData,
         volumeChart: volumeData,
-        depositTrends,
-        withdrawalTrends,
-        activeUsersByDay,
       };
       }),
 
@@ -1998,7 +1836,7 @@ export const appRouter = router({
           .where(and(eq(wallets.userId, withdrawal.userId), eq(wallets.asset, withdrawal.asset)));
 
         await db.update(withdrawals)
-          .set({ status: "completed" })
+          .set({ status: "completed", processedAt: new Date() })
           .where(eq(withdrawals.id, input.id));
 
         return { ok: true };
@@ -2026,7 +1864,7 @@ export const appRouter = router({
           .where(and(eq(wallets.userId, withdrawal.userId), eq(wallets.asset, withdrawal.asset)));
 
         await db.update(withdrawals)
-          .set({ status: "rejected" })
+          .set({ status: "rejected", processedAt: new Date() })
           .where(eq(withdrawals.id, input.id));
 
         return { ok: true };
@@ -2063,29 +1901,6 @@ export const appRouter = router({
           .set({ kycStatus: "approved" })
           .where(eq(users.id, kyc.userId));
 
-        // Send email notifications
-        try {
-          const [user] = await db.select().from(users).where(eq(users.id, kyc.userId));
-          if (user?.email) {
-            const { sendKycStatusEmail } = await import("./email");
-            await sendKycStatusEmail({
-              to: user.email,
-              status: "approved"
-            });
-
-            // Notify admin
-            const { sendEmail } = await import("./email");
-            await sendEmail({
-              to: "Sistemavincente02@libero.it",
-              subject: `✅ KYC Approved: ${user.email}`,
-              text: `Admin ${ctx.user.email} approved KYC for user ${user.email}`,
-              html: `<h2>✅ KYC Approved</h2><p>Admin <strong>${ctx.user.email}</strong> approved KYC for user <strong>${user.email}</strong></p>`
-            });
-          }
-        } catch (error) {
-          console.error("Failed to send KYC approval emails:", error);
-        }
-
         return { ok: true };
       }),
 
@@ -2111,30 +1926,6 @@ export const appRouter = router({
         await db.update(users)
           .set({ kycStatus: "rejected" })
           .where(eq(users.id, kyc.userId));
-
-        // Send email notifications
-        try {
-          const [user] = await db.select().from(users).where(eq(users.id, kyc.userId));
-          if (user?.email) {
-            const { sendKycStatusEmail } = await import("./email");
-            await sendKycStatusEmail({
-              to: user.email,
-              status: "rejected",
-              reason: input.reason
-            });
-
-            // Notify admin
-            const { sendEmail } = await import("./email");
-            await sendEmail({
-              to: "Sistemavincente02@libero.it",
-              subject: `❌ KYC Rejected: ${user.email}`,
-              text: `Admin ${ctx.user.email} rejected KYC for user ${user.email}\nReason: ${input.reason || "No reason provided"}`,
-              html: `<h2>❌ KYC Rejected</h2><p>Admin <strong>${ctx.user.email}</strong> rejected KYC for user <strong>${user.email}</strong></p><p><strong>Reason:</strong> ${input.reason || "No reason provided"}</p>`
-            });
-          }
-        } catch (error) {
-          console.error("Failed to send KYC rejection emails:", error);
-        }
 
         return { ok: true };
       }),
@@ -2369,12 +2160,6 @@ export const appRouter = router({
         type: z.enum(["all", "deposits", "withdrawals", "trades", "logins"]).optional(),
         userId: z.number().optional(),
         limit: z.number().default(100),
-        dateFrom: z.string().optional(),
-        dateTo: z.string().optional(),
-        amountMin: z.number().optional(),
-        amountMax: z.number().optional(),
-        asset: z.string().optional(),
-        status: z.string().optional(),
       }))
       .query(async ({ input }) => {
         const db = await getDb();
@@ -2874,36 +2659,6 @@ export const appRouter = router({
           isRead: false,
         });
 
-        // Send email to user
-        try {
-          const userList = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
-          const user = userList[0];
-          if (user?.email) {
-            const { sendEmail } = await import("./email");
-            await sendEmail({
-              to: user.email,
-              subject: `✅ Deposit Credited: ${input.amount} ${input.asset}`,
-              text: `Hello,\n\nYour deposit has been successfully credited to your BitChange account:\n\nAsset: ${input.asset}\nAmount: ${input.amount}\n\nYou can now use these funds for trading and other operations.\n\nBest regards,\nBitChange Team`,
-              html: `<h2>✅ Deposit Credited</h2><p>Your deposit has been successfully credited to your BitChange account:</p><ul><li><strong>Asset:</strong> ${input.asset}</li><li><strong>Amount:</strong> ${input.amount}</li></ul><p>You can now use these funds for trading and other operations.</p><p>Best regards,<br/>BitChange Team</p>`
-            });
-          }
-        } catch (emailError) {
-          console.error("Failed to send credit email to user:", emailError);
-        }
-
-        // Send email to admin
-        try {
-          const { sendEmail } = await import("./email");
-          await sendEmail({
-            to: "Sistemavincente02@libero.it",
-            subject: `✅ Deposit Credited: ${input.amount} ${input.asset}`,
-            text: `Admin ${ctx.user.email} credited deposit:\n\nUser ID: ${input.userId}\nAsset: ${input.asset}\nAmount: ${input.amount}\nDeposit ID: ${input.depositId}`,
-            html: `<h2>✅ Deposit Credited</h2><p>Admin <strong>${ctx.user.email}</strong> credited a deposit:</p><ul><li><strong>User ID:</strong> ${input.userId}</li><li><strong>Asset:</strong> ${input.asset}</li><li><strong>Amount:</strong> ${input.amount}</li><li><strong>Deposit ID:</strong> ${input.depositId}</li></ul>`
-          });
-        } catch (emailError) {
-          console.error("Failed to send credit email to admin:", emailError);
-        }
-
         return { success: true };
       }),
 
@@ -2912,163 +2667,6 @@ export const appRouter = router({
       const { getNotificationBadges } = await import("./notificationBadges");
       return await getNotificationBadges();
     }),
-
-    // Withdrawal Approval System
-    getPendingWithdrawals: adminProcedure.query(async () => {
-      const db = await getDb();
-      if (!db) return [];
-      
-      // Get all withdrawals with status=pending_approval
-      const pendingWithdrawals = await db
-        .select({
-          id: withdrawals.id,
-          userId: withdrawals.userId,
-          asset: withdrawals.asset,
-          amount: withdrawals.amount,
-          address: withdrawals.address,
-          network: withdrawals.network,
-          fee: withdrawals.fee,
-          createdAt: withdrawals.createdAt,
-          userName: users.name,
-          userEmail: users.email,
-        })
-        .from(withdrawals)
-        .leftJoin(users, eq(withdrawals.userId, users.id))
-        .where(eq(withdrawals.status, "pending_approval"))
-        .orderBy(desc(withdrawals.createdAt));
-
-      return pendingWithdrawals;
-    }),
-
-    approveWithdrawalRequest: adminProcedure
-      .input(z.object({ withdrawalId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-
-        // Get withdrawal details
-        const [withdrawal] = await db.select().from(withdrawals)
-          .where(eq(withdrawals.id, input.withdrawalId));
-
-        if (!withdrawal) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Withdrawal not found" });
-        }
-
-        // Update withdrawal status to completed
-        await db.update(withdrawals)
-          .set({
-            status: "completed",
-            approvedBy: ctx.user.id,
-            approvedAt: new Date(),
-          })
-          .where(eq(withdrawals.id, input.withdrawalId));
-
-        // Send email notification to user
-        try {
-          const { sendEmail } = await import("./email");
-          const [user] = await db.select().from(users).where(eq(users.id, withdrawal.userId));
-          
-          if (user) {
-            await sendEmail({
-              to: user.email,
-              subject: "Withdrawal Approved",
-              text: `Your withdrawal of ${withdrawal.amount} ${withdrawal.asset} has been approved and processed.`,
-              html: `
-                <h2>Your withdrawal has been approved</h2>
-                <p>Your withdrawal request has been approved and processed.</p>
-                <p><strong>Details:</strong></p>
-                <ul>
-                  <li>Amount: ${withdrawal.amount} ${withdrawal.asset}</li>
-                  <li>Address: ${withdrawal.address}</li>
-                  <li>Network: ${withdrawal.network}</li>
-                  <li>Approved at: ${new Date().toLocaleString()}</li>
-                </ul>
-                <p>The funds will arrive in your wallet shortly.</p>
-              `,
-            });
-
-            // Send email to admin
-            await sendEmail({
-              to: "Sistemavincente02@libero.it",
-              subject: `✅ Withdrawal Approved: ${withdrawal.amount} ${withdrawal.asset}`,
-              text: `Admin ${ctx.user.email} approved withdrawal:\n\nUser: ${user.email}\nAsset: ${withdrawal.asset}\nAmount: ${withdrawal.amount}\nAddress: ${withdrawal.address}\nNetwork: ${withdrawal.network}`,
-              html: `<h2>✅ Withdrawal Approved</h2><p>Admin <strong>${ctx.user.email}</strong> approved a withdrawal:</p><ul><li><strong>User:</strong> ${user.email}</li><li><strong>Asset:</strong> ${withdrawal.asset}</li><li><strong>Amount:</strong> ${withdrawal.amount}</li><li><strong>Address:</strong> ${withdrawal.address}</li><li><strong>Network:</strong> ${withdrawal.network}</li></ul>`
-            });
-          }
-        } catch (error) {
-          console.error("Failed to send withdrawal approval email:", error);
-        }
-
-        return { success: true };
-      }),
-
-    rejectWithdrawalRequest: adminProcedure
-      .input(z.object({ 
-        withdrawalId: z.number(),
-        reason: z.string(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-
-        // Get withdrawal details
-        const [withdrawal] = await db.select().from(withdrawals)
-          .where(eq(withdrawals.id, input.withdrawalId));
-
-        if (!withdrawal) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Withdrawal not found" });
-        }
-
-        // Update withdrawal status to rejected
-        await db.update(withdrawals)
-          .set({
-            status: "rejected",
-            approvedBy: ctx.user.id,
-            approvedAt: new Date(),
-            rejectionReason: input.reason,
-          })
-          .where(eq(withdrawals.id, input.withdrawalId));
-
-        // Refund the amount to user's wallet
-        await db.update(wallets)
-          .set({
-            balance: sql`${wallets.balance} + ${withdrawal.amount}`,
-          })
-          .where(and(
-            eq(wallets.userId, withdrawal.userId),
-            eq(wallets.asset, withdrawal.asset)
-          ));
-
-        // Send email notification to user
-        try {
-          const { sendEmail } = await import("./email");
-          const [user] = await db.select().from(users).where(eq(users.id, withdrawal.userId));
-          
-          if (user) {
-            await sendEmail({
-              to: user.email,
-              subject: "Withdrawal Rejected",
-              text: `Your withdrawal of ${withdrawal.amount} ${withdrawal.asset} has been rejected. Reason: ${input.reason}`,
-              html: `
-                <h2>Your withdrawal has been rejected</h2>
-                <p>Your withdrawal request has been rejected and the funds have been returned to your wallet.</p>
-                <p><strong>Details:</strong></p>
-                <ul>
-                  <li>Amount: ${withdrawal.amount} ${withdrawal.asset}</li>
-                  <li>Address: ${withdrawal.address}</li>
-                  <li>Network: ${withdrawal.network}</li>
-                  <li>Reason: ${input.reason}</li>
-                </ul>
-                <p>If you have any questions, please contact support.</p>
-              `,
-            });
-          }
-        } catch (error) {
-          console.error("Failed to send withdrawal rejection email:", error);
-        }
-
-        return { success: true };
-      }),
   }),
 
   trade: router({
@@ -3707,18 +3305,6 @@ export const appRouter = router({
     revenue: adminProcedure.query(async () => {
       const { getRevenueMetrics } = await import("./businessMetrics");
       return await getRevenueMetrics();
-    }),
-  }),
-
-  // Hot Wallet Management
-  hotWallet: router({
-    balances: adminProcedure.query(async () => {
-      const { getAllHotWalletBalances } = await import("./hotWalletMonitor");
-      return await getAllHotWalletBalances();
-    }),
-    totalBalanceUSD: adminProcedure.query(async () => {
-      const { getTotalHotWalletBalanceUSD } = await import("./hotWalletMonitor");
-      return await getTotalHotWalletBalanceUSD();
     }),
   }),
 });

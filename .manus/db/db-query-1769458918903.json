@@ -1,0 +1,115 @@
+{
+  "query": "SELECT network, asset, address, isActive, createdAt FROM masterWallets ORDER BY network, asset;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute SELECT network, asset, address, isActive, createdAt FROM masterWallets ORDER BY network, asset;",
+  "rows": [
+    {
+      "network": "BNB",
+      "asset": "BNB",
+      "address": "0x5575c4Cce6BB2D0ad5Bb895a8C7e058a3b5D2053",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:20:26"
+    },
+    {
+      "network": "BNB",
+      "asset": "USDC",
+      "address": "0x5575c4Cce6BB2D0ad5Bb895a8C7e058a3b5D2053",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:20:26"
+    },
+    {
+      "network": "BNB",
+      "asset": "USDT",
+      "address": "0x5575c4Cce6BB2D0ad5Bb895a8C7e058a3b5D2053",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:20:26"
+    },
+    {
+      "network": "BTC",
+      "asset": "BTC",
+      "address": "1GTb2BZm248v4G5N3EsL2MMczUSH8NFU72",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:25"
+    },
+    {
+      "network": "ETH",
+      "asset": "ETH",
+      "address": "0x375a33326c88472b627D1732f85997bf1cA73E2e",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:19:53"
+    },
+    {
+      "network": "ETH",
+      "asset": "USDC",
+      "address": "0x375a33326c88472b627D1732f85997bf1cA73E2e",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:19:53"
+    },
+    {
+      "network": "ETH",
+      "asset": "USDT",
+      "address": "0x375a33326c88472b627D1732f85997bf1cA73E2e",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:19:53"
+    },
+    {
+      "network": "MATIC",
+      "asset": "MATIC",
+      "address": "0xf90300a8147E3c6c338a324147C6f53ede8814e3",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:25"
+    },
+    {
+      "network": "MATIC",
+      "asset": "USDC",
+      "address": "0xf90300a8147E3c6c338a324147C6f53ede8814e3",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:25"
+    },
+    {
+      "network": "MATIC",
+      "asset": "USDT",
+      "address": "0xf90300a8147E3c6c338a324147C6f53ede8814e3",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:25"
+    },
+    {
+      "network": "SOL",
+      "asset": "SOL",
+      "address": "HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:47"
+    },
+    {
+      "network": "SOL",
+      "asset": "USDC",
+      "address": "HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:47"
+    },
+    {
+      "network": "SOL",
+      "asset": "USDT",
+      "address": "HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:47"
+    },
+    {
+      "network": "TRX",
+      "asset": "TRX",
+      "address": "TYkXEAJG5kZHCVko7cW79YctzjqHgLR6Qa",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:25"
+    },
+    {
+      "network": "TRX",
+      "asset": "USDT",
+      "address": "TYkXEAJG5kZHCVko7cW79YctzjqHgLR6Qa",
+      "isActive": "1",
+      "createdAt": "2026-01-26 20:21:25"
+    }
+  ],
+  "messages": [],
+  "stdout": "network\tasset\taddress\tisActive\tcreatedAt\nBNB\tBNB\t0x5575c4Cce6BB2D0ad5Bb895a8C7e058a3b5D2053\t1\t2026-01-26 20:20:26\nBNB\tUSDC\t0x5575c4Cce6BB2D0ad5Bb895a8C7e058a3b5D2053\t1\t2026-01-26 20:20:26\nBNB\tUSDT\t0x5575c4Cce6BB2D0ad5Bb895a8C7e058a3b5D2053\t1\t2026-01-26 20:20:26\nBTC\tBTC\t1GTb2BZm248v4G5N3EsL2MMczUSH8NFU72\t1\t2026-01-26 20:21:25\nETH\tETH\t0x375a33326c88472b627D1732f85997bf1cA73E2e\t1\t2026-01-26 20:19:53\nETH\tUSDC\t0x375a33326c88472b627D1732f85997bf1cA73E2e\t1\t2026-01-26 20:19:53\nETH\tUSDT\t0x375a33326c88472b627D1732f85997bf1cA73E2e\t1\t2026-01-26 20:19:53\nMATIC\tMATIC\t0xf90300a8147E3c6c338a324147C6f53ede8814e3\t1\t2026-01-26 20:21:25\nMATIC\tUSDC\t0xf90300a8147E3c6c338a324147C6f53ede8814e3\t1\t2026-01-26 20:21:25\nMATIC\tUSDT\t0xf90300a8147E3c6c338a324147C6f53ede8814e3\t1\t2026-01-26 20:21:25\nSOL\tSOL\tHedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx\t1\t2026-01-26 20:21:47\nSOL\tUSDC\tHedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx\t1\t2026-01-26 20:21:47\nSOL\tUSDT\tHedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx\t1\t2026-01-26 20:21:47\nTRX\tTRX\tTYkXEAJG5kZHCVko7cW79YctzjqHgLR6Qa\t1\t2026-01-26 20:21:25\nTRX\tUSDT\tTYkXEAJG5kZHCVko7cW79YctzjqHgLR6Qa\t1\t2026-01-26 20:21:25\n",
+  "stderr": "",
+  "execution_time_ms": 354
+}

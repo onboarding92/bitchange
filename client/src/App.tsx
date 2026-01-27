@@ -27,6 +27,7 @@ const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const Setup2FA = lazy(() => import("./pages/Setup2FA"));
 const HotWallets = lazy(() => import("./pages/admin/HotWallets"));
+const HotWalletManagement = lazy(() => import("./pages/admin/HotWalletManagement"));
 const TransactionLogs = lazy(() => import("./pages/admin/TransactionLogs"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const UsersManagement = lazy(() => import("./pages/admin/Users"));
@@ -92,6 +93,7 @@ function Router() {
         <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/admin/system-health" component={SystemHealth} />
         <Route path="/admin/hot-wallets" component={HotWallets} />
+        <Route path="/admin/hot-wallet-management" component={HotWalletManagement} />
         <Route path="/admin/logs" component={TransactionLogs} />
         <Route path="/admin/users" component={UsersManagement} />
         <Route path="/admin/kyc-review" component={KYCReview} />

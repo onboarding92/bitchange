@@ -282,7 +282,7 @@ export const networks = mysqlTable("networks", {
 // Hot Wallet System Tables
 export const masterWallets = mysqlTable("masterWallets", {
   id: int("id").autoincrement().primaryKey(),
-  network: varchar("network", { length: 50 }).notNull().unique(), // BTC, ETH, TRX, BNB, SOL, MATIC
+  network: varchar("network", { length: 50 }).notNull(), // BTC, ETH, TRX, BNB, SOL, MATIC
   asset: varchar("asset", { length: 20 }).notNull(), // BTC, ETH, USDT, USDC, etc.
   address: varchar("address", { length: 255 }).notNull(),
   encryptedPrivateKey: text("encryptedPrivateKey").notNull(), // AES-256 encrypted

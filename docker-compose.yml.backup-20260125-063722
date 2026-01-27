@@ -13,8 +13,8 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-changeThisPassword}
     volumes:
       - db_data:/var/lib/mysql
-    # ports:
-    #   - "3306:3306"  # ❌ SECURITY: Database port removed from public exposure
+    ports:
+      - "3306:3306"
     networks:
       - bitchange-network
     healthcheck:

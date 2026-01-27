@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
-import { ArrowDownRight, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ArrowDownRight, CheckCircle2, Clock, XCircle, Copy, AlertTriangle, Info, ArrowLeft } from "lucide-react";
 
 const PAYMENT_GATEWAYS = [
+  { id: "bank_transfer", name: "Bank Transfer (EUR)", description: "Instant SEPA transfer via Sunrise" },
   { id: "changenow", name: "ChangeNOW", description: "Fast crypto exchange" },
   { id: "simplex", name: "Simplex", description: "Buy crypto with card" },
   { id: "moonpay", name: "MoonPay", description: "Popular payment gateway" },
@@ -20,6 +21,14 @@ const PAYMENT_GATEWAYS = [
   { id: "changelly", name: "Changelly", description: "Crypto exchange platform" },
   { id: "banxa", name: "Banxa", description: "Regulated payment gateway" },
 ];
+
+const BANK_DETAILS = {
+  accountName: "Sunrise",
+  iban: "DE37202208000044326855",
+  bankName: "Banking Circle - German Branch",
+  bankAddress: "Biedersteiner Str. 6, 80333 München",
+  bic: "SXPYDEHHXXX",
+};
 
 export default function Deposit() {
   const [selectedGateway, setSelectedGateway] = useState<string>("");
@@ -52,11 +61,20 @@ export default function Deposit() {
     }
   }, [depositAddress]);
 
-  const copyAddress = () => {
-    if (depositAddress?.address) {
-      navigator.clipboard.writeText(depositAddress.address);
-      toast.success("Address copied to clipboard");
-    }
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+  };
+
+  const copyAllBankDetails = () => {
+    const allDetails = `Account Name: ${BANK_DETAILS.accountName}
+IBAN: ${BANK_DETAILS.iban}
+Bank Name: ${BANK_DETAILS.bankName}
+Bank Address: ${BANK_DETAILS.bankAddress}
+BIC: ${BANK_DETAILS.bic}`;
+    
+    navigator.clipboard.writeText(allDetails);
+    toast.success("All bank details copied to clipboard");
   };
 
   const { data: deposits, refetch } = trpc.deposit.list.useQuery();
@@ -189,10 +207,8 @@ export default function Deposit() {
                     <span className="text-sm font-medium">Deposit Address</span>
                     <div className="flex items-center gap-2">
                       <Input value={depositAddress.address} readOnly className="font-mono text-xs" />
-                      <Button size="icon" variant="outline" onClick={copyAddress}>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
+                      <Button size="icon" variant="outline" onClick={() => copyToClipboard(depositAddress.address, "Address")}>
+                        <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -217,30 +233,220 @@ export default function Deposit() {
         </Card>
 
         {/* Payment Gateways */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Select Payment Method</h2>
-          <div className="grid gap-4 md:grid-cols-4">
-            {PAYMENT_GATEWAYS.map((gateway) => (
-              <Card
-                key={gateway.id}
-                className={`glass cursor-pointer transition-all ${
-                  selectedGateway === gateway.id
-                    ? "border-primary ring-2 ring-primary"
-                    : "border-border/50 hover:border-primary/50"
-                }`}
-                onClick={() => setSelectedGateway(gateway.id)}
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">{gateway.name}</CardTitle>
-                  <CardDescription className="text-xs">{gateway.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+        {!selectedGateway && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Select Payment Method</h2>
+            <div className="grid gap-4 md:grid-cols-4">
+              {PAYMENT_GATEWAYS.map((gateway) => (
+                <Card
+                  key={gateway.id}
+                  className="glass cursor-pointer transition-all border-border/50 hover:border-primary/50"
+                  onClick={() => setSelectedGateway(gateway.id)}
+                >
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">{gateway.name}</CardTitle>
+                    <CardDescription className="text-xs">{gateway.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Deposit Form */}
-        {selectedGateway && (
+        {/* Bank Transfer - Kraken Style */}
+        {selectedGateway === "bank_transfer" && (
+          <Card className="glass">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Bank Transfer (EUR) - Sunrise</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedGateway("")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Change Method
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Warning Boxes */}
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                      The name on your bank account must match the name on your BitChange account
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Deposits from accounts with different names will be rejected and returned (minus any fees).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                      Do not deposit from a business bank account
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Business account deposits are not supported and will be returned (minus any fees).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Your Deposit Details */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Your deposit details</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyAllBankDetails}
+                    className="gap-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy all
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Account Name */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-1">Account name</p>
+                      <p className="font-mono font-medium">{BANK_DETAILS.accountName}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(BANK_DETAILS.accountName, "Account name")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* IBAN */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-1">IBAN</p>
+                      <p className="font-mono font-medium text-sm">{BANK_DETAILS.iban}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(BANK_DETAILS.iban, "IBAN")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Bank Name */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-1">Bank name</p>
+                      <p className="font-mono font-medium text-sm">{BANK_DETAILS.bankName}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(BANK_DETAILS.bankName, "Bank name")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Bank Address */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-1">Bank address</p>
+                      <p className="font-mono font-medium text-sm">{BANK_DETAILS.bankAddress}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(BANK_DETAILS.bankAddress, "Bank address")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* BIC */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-1">BIC</p>
+                      <p className="font-mono font-medium">{BANK_DETAILS.bic}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(BANK_DETAILS.bic, "BIC")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="space-y-4">
+                <h3 className="text-base font-semibold">Additional information</h3>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Funding provider</p>
+                    <p className="font-medium">Sunrise</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Processing time</p>
+                    <p className="font-medium">Instant</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Fee</p>
+                    <p className="font-medium">0.00€</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Minimum deposit</p>
+                    <p className="font-medium">1.00€</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50 md:col-span-2">
+                    <p className="text-xs text-muted-foreground mb-1">Maximum deposit</p>
+                    <p className="font-medium">No limit</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info Notice */}
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
+                    Important Notice
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Sunrise is our funding provider for Italian accounts. The deposit is totally safe and instant. 
+                    After making the transfer, your funds will be credited to your BitChange account automatically.
+                  </p>
+                </div>
+              </div>
+
+              {/* Select Another Method Button */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setSelectedGateway("")}
+              >
+                Select another deposit method
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Other Payment Gateways Deposit Form */}
+        {selectedGateway && selectedGateway !== "bank_transfer" && (
           <Card className="glass">
             <CardHeader>
               <CardTitle>Deposit Details</CardTitle>

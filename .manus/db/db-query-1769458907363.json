@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO masterWallets (network, asset, address, encryptedPrivateKey, balance, isActive, createdAt, updatedAt)\nVALUES \n('SOL', 'SOL', 'HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx', '0274bc3cec1bd61598999f6d101487d7:2f2eb1a55b22a2caee85703e948c45b5b06c818fed42587b8e8c74ff6560b0c00585033f5cd5885130533e23b07938a8', 0, 1, NOW(), NOW()),\n('SOL', 'USDT', 'HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx', 'f578e0980b725417aaf749fcbbef18dc:e98e5f4f5456a434380a919db5646d74bb87bbef3c3ab5dab231f207502437759d696e98b4016ae96a788776ab80f171', 0, 1, NOW(), NOW()),\n('SOL', 'USDC', 'HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx', '7c7011051ede47fac7444cd7f4651c9a:6a67b30c7b2929fa7b50e8ef3b95a2a9eabf2b66f61f4f8b3f6818d92d620a510c46d1da0fd8e8f15c93f9551bec814f', 0, 1, NOW(), NOW());",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aWjhfbeBkmgUMg.1790615068b8 --database FenoDFTe3iiSMa7Tn3huSZ --execute INSERT INTO masterWallets (network, asset, address, encryptedPrivateKey, balance, isActive, createdAt, updatedAt)\nVALUES \n('SOL', 'SOL', 'HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx', '0274bc3cec1bd61598999f6d101487d7:2f2eb1a55b22a2caee85703e948c45b5b06c818fed42587b8e8c74ff6560b0c00585033f5cd5885130533e23b07938a8', 0, 1, NOW(), NOW()),\n('SOL', 'USDT', 'HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx', 'f578e0980b725417aaf749fcbbef18dc:e98e5f4f5456a434380a919db5646d74bb87bbef3c3ab5dab231f207502437759d696e98b4016ae96a788776ab80f171', 0, 1, NOW(), NOW()),\n('SOL', 'USDC', 'HedtRysVWjGRgpB8rPfXJagaPqZUi2p5B8QDmaUcTpJx', '7c7011051ede47fac7444cd7f4651c9a:6a67b30c7b2929fa7b50e8ef3b95a2a9eabf2b66f61f4f8b3f6818d92d620a510c46d1da0fd8e8f15c93f9551bec814f', 0, 1, NOW(), NOW());",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 366
+}

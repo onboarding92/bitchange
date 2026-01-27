@@ -13,11 +13,13 @@ export default function StakingManagement() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { data: positions, isLoading } = trpc.admin.getAllStakingPositions.useQuery();
-  const { data: users } = trpc.admin.getUsers.useQuery();
+  const { data: usersData } = trpc.admin.users.useQuery({ limit: 1000 });
+  const users = usersData?.users || [];
   const { data: plans } = trpc.admin.getStakingPlans.useQuery();
 
   // Create user lookup map
-  const userMap = new Map(users?.map((u) => [u.id, u]) || []);
+  type User = typeof users[number];
+  const userMap = new Map<number, User>(users.map((u) => [u.id, u]));
   const planMap = new Map(plans?.map((p) => [p.id, p]) || []);
 
   // Filter positions

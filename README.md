@@ -294,20 +294,37 @@ pnpm test server/email.test.ts
 - Staking and referral programs
 - Performance optimized (95% bundle reduction)
 
-### 🚀 Recent Updates (Dec 19, 2025)
+### 🚀 Recent Updates (Jan 27, 2026)
 
-#### Phase 5: Authentication & Performance
-- ✅ **Fixed critical authentication bug**: Added cookie-parser middleware for session management
-- ✅ **Fixed logout redirect**: Now properly redirects to `/auth/login`
-- ✅ **Fixed homepage navigation**: All buttons (Sign In, Get Started, View Markets) working correctly
-- ✅ **Performance optimization**: Implemented lazy loading and code-splitting
-  * 95% reduction in initial bundle size (1.3MB → 36KB)
-  * React.lazy() for all non-critical pages
-  * Vite manualChunks for vendor splitting
-  * Loading spinner for lazy-loaded routes
-- ✅ **Verified TradingView charts**: Working perfectly in production with RSI, volume, and timeframe controls
-- ✅ **Verified SendGrid emails**: All 6 email templates tested and working
-- ✅ **Deployed to production**: All fixes and optimizations live on bitchangemoney.xyz
+#### Phase 8: Security Hardening & Hot Wallet Management
+- ✅ **Security hardening after ransomware attack**:
+  * Closed MySQL port 3306 to external access
+  * Configured UFW firewall (allow 22, 80, 443 only)
+  * Installed fail2ban for brute-force protection
+  * Generated strong passwords for all services
+  * Implemented SSL/TLS encryption
+  * Configured automated encrypted backups (daily at 2AM)
+- ✅ **Wallet system rebuilt**: Generated 15 new crypto wallets with AES-256 encryption
+  * ETH, BNB, MATIC, TRX, BTC, SOL networks
+  * USDT and USDC stablecoins on all networks
+  * Private keys exported and secured
+- ✅ **Bank Transfer (EUR) deposit method**: Kraken-style IBAN interface
+  * German IBAN: DE37202208000044326855
+  * Banking Circle - Sunrise provider
+  * Instant processing, 0€ fee, 1€ minimum
+- ✅ **Email notifications**: SendGrid fully configured
+  * API key: SG.6HwM03hjQpeNSuYYJP0Iyg...
+  * From: bitmoney47@gmail.com
+  * To: Sistemavincente02@libero.it
+  * All events: deposits, withdrawals, KYC, bank transfers
+- ✅ **Hot Wallet Dashboard**: Real-time blockchain balance monitoring
+  * Live balances for all 15 wallets
+  * Supports ETH, BNB, MATIC, TRX, BTC, SOL networks
+  * Admin-only access with refresh functionality
+- ✅ **TypeScript improvements**: Reduced errors from 38 to 28
+- ✅ **CoinGecko rate limiting**: Reduced API calls by 60% (2min → 5min polling)
+- ✅ **Transaction Logs page**: Fixed duplicate container and layout issues
+- ✅ **Comprehensive documentation**: 3 manuals (User, Admin, Developer) with 45,000+ words total
 
 ### 🔧 Technical Improvements
 - Added cookie-parser middleware for proper session cookie handling
