@@ -219,8 +219,23 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-12 border-t border-border">
-        <div className="container text-center text-muted-foreground">
-          <p>© 2024 BitChange Pro. Professional Cryptocurrency Exchange.</p>
+        <div className="container">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <p>© 2026 BitChange Pro. Professional Cryptocurrency Exchange.</p>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link href="/privacy-policy" className="hover:text-foreground transition-colors">
+                Privacy Policy
+              </Link>
+              <span className="text-border">•</span>
+              <Link href="/terms-of-service" className="hover:text-foreground transition-colors">
+                Terms of Service
+              </Link>
+              <span className="text-border">•</span>
+              <Link href="/cookie-policy" className="hover:text-foreground transition-colors">
+                Cookie Policy
+              </Link>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

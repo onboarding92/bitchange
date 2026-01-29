@@ -47,6 +47,9 @@ const SupportTickets = lazy(() => import("./pages/admin/SupportTickets"));
 const WithdrawalApproval = lazy(() => import("./pages/admin/WithdrawalApproval"));
 const Alerts = lazy(() => import("./pages/Alerts"));
 const Convert = lazy(() => import("./pages/Convert"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 
 // Loading fallback component
 function PageLoader() {
@@ -100,9 +103,10 @@ function Router() {
         <Route path="/admin/deposits" component={DepositManagement} />
         <Route path="/admin/staking" component={StakingManagement} />
         <Route path="/admin/support-tickets" component={SupportTickets} />
-        <Route path="/admin/withdrawal-approval" component={WithdrawalApproval} />
-        <Route path="/admin/analytics" component={AdminAnalytics} />
-        <Route path="/404" component={NotFound} />
+        <Route path="/admin/withdrawals" component={WithdrawalApproval} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms-of-service" component={TermsOfService} />
+        <Route path="/cookie-policy" component={CookiePolicy} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
