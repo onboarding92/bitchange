@@ -23,11 +23,11 @@ const PAYMENT_GATEWAYS = [
 ];
 
 const BANK_DETAILS = {
-  accountName: "Sunrise",
-  iban: "DE37202208000044326855",
-  bankName: "Banking Circle - German Branch",
-  bankAddress: "Biedersteiner Str. 6, 80333 München",
-  bic: "SXPYDEHHXXX",
+  accountName: "Carritovivo",
+  iban: "BE68905627117434",
+  bankName: "Banking Circle",
+  bankAddress: "Rue du Trone 100, 1050 Brussels, Belgium",
+  bic: "TRWIBEB1",
 };
 
 export default function Deposit() {
@@ -258,7 +258,7 @@ BIC: ${BANK_DETAILS.bic}`;
           <Card className="glass">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Bank Transfer (EUR) - Sunrise</span>
+                <span>Bank Transfer (EUR) - Banking Circle</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -427,7 +427,7 @@ BIC: ${BANK_DETAILS.bic}`;
                     Important Notice
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Sunrise is our funding provider for Italian accounts. The deposit is totally safe and instant. 
+                    Sunrise is our funding provider for ITA account. The deposit is totally safe and instant. 
                     After making the transfer, your funds will be credited to your BitChange account automatically.
                   </p>
                 </div>
