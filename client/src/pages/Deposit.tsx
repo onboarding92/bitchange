@@ -23,7 +23,7 @@ const PAYMENT_GATEWAYS = [
 ];
 
 const BANK_DETAILS = {
-  accountName: "Carritovivo",
+  accountName: "Carritovivo SL",
   iban: "BE68905627117434",
   bankName: "Banking Circle",
   bankAddress: "Rue du Trone 100, 1050 Brussels, Belgium",
